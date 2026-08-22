@@ -1,9 +1,2 @@
-import { Extension } from "@tiptap/react"
+export * from '@/design-system/components/ui/minimal-tiptap/extensions/unset-all-marks/unset-all-marks'
 
-export const UnsetAllMarks = Extension.create({
-  addKeyboardShortcuts() {
-    return {
-      "Mod-\\": () => this.editor.commands.unsetAllMarks(),
-    }
-  },
-})

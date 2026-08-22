@@ -1,1 +1,2 @@
-export * from "./unset-all-marks"
+export * from '@/design-system/components/ui/minimal-tiptap/extensions/unset-all-marks/index'
+

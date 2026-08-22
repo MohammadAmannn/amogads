@@ -24,7 +24,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@/design-system/*": ["./src/design-system/*"]
     },
     "allowJs": true,
     "esModuleInterop": true

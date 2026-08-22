@@ -1,2 +1,2 @@
-export * from "./markdown-paste"
+export * from '@/design-system/components/ui/minimal-tiptap/extensions/markdown-paste/index'
 
