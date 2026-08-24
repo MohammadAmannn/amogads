@@ -1,6 +1,9 @@
 {
-  "name": "@amoga/ui",
-  "version": "1.0.0",
+  "name": "@mohdaman/ui",
+  "version": "1.0.1",
+
+
+
   "description": "Central Design System for Amoga applications",
   "private": false,
   "main": "./dist/index.js",
@@ -24,8 +27,8 @@
     "README.md"
   ],
   "publishConfig": {
-    "access": "restricted",
-    "registry": "https://npm.pkg.github.com"
+    "access": "public",
+    "registry":"https://registry.npmjs.org"
   },
   "scripts": {
     "dev": "next dev --turbo",

@@ -1,33 +1,27 @@
-# AmogaDS — Central Design System (`@amoga/ui`)
+# AmogaDS — Central Design System (`@mohdaman/ui`)
 
 Welcome to the **Amoga Design System (AmogaDS)** repository. This repository serves two unified purposes:
-1. **Source of Truth for `@amoga/ui`**: A centralized, versioned design system package containing design tokens, atomic UI primitives, reusable business patterns, and page templates.
+1. **Source of Truth for `@mohdaman/ui`**: A centralized, versioned design system package containing design tokens, atomic UI primitives, reusable business patterns, and page templates published directly to the public [NPM Registry](https://www.npmjs.com/package/@mohdaman/ui).
 2. **Interactive Component Gallery**: A live Next.js documentation and preview application for exploring components, states, responsive viewports, and theme variants.
 
 ---
 
-## 📦 Consuming `@amoga/ui` in Next.js Applications
+## 📦 Consuming `@mohdaman/ui` in Next.js Applications
 
-### 1. Configure Package Registry
-Add `@amoga` scope to your project's `.npmrc`:
-```ini
-@amoga:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
-```
-
-### 2. Install Package
+### 1. Install Package
+Install directly from NPM into any Next.js (or React) project:
 ```bash
-npm install @amoga/ui
+npm install @mohdaman/ui
 ```
 
-### 3. Import Theme & Styles
+### 2. Import Theme & Styles
 In your global stylesheet (`app/globals.css` or `src/styles/index.css`):
 ```css
 @import "tailwindcss";
-@import "@amoga/ui/theme.css";
+@import "@mohdaman/ui/theme.css";
 ```
 
-### 4. Consume Components in Code
+### 3. Consume Components in Code
 ```tsx
 import { 
   Button, 
@@ -35,7 +29,7 @@ import {
   DataTable, 
   StatusBadge, 
   ListTemplate 
-} from '@amoga/ui'
+} from '@mohdaman/ui'
 
 export default function UsersPage() {
   return (
@@ -71,10 +65,10 @@ src/
 
 | Layer | Subpath / Export | Examples |
 |---|---|---|
-| **Tokens** | `@amoga/ui/tokens`<br/>`@amoga/ui/theme.css` | `SEMANTIC_TOKENS`, `CHART_TOKENS`, `SIDEBAR_TOKENS`, CSS custom properties |
-| **Primitives** | `@amoga/ui` | `Button`, `Input`, `Card`, `Table`, `Tabs`, `Dialog`, `Sheet`, `Drawer`, `Select`, `Checkbox`, `RadioGroup`, `Slider`, `Switch`, `Badge`, `Avatar`, `Breadcrumb`, `DropdownMenu`, `Popover`, `Tooltip`, `Command`, `ContextMenu`, `Pagination`, `Progress`, `ScrollArea`, `Skeleton`, `Sonner`, `Toaster`, `Spinner`, `Textarea`, `Toggle`, `Kbd`, `Label`, `Empty`, `Field`, `Form`, `InputGroup`, `InputOTP` |
-| **Business Components** | `@amoga/ui` | `PageHeader`, `DataTable`, `StatusBadge`, `FilterBar`, `FormSection`, `MetricCard`, `ConfirmDialog`, `PasswordInput`, `SignOutDialog`, `ThemeSwitch`, `ThemeSelector`, `SelectDropdown`, `LongText`, `Search`, `Stats01`, `DatePicker`, `QrCodeDisplay` |
-| **Page Templates** | `@amoga/ui` | `ListTemplate`, `DetailTemplate`, `FormTemplate`, `WizardTemplate`, `DashboardTemplate`, `WorkspaceTemplate` |
+| **Tokens** | `@mohdaman/ui/tokens`<br/>`@mohdaman/ui/theme.css` | `SEMANTIC_TOKENS`, `CHART_TOKENS`, `SIDEBAR_TOKENS`, CSS custom properties |
+| **Primitives** | `@mohdaman/ui` | `Button`, `Input`, `Card`, `Table`, `Tabs`, `Dialog`, `Sheet`, `Drawer`, `Select`, `Checkbox`, `RadioGroup`, `Slider`, `Switch`, `Badge`, `Avatar`, `Breadcrumb`, `DropdownMenu`, `Popover`, `Tooltip`, `Command`, `ContextMenu`, `Pagination`, `Progress`, `ScrollArea`, `Skeleton`, `Sonner`, `Toaster`, `Spinner`, `Textarea`, `Toggle`, `Kbd`, `Label`, `Empty`, `Field`, `Form`, `InputGroup`, `InputOTP` |
+| **Business Components** | `@mohdaman/ui` | `PageHeader`, `DataTable`, `StatusBadge`, `FilterBar`, `FormSection`, `MetricCard`, `ConfirmDialog`, `PasswordInput`, `SignOutDialog`, `ThemeSwitch`, `ThemeSelector`, `SelectDropdown`, `LongText`, `Search`, `Stats01`, `DatePicker`, `QrCodeDisplay` |
+| **Page Templates** | `@mohdaman/ui` | `ListTemplate`, `DetailTemplate`, `FormTemplate`, `WizardTemplate`, `DashboardTemplate`, `WorkspaceTemplate` |
 
 ---
 
@@ -91,7 +85,7 @@ npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) to view the live component catalog and responsive viewports.
 
-### 3. Build Distribution Package (`@amoga/ui`)
+### 3. Build Distribution Package (`@mohdaman/ui`)
 ```bash
 npm run build:package
 ```
@@ -106,6 +100,11 @@ npm run build
 ```bash
 npm run typecheck
 npm run lint
+```
+
+### 6. Publish to NPM
+```bash
+npm publish --access public
 ```
 
 ---
@@ -138,17 +137,17 @@ Triggered via GitHub Actions Workflow Dispatch:
 2. Pipeline validates codebase and executes `npm run build:package`.
 3. Bumps version in `package.json` according to semantic versioning.
 4. Generates Git release tag (e.g. `v1.0.0`) and GitHub Release notes.
-5. Publishes `@amoga/ui` to GitHub Packages registry.
+5. Publishes `@mohdaman/ui` to NPM Registry.
 6. Automatically triggers cross-repository upgrade PRs across registered consumer apps.
 
 ---
 
-##   Cross-Repository Upgrade Automation
+## 🤖 Cross-Repository Upgrade Automation
 
-AmogaDS provides a fully controlled, automated cross-repository dependency upgrade pipeline to keep all consuming applications up to date with `@amoga/ui` releases without risk of accidental code overwrites or regressions.
+AmogaDS provides a fully controlled, automated cross-repository dependency upgrade pipeline to keep all consuming applications up to date with `@mohdaman/ui` releases without risk of accidental code overwrites or regressions.
 
 ```
-@amoga/ui Release Published (e.g. v1.4.0)
+@mohdaman/ui Release Published (e.g. v1.4.0)
   ↓
 Discover Registered Apps in consumers-registry.json
   ↓
@@ -177,7 +176,7 @@ npm run consumers:status
 **Live Output Example**:
 ```text
 ===============================================================
-  🌟 AmogaDS (@amoga/ui) Central Consumer Tracker
+  🌟 AmogaDS (@mohdaman/ui) Central Consumer Tracker
   📦 Current Design System Version: v1.0.0
 ===============================================================
 
@@ -195,7 +194,7 @@ npm run consumers:status
 
 ### 2. How to Register a New Consuming Application
 
-To register a new Next.js application for automated `@amoga/ui` upgrades, add an entry to [`consumers-registry.json`](consumers-registry.json):
+To register a new Next.js application for automated `@mohdaman/ui` upgrades, add an entry to [`consumers-registry.json`](consumers-registry.json):
 
 ```json
 {
@@ -256,13 +255,13 @@ If an issue is discovered after merging an upgrade:
 
 ```bash
 # 1. Revert to previous stable version
-npm install @amoga/ui@<PREVIOUS_VERSION>
+npm install @mohdaman/ui@<PREVIOUS_VERSION>
 
 # 2. Re-build and verify
 npm run build
 
 # 3. Commit and push
-git commit -am "fix: rollback @amoga/ui to v<PREVIOUS_VERSION>"
+git commit -am "fix: rollback @mohdaman/ui to v<PREVIOUS_VERSION>"
 git push origin main
 ```
 
@@ -280,5 +279,3 @@ Comprehensive documentation is available in the [ux/](ux/) directory:
 - [AI Development Guidelines](ux/AI-DEVELOPMENT-GUIDELINES.md)
 - [Design System Rules](ux/design-rules.md)
 - [Token Specifications](ux/token-specifications.md)
-
-
