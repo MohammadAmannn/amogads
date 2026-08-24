@@ -15,11 +15,16 @@ npm install @mohdaman/ui
 ```
 
 ### 2. Import Theme & Styles
-In your global stylesheet (`app/globals.css` or `src/styles/index.css`):
+In your global stylesheet (`app/globals.css` or `src/styles/globals.css`):
 ```css
 @import "tailwindcss";
 @import "@mohdaman/ui/theme.css";
+
+/* Tell Tailwind CSS v4 to scan compiled package classes */
+@source "../node_modules/@mohdaman/ui/dist";
 ```
+
+> 📖 **Full Developer Integration Guide**: For complete setup, dark mode, component examples, and templates, see [HOW-TO-USE.md](HOW-TO-USE.md).
 
 ### 3. Consume Components in Code
 ```tsx
@@ -269,8 +274,9 @@ git push origin main
 
 ## 📚 UX & Architectural Documentation
 
-Comprehensive documentation is available in the [ux/](ux/) directory:
+Comprehensive documentation is available in the repository:
 
+- [Developer How-To-Use Guide](HOW-TO-USE.md)
 - [Cross-Repository Upgrade Automation Guide](ux/UPGRADE-AUTOMATION.md)
 - [Design System Architecture & Boundaries](ux/DESIGN-SYSTEM.md)
 - [UX Guidelines & Interaction Foundations](ux/UX-GUIDELINES.md)
