@@ -36,6 +36,9 @@ export function QrCodeDisplay({ value, size = 140, className }: QrCodeDisplayPro
   )
 }
 
+export const QRCodeDisplay = QrCodeDisplay
+export type { QrCodeDisplayProps, QrCodeDisplayProps as QRCodeDisplayProps }
+
 export async function downloadQrCode(value: string, filename: string, size = 400) {
   if (!value) return
 

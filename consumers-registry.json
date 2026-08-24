@@ -1,0 +1,37 @@
+{
+  "$schema": "./consumers-registry.schema.json",
+  "version": "1.0.0",
+  "description": "Central registry of consuming applications receiving automated @amoga/ui upgrade PRs",
+  "consumers": [
+    {
+      "id": "shadcn-admin-pilot",
+      "name": "Shadcn Admin Pilot App",
+      "repository": "MohammadAmannn/shadcn-admin",
+      "defaultBranch": "main",
+      "packagePath": "package.json",
+      "currentVersion": "1.0.0",
+      "targetVersion": "1.0.0",
+      "updateStatus": "up-to-date",
+      "automationStatus": "enabled",
+      "team": "@amoga-admin",
+      "lastCheckedAt": "2026-08-24T11:00:00Z",
+      "lastUpgradedAt": "2026-08-24T11:00:00Z",
+      "activePrUrl": null
+    },
+    {
+      "id": "amoga-analytics-portal",
+      "name": "Amoga Analytics Portal",
+      "repository": "MohammadAmannn/amoga-analytics",
+      "defaultBranch": "main",
+      "packagePath": "package.json",
+      "currentVersion": "1.0.0",
+      "targetVersion": "1.0.0",
+      "updateStatus": "up-to-date",
+      "automationStatus": "enabled",
+      "team": "@amoga-analytics-team",
+      "lastCheckedAt": "2026-08-24T11:00:00Z",
+      "lastUpgradedAt": "2026-08-24T11:00:00Z",
+      "activePrUrl": null
+    }
+  ]
+}

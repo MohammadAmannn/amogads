@@ -10,8 +10,8 @@ src/
 │   ├── tokens/               ← Theme CSS vars, SCSS primitive variables, animation keyframes
 │   ├── components/
 │   │   ├── ui/               ← Atomic shadcn/ui primitive components (Button, Input, Card, etc.)
-│   │   └── business/         ← Multi-app reusable business components (ConfirmDialog, PasswordInput, etc.)
-│   ├── templates/            ← Reusable layout templates (AppSidebar, NavUser, Header, Main, etc.)
+│   │   └── business/         ← Multi-app reusable business components (PageHeader, DataTable, StatusBadge, etc.)
+│   ├── templates/            ← Reusable layout templates (List, Detail, Form, Wizard, Dashboard, Workspace)
 │   └── index.ts              ← Unified Design System barrel export (@/design-system)
 │
 ├── ux/                       ← Design rules, token specs, and usage guidelines
@@ -21,8 +21,12 @@ src/
 └── features/                 ← Feature areas, gallery, previews, auth, message, dashboard, etc.
 ```
 
-## Quick References
+## Documentation Index
 
-- [Design System Rules](./design-rules.md)
+- [Design System Architecture & Boundaries](./DESIGN-SYSTEM.md)
+- [UX Guidelines & Interaction Foundations](./UX-GUIDELINES.md)
+- [Component Guidelines & Taxonomy](./COMPONENT-GUIDELINES.md)
+- [Page Guidelines & Template Specifications](./PAGE-GUIDELINES.md)
+- [AI Development Guidelines](./AI-DEVELOPMENT-GUIDELINES.md)
+- [Design Rules](./design-rules.md)
 - [Token Specifications](./token-specifications.md)
-- [Component Guidelines](./component-guidelines.md)

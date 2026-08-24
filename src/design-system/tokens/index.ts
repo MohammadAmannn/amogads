@@ -20,10 +20,21 @@ export const SEMANTIC_TOKENS = {
   accent: 'var(--accent)',
   accentForeground: 'var(--accent-foreground)',
   destructive: 'var(--destructive)',
+  destructiveForeground: 'var(--destructive-foreground)',
+  success: 'var(--success)',
+  successForeground: 'var(--success-foreground)',
+  warning: 'var(--warning)',
+  warningForeground: 'var(--warning-foreground)',
+  info: 'var(--info)',
+  infoForeground: 'var(--info-foreground)',
   border: 'var(--border)',
   input: 'var(--input)',
   ring: 'var(--ring)',
   radius: 'var(--radius)',
+  radiusSm: 'var(--radius-sm)',
+  radiusMd: 'var(--radius-md)',
+  radiusLg: 'var(--radius-lg)',
+  radiusXl: 'var(--radius-xl)',
 } as const
 
 export const CHART_TOKENS = {

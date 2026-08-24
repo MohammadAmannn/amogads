@@ -14,7 +14,11 @@
 | `--muted` | `oklch(0.968 ...)` | `oklch(0.279 ...)` | Muted background surfaces |
 | `--muted-foreground` | `oklch(0.554 ...)` | `oklch(0.704 ...)` | Subtitle & secondary text |
 | `--destructive` | `oklch(0.577 ...)` | `oklch(0.704 ...)` | Danger & destructive actions |
+| `--success` | `oklch(0.627 ...)` | `oklch(0.627 ...)` | Positive states, approvals |
+| `--warning` | `oklch(0.769 ...)` | `oklch(0.769 ...)` | Non-blocking alerts, cautions |
+| `--info` | `oklch(0.58 ...)` | `oklch(0.58 ...)` | Information callouts |
 | `--border` | `oklch(0.929 ...)` | `oklch(1 0 0 / 10%)` | Component borders |
+| `--input` | `oklch(0.929 ...)` | `oklch(1 0 0 / 15%)` | Form input borders |
 | `--ring` | `oklch(0.704 ...)` | `oklch(0.551 ...)` | Focus ring outline |
 
 ## Radius Token Scale
