@@ -41,8 +41,8 @@
             "enum": ["enabled", "disabled", "paused"]
           },
           "team": { "type": "string" },
-          "lastCheckedAt": { "type": "string" },
-          "lastUpgradedAt": { "type": "string" },
+          "lastCheckedAt": { "type": ["string", "null"] },
+          "lastUpgradedAt": { "type": ["string", "null"] },
           "activePrUrl": { "type": ["string", "null"] }
         }
       }
