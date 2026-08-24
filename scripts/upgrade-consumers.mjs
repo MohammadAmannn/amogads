@@ -1,17 +1,18 @@
 #!/usr/bin/env node
 
 /**
- * Controlled Cross-Repository Upgrade Engine for @amoga/ui
+ * Controlled Cross-Repository Upgrade Engine for @mohdaman/ui
  *
  * Enforces:
  * 1. Only package.json and lockfile modification
  * 2. Strict protection of app/, features/, components/custom/, API, state code
  * 3. Machine-readable consumers registry update
- * 4. PR creation template with release notes, CI checklist, and rollback steps
+ * 4. Automatic PR creation via GitHub REST API
  */
 
 import fs from 'fs'
 import path from 'path'
+import os from 'os'
 import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 
@@ -29,9 +30,13 @@ if (!fs.existsSync(registryPath) || !fs.existsSync(amogaPackagePath)) {
 const registry = JSON.parse(fs.readFileSync(registryPath, 'utf-8'))
 const amogaPackage = JSON.parse(fs.readFileSync(amogaPackagePath, 'utf-8'))
 const targetVersion = process.env.TARGET_VERSION || amogaPackage.version
-const releaseNotes = process.env.RELEASE_NOTES || `Automated upgrade to @amoga/ui@${targetVersion}`
+const releaseNotes = process.env.RELEASE_NOTES || `Automated upgrade to @mohdaman/ui@${targetVersion}`
+const token = process.env.APP_TOKEN || process.env.GITHUB_TOKEN
 
-console.log(`🚀 Starting Cross-Repository Upgrade for @amoga/ui@${targetVersion}`)
+console.log(`\n===============================================================`)
+console.log(`  🚀 AmogaDS (@mohdaman/ui) Automated Cross-Repo Upgrade Engine`)
+console.log(`  📦 Target Design System Version: v${targetVersion}`)
+console.log(`===============================================================\n`)
 
 /**
  * Generate PR Description Body with safety warnings, validation checklist, and rollback commands
@@ -42,8 +47,7 @@ export function generatePrBody({ appName, currentVersion, newVersion, releaseNot
     ? `> [!WARNING]\n> **MAJOR VERSION UPGRADE**: This release may contain breaking changes or deprecated API removals. Review the migration guide carefully before merging.`
     : `> [!NOTE]\n> **Backwards-Compatible Release**: This upgrade introduces fixes and new features with zero breaking changes to existing APIs.`
 
-  return `
-## 📦 AmogaDS Central Upgrade: \`@amoga/ui@${newVersion}\`
+  return `## 📦 AmogaDS Central Upgrade: \`@mohdaman/ui@${newVersion}\`
 
 Automated dependency upgrade for **${appName}**.
 
@@ -82,7 +86,7 @@ Before merging this PR:
 If any regression is discovered after merging or deploying:
 \`\`\`bash
 # Revert to previous stable version
-npm install @amoga/ui@${currentVersion}
+npm install @mohdaman/ui@${currentVersion}
 npm run build
 \`\`\`
 `
@@ -107,5 +111,138 @@ export function validateFileModifications(modifiedFiles) {
   }
 }
 
-// Export for GitHub Actions Workflow & Testing
-export { registry, targetVersion }
+async function runUpgrade() {
+  if (!token) {
+    console.warn(`⚠️ Warning: No GitHub Token provided (APP_TOKEN or GITHUB_TOKEN). PR creation via GitHub API will be skipped.`)
+  }
+
+  let updatedRegistry = false
+
+  for (const consumer of registry.consumers) {
+    if (consumer.automationStatus !== 'enabled') {
+      console.log(`⏭️ Skipping ${consumer.name} (${consumer.repository}): automation is ${consumer.automationStatus}`)
+      continue
+    }
+
+    if (consumer.currentVersion === targetVersion) {
+      console.log(`✅ ${consumer.name} is already at target version v${targetVersion}`)
+      continue
+    }
+
+    console.log(`\n🔄 Processing ${consumer.name} (${consumer.repository})...`)
+    const branchName = `chore/upgrade-amoga-ui-v${targetVersion}`
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'amogads-upgrade-'))
+
+    try {
+      // 1. Clone consumer repository
+      const repoUrl = token
+        ? `https://x-access-token:${token}@github.com/${consumer.repository}.git`
+        : `https://github.com/${consumer.repository}.git`
+
+      console.log(`  📥 Cloning repository ${consumer.repository}...`)
+      execSync(`git clone --depth 1 --branch ${consumer.defaultBranch || 'main'} ${repoUrl} "${tempDir}"`, {
+        stdio: 'pipe',
+      })
+
+      // 2. Configure git user & checkout upgrade branch
+      execSync(`git config user.name "AmogaDS Bot"`, { cwd: tempDir })
+      execSync(`git config user.email "bot@amogads.dev"`, { cwd: tempDir })
+      execSync(`git checkout -B ${branchName}`, { cwd: tempDir })
+
+      // 3. Update package.json
+      const consumerPkgPath = path.join(tempDir, consumer.packagePath || 'package.json')
+      if (!fs.existsSync(consumerPkgPath)) {
+        console.error(`  ❌ package.json not found at ${consumerPkgPath}`)
+        continue
+      }
+
+      const consumerPkg = JSON.parse(fs.readFileSync(consumerPkgPath, 'utf-8'))
+      if (consumerPkg.dependencies && consumerPkg.dependencies['@mohdaman/ui']) {
+        consumerPkg.dependencies['@mohdaman/ui'] = `^${targetVersion}`
+      } else if (consumerPkg.devDependencies && consumerPkg.devDependencies['@mohdaman/ui']) {
+        consumerPkg.devDependencies['@mohdaman/ui'] = `^${targetVersion}`
+      } else {
+        consumerPkg.dependencies = consumerPkg.dependencies || {}
+        consumerPkg.dependencies['@mohdaman/ui'] = `^${targetVersion}`
+      }
+
+      fs.writeFileSync(consumerPkgPath, JSON.stringify(consumerPkg, null, 2) + '\n')
+      console.log(`  ✏️ Updated @mohdaman/ui to ^${targetVersion} in package.json`)
+
+      // 4. Verify modified files strictly
+      const statusOutput = execSync(`git status --porcelain`, { cwd: tempDir, encoding: 'utf-8' })
+      const changedFiles = statusOutput
+        .split('\n')
+        .map((line) => line.slice(3).trim())
+        .filter(Boolean)
+
+      validateFileModifications(changedFiles)
+
+      // 5. Commit and Push
+      execSync(`git add ${consumer.packagePath || 'package.json'}`, { cwd: tempDir })
+      execSync(`git commit -m "chore(deps): upgrade @mohdaman/ui to v${targetVersion}"`, { cwd: tempDir })
+
+      if (token) {
+        console.log(`  📤 Pushing branch ${branchName}...`)
+        execSync(`git push -u origin ${branchName} --force`, { cwd: tempDir, stdio: 'pipe' })
+
+        // 6. Create Pull Request via GitHub API
+        const prBody = generatePrBody({
+          appName: consumer.name,
+          currentVersion: consumer.currentVersion,
+          newVersion: targetVersion,
+          releaseNotes,
+        })
+
+        console.log(`  📬 Creating Pull Request on GitHub...`)
+        const response = await fetch(`https://api.github.com/repos/${consumer.repository}/pulls`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github+json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: `chore(deps): upgrade @mohdaman/ui to v${targetVersion}`,
+            body: prBody,
+            head: branchName,
+            base: consumer.defaultBranch || 'main',
+          }),
+        })
+
+        const prData = await response.json()
+        if (response.ok && prData.html_url) {
+          console.log(`  🎉 PR successfully created: ${prData.html_url}`)
+          consumer.activePrUrl = prData.html_url
+          consumer.updateStatus = 'pending-pr'
+          consumer.lastCheckedAt = new Date().toISOString()
+          updatedRegistry = true
+        } else {
+          console.error(`  ⚠️ Failed to create PR: ${prData.message || JSON.stringify(prData)}`)
+        }
+      } else {
+        console.log(`  ℹ️ Token not provided: Branch committed locally. Push & PR creation skipped.`)
+      }
+    } catch (err) {
+      console.error(`  ❌ Error processing ${consumer.name}:`, err.message)
+      consumer.updateStatus = 'failed'
+      consumer.lastCheckedAt = new Date().toISOString()
+      updatedRegistry = true
+    } finally {
+      try {
+        fs.rmSync(tempDir, { recursive: true, force: true })
+      } catch (e) {}
+    }
+  }
+
+  if (updatedRegistry) {
+    fs.writeFileSync(registryPath, JSON.stringify(registry, null, 2) + '\n')
+    console.log(`\n📝 Updated consumers-registry.json with latest PR statuses.`)
+  }
+}
+
+// Execute if run directly
+runUpgrade().catch((err) => {
+  console.error('Fatal upgrade error:', err)
+  process.exit(1)
+})

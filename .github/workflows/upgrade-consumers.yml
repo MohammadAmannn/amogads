@@ -54,9 +54,9 @@ jobs:
         env:
           TARGET_VERSION: ${{ inputs.target_version }}
           RELEASE_NOTES: ${{ inputs.release_notes }}
-          APP_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          APP_TOKEN: ${{ steps.app-token.outputs.token || secrets.AMOGA_UPGRADE_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          echo "🚀 Initiating cross-repository upgrade to @amoga/ui@${TARGET_VERSION}..."
+          echo "🚀 Initiating cross-repository upgrade to @mohdaman/ui@${TARGET_VERSION}..."
           node scripts/upgrade-consumers.mjs
 
       - name: Track and Log Consumer Status
