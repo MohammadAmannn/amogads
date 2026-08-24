@@ -27,7 +27,7 @@ const amogaPackage = JSON.parse(
 const latestVersion = amogaPackage.version
 
 console.log('\n===============================================================')
-console.log(`  🌟 AmogaDS (@mohdaman/ui) Central Consumer Tracker`)
+console.log(`  🌟 AmogaDS (@amogads/ui) Central Consumer Tracker`)
 console.log(`  📦 Current Design System Version: v${latestVersion}`)
 console.log('===============================================================\n')
 

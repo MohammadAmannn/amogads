@@ -1,6 +1,6 @@
 # Controlled Cross-Repository Upgrade Automation Guide
 
-This document defines the automated, safe, and controlled cross-repository upgrade pipeline for `@mohdaman/ui` across all registered consuming applications.
+This document defines the automated, safe, and controlled cross-repository upgrade pipeline for `@amogads/ui` across all registered consuming applications.
 
 ---
 
@@ -8,8 +8,8 @@ This document defines the automated, safe, and controlled cross-repository upgra
 
 ```
 +-----------------------------------+
-| 1. @mohdaman/ui Release Published |
-|    (e.g., @mohdaman/ui@1.4.0)     |
+| 1. @amogads/ui Release Published |
+|    (e.g., @amogads/ui@1.4.0)     |
 +-----------------+-----------------+
                   |
                   v
@@ -128,7 +128,7 @@ The automation engine strictly enforces file change boundaries:
 * `src/context/*` / `src/stores/*` (Application global state)
 
 ### Permitted Modifications:
-* `package.json` (Only the `@mohdaman/ui` dependency version string)
+* `package.json` (Only the `@amogads/ui` dependency version string)
 * `package-lock.json` / `pnpm-lock.yaml` / `yarn.lock` (Resulting dependency lock graph)
 
 > [!CAUTION]
@@ -160,18 +160,18 @@ Every generated PR contains:
 
 ## 7. Rollback & Recovery Process
 
-If an unexpected regression occurs in a consuming application after merging or deploying a new `@mohdaman/ui` version:
+If an unexpected regression occurs in a consuming application after merging or deploying a new `@amogads/ui` version:
 
 ### Option A: Standard Rollback via CLI
 ```bash
 # 1. Downgrade to previous known good version
-npm install @mohdaman/ui@1.0.0
+npm install @amogads/ui@1.0.0
 
 # 2. Verify clean build
 npm run build
 
 # 3. Commit and push
-git commit -am "fix: rollback @mohdaman/ui to v1.0.0"
+git commit -am "fix: rollback @amogads/ui to v1.0.0"
 git push origin main
 ```
 

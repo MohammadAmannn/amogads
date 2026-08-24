@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Controlled Cross-Repository Upgrade Engine for @mohdaman/ui
+ * Controlled Cross-Repository Upgrade Engine for @amogads/ui
  *
  * Enforces:
  * 1. Only package.json and lockfile modification
@@ -30,11 +30,11 @@ if (!fs.existsSync(registryPath) || !fs.existsSync(amogaPackagePath)) {
 const registry = JSON.parse(fs.readFileSync(registryPath, 'utf-8'))
 const amogaPackage = JSON.parse(fs.readFileSync(amogaPackagePath, 'utf-8'))
 const targetVersion = process.env.TARGET_VERSION || amogaPackage.version
-const releaseNotes = process.env.RELEASE_NOTES || `Automated upgrade to @mohdaman/ui@${targetVersion}`
+const releaseNotes = process.env.RELEASE_NOTES || `Automated upgrade to @amogads/ui@${targetVersion}`
 const token = process.env.APP_TOKEN || process.env.GITHUB_TOKEN
 
 console.log(`\n===============================================================`)
-console.log(`  🚀 AmogaDS (@mohdaman/ui) Automated Cross-Repo Upgrade Engine`)
+console.log(`  🚀 AmogaDS (@amogads/ui) Automated Cross-Repo Upgrade Engine`)
 console.log(`  📦 Target Design System Version: v${targetVersion}`)
 console.log(`===============================================================\n`)
 
@@ -47,7 +47,7 @@ export function generatePrBody({ appName, currentVersion, newVersion, releaseNot
     ? `> [!WARNING]\n> **MAJOR VERSION UPGRADE**: This release may contain breaking changes or deprecated API removals. Review the migration guide carefully before merging.`
     : `> [!NOTE]\n> **Backwards-Compatible Release**: This upgrade introduces fixes and new features with zero breaking changes to existing APIs.`
 
-  return `## 📦 AmogaDS Central Upgrade: \`@mohdaman/ui@${newVersion}\`
+  return `## 📦 AmogaDS Central Upgrade: \`@amogads/ui@${newVersion}\`
 
 Automated dependency upgrade for **${appName}**.
 
@@ -86,7 +86,7 @@ Before merging this PR:
 If any regression is discovered after merging or deploying:
 \`\`\`bash
 # Revert to previous stable version
-npm install @mohdaman/ui@${currentVersion}
+npm install @amogads/ui@${currentVersion}
 npm run build
 \`\`\`
 `
@@ -157,17 +157,17 @@ async function runUpgrade() {
       }
 
       const consumerPkg = JSON.parse(fs.readFileSync(consumerPkgPath, 'utf-8'))
-      if (consumerPkg.dependencies && consumerPkg.dependencies['@mohdaman/ui']) {
-        consumerPkg.dependencies['@mohdaman/ui'] = `^${targetVersion}`
-      } else if (consumerPkg.devDependencies && consumerPkg.devDependencies['@mohdaman/ui']) {
-        consumerPkg.devDependencies['@mohdaman/ui'] = `^${targetVersion}`
+      if (consumerPkg.dependencies && consumerPkg.dependencies['@amogads/ui']) {
+        consumerPkg.dependencies['@amogads/ui'] = `^${targetVersion}`
+      } else if (consumerPkg.devDependencies && consumerPkg.devDependencies['@amogads/ui']) {
+        consumerPkg.devDependencies['@amogads/ui'] = `^${targetVersion}`
       } else {
         consumerPkg.dependencies = consumerPkg.dependencies || {}
-        consumerPkg.dependencies['@mohdaman/ui'] = `^${targetVersion}`
+        consumerPkg.dependencies['@amogads/ui'] = `^${targetVersion}`
       }
 
       fs.writeFileSync(consumerPkgPath, JSON.stringify(consumerPkg, null, 2) + '\n')
-      console.log(`  ✏️ Updated @mohdaman/ui to ^${targetVersion} in package.json`)
+      console.log(`  ✏️ Updated @amogads/ui to ^${targetVersion} in package.json`)
 
       // 4. Verify modified files strictly
       const statusOutput = execSync(`git status --porcelain`, { cwd: tempDir, encoding: 'utf-8' })
@@ -180,7 +180,7 @@ async function runUpgrade() {
 
       // 5. Commit and Push
       execSync(`git add ${consumer.packagePath || 'package.json'}`, { cwd: tempDir })
-      execSync(`git commit -m "chore(deps): upgrade @mohdaman/ui to v${targetVersion}"`, { cwd: tempDir })
+      execSync(`git commit -m "chore(deps): upgrade @amogads/ui to v${targetVersion}"`, { cwd: tempDir })
 
       if (token) {
         console.log(`  📤 Pushing branch ${branchName}...`)
@@ -203,7 +203,7 @@ async function runUpgrade() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            title: `chore(deps): upgrade @mohdaman/ui to v${targetVersion}`,
+            title: `chore(deps): upgrade @amogads/ui to v${targetVersion}`,
             body: prBody,
             head: branchName,
             base: consumer.defaultBranch || 'main',

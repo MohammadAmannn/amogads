@@ -1,6 +1,6 @@
-# Developer Integration & Usage Guide — `@mohdaman/ui`
+# Developer Integration & Usage Guide — `@amogads/ui`
 
-Welcome to the developer guide for consuming **`@mohdaman/ui`** (Amoga Design System) in your Next.js and React applications.
+Welcome to the developer guide for consuming **`@amogads/ui`** (Amoga Design System) in your Next.js and React applications.
 
 ---
 
@@ -19,14 +19,14 @@ Welcome to the developer guide for consuming **`@mohdaman/ui`** (Amoga Design Sy
 
 ## 1. Installation & Setup
 
-Install `@mohdaman/ui` into your Next.js application from the public NPM registry:
+Install `@amogads/ui` into your Next.js application from the public NPM registry:
 
 ```bash
-npm install @mohdaman/ui
+npm install @amogads/ui
 # or
-pnpm add @mohdaman/ui
+pnpm add @amogads/ui
 # or
-yarn add @mohdaman/ui
+yarn add @amogads/ui
 ```
 
 ### Peer Dependencies
@@ -34,7 +34,7 @@ Ensure your project has the required peer dependencies installed:
 ```json
 {
   "dependencies": {
-    "@mohdaman/ui": "^1.0.1",
+    "@amogads/ui": "^1.0.1",
     "next": "^14.0.0 || ^15.0.0 || ^16.0.0",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0",
@@ -52,10 +52,10 @@ In your project's global stylesheet (e.g. `app/globals.css` or `src/styles/globa
 
 ```css
 @import "tailwindcss";
-@import "@mohdaman/ui/theme.css";
+@import "@amogads/ui/theme.css";
 
 /* ⚡ CRITICAL: Tell Tailwind v4 to scan package distribution files for utility classes */
-@source "../node_modules/@mohdaman/ui/dist";
+@source "../node_modules/@amogads/ui/dist";
 
 /* Custom dark mode variant */
 @custom-variant dark (&:is(.dark, .dark *));
@@ -78,8 +78,8 @@ In your project's global stylesheet (e.g. `app/globals.css` or `src/styles/globa
 ```
 
 > **Note on `@source` path:**
-> * If `globals.css` is in `app/globals.css` -> `@source "../node_modules/@mohdaman/ui/dist";`
-> * If `globals.css` is in `src/styles/globals.css` -> `@source "../../node_modules/@mohdaman/ui/dist";`
+> * If `globals.css` is in `app/globals.css` -> `@source "../node_modules/@amogads/ui/dist";`
+> * If `globals.css` is in `src/styles/globals.css` -> `@source "../../node_modules/@amogads/ui/dist";`
 
 ---
 
@@ -101,7 +101,7 @@ const openSans = Open_Sans({
 
 export const metadata: Metadata = {
   title: 'My Application',
-  description: 'Built with @mohdaman/ui',
+  description: 'Built with @amogads/ui',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -124,7 +124,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 All tokens, primitives, business components, and templates are available directly from the top-level barrel export:
 
 ```tsx
-import { ... } from '@mohdaman/ui'
+import { ... } from '@amogads/ui'
 ```
 
 ---
@@ -133,7 +133,7 @@ import { ... } from '@mohdaman/ui'
 
 #### Buttons & Badges
 ```tsx
-import { Button, Badge } from '@mohdaman/ui'
+import { Button, Badge } from '@amogads/ui'
 
 export function ActionSection() {
   return (
@@ -168,7 +168,7 @@ import {
   DialogFooter,
   Input,
   Label,
-} from '@mohdaman/ui'
+} from '@amogads/ui'
 
 export function UserSettingsCard() {
   const [open, setOpen] = useState(false)
@@ -215,7 +215,7 @@ export function UserSettingsCard() {
 
 #### PageHeader & StatusBadge
 ```tsx
-import { PageHeader, StatusBadge, Button } from '@mohdaman/ui'
+import { PageHeader, StatusBadge, Button } from '@amogads/ui'
 import { Plus } from 'lucide-react'
 
 export function OrdersHeader() {
@@ -241,7 +241,7 @@ export function OrdersHeader() {
 
 #### MetricCard Grid
 ```tsx
-import { MetricCard } from '@mohdaman/ui'
+import { MetricCard } from '@amogads/ui'
 
 export function MetricsOverview() {
   return (
@@ -277,7 +277,7 @@ export function MetricsOverview() {
 ```tsx
 'use client'
 
-import { ListTemplate, DataTable, StatusBadge, Button, type ColumnDef } from '@mohdaman/ui'
+import { ListTemplate, DataTable, StatusBadge, Button, type ColumnDef } from '@amogads/ui'
 
 interface Customer {
   id: string
@@ -371,7 +371,7 @@ npm run consumers:status
 ```
 
 ### Automatic Upgrades:
-When a new `@mohdaman/ui` release is published and version bumped in `package.json`, GitHub Actions automatically:
+When a new `@amogads/ui` release is published and version bumped in `package.json`, GitHub Actions automatically:
 1. Creates branch `chore/upgrade-amoga-ui-vX.Y.Z` in your repository.
 2. Updates `package.json` to the new version.
 3. Opens a detailed Pull Request on GitHub with safety verification and rollback instructions.

@@ -1,7 +1,7 @@
 {
   "$schema": "./consumers-registry.schema.json",
   "version": "1.0.0",
-  "description": "Central registry of consuming applications receiving automated @amoga/ui upgrade PRs",
+  "description": "Central registry of consuming applications receiving automated @amogads/ui upgrade PRs",
   "consumers": [
     {
       "id": "shadcn-admin-pilot",
