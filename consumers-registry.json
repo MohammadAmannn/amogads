@@ -4,35 +4,21 @@
   "description": "Central registry of consuming applications receiving automated @amogads/ui upgrade PRs",
   "consumers": [
     {
-      "id": "shadcn-admin-pilot",
-      "name": "Shadcn Admin Pilot App",
-      "repository": "MohammadAmannn/shadcn-admin",
+      "id": "amoganextapp",
+      "name": "Amoga Next App",
+      "repository": "MohammadAmannn/amoganextapp",
       "defaultBranch": "main",
       "packagePath": "package.json",
       "currentVersion": "1.0.1",
-      "targetVersion": "1.0.1",
-      "updateStatus": "up-to-date",
+      "targetVersion": "1.0.2",
+      "updateStatus": "pending-pr",
       "automationStatus": "enabled",
       "team": "@MohammadAmannn",
       "lastCheckedAt": "2026-08-24T11:00:00Z",
       "lastUpgradedAt": "2026-08-24T11:00:00Z",
       "activePrUrl": null
     },
-    {
-      "id": "amoga-analytics-portal",
-      "name": "Amoga Analytics Portal",
-      "repository": "MohammadAmannn/amoga-analytics",
-      "defaultBranch": "main",
-      "packagePath": "package.json",
-      "currentVersion": "1.0.1",
-      "targetVersion": "1.0.1",
-      "updateStatus": "up-to-date",
-      "automationStatus": "paused",
-      "team": "@amoga-analytics-team",
-      "lastCheckedAt": "2026-08-24T11:00:00Z",
-      "lastUpgradedAt": "2026-08-24T11:00:00Z",
-      "activePrUrl": null
-    },
+
     {
       "id": "amoga-pilot-app",
       "name": "Amoga Pilot App",
