@@ -9,16 +9,15 @@
       "repository": "MohammadAmannn/amoganextapp",
       "defaultBranch": "main",
       "packagePath": "package.json",
-      "currentVersion": "1.0.1",
+      "currentVersion": "1.0.2",
       "targetVersion": "1.0.2",
-      "updateStatus": "pending-pr",
-      "automationStatus": "enabled",
+      "updateStatus": "up-to-date",
+      "automationStatus": "disabled",
       "team": "@MohammadAmannn",
-      "lastCheckedAt": "2026-08-24T11:00:00Z",
-      "lastUpgradedAt": "2026-08-24T11:00:00Z",
+      "lastCheckedAt": "2026-08-25T05:40:39.517Z",
+      "lastUpgradedAt": "2026-08-25T12:00:00Z",
       "activePrUrl": null
     },
-
     {
       "id": "amoga-pilot-app",
       "name": "Amoga Pilot App",
@@ -28,12 +27,11 @@
       "currentVersion": "1.0.1",
       "targetVersion": "1.0.1",
       "updateStatus": "up-to-date",
-      "automationStatus": "enabled",
+      "automationStatus": "disabled",
       "team": "@MohammadAmannn",
-      "lastCheckedAt": "2026-08-24T11:15:00Z",
+      "lastCheckedAt": "2026-08-25T05:40:49.973Z",
       "lastUpgradedAt": "2026-08-24T11:15:00Z",
       "activePrUrl": null
     }
   ]
 }
- 

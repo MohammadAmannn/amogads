@@ -342,36 +342,81 @@ Never use hardcoded hex values (`#ffffff`, `#1e293b`). Always use semantic Tailw
 
 ---
 
-## 6. Cross-Repository Upgrades & Registration
+## 6. Synchronizing `@amogads/ui` Updates with Consuming Apps (`amoganextapp`)
 
-AmogaDS features automated cross-repository dependency upgrades.
+When changes are made to `@amogads/ui` inside `amogads`, follow this 3-step manual workflow to synchronize updates into `amoganextapp` (or any other consumer):
 
-### Registering Your Application (One-Time Setup):
-To have your application automatically receive version upgrade Pull Requests, add your repository entry to [`consumers-registry.json`](consumers-registry.json) in `amogads`:
+### 🔄 The 3-Step Synchronization Cycle
 
-```json
-{
-  "id": "my-app",
-  "name": "My Next.js Application",
-  "repository": "OrganizationOrOwner/my-app",
-  "defaultBranch": "main",
-  "packagePath": "package.json",
-  "currentVersion": "1.0.1",
-  "targetVersion": "1.0.1",
-  "updateStatus": "up-to-date",
-  "automationStatus": "enabled",
-  "team": "@my-team"
-}
+```
+Step 1: Update & Publish amogads
+  └─► Edit UI/tokens in amogads -> npm run build:package -> npm version patch -> npm publish
+
+Step 2: Create Branch on Consumer App (amoganextapp)
+  └─► git checkout -b chore/update-amogads-vX.Y.Z -> npm install @amogads/ui@latest -> npm run build
+
+Step 3: Merge with Main
+  └─► git checkout main -> git merge chore/update-amogads-vX.Y.Z -> git push origin main
 ```
 
-### Checking Tracker Status:
-Run from the `amogads/` directory:
+---
+
+### 💻 Step-by-Step Code Example
+
+#### 1. In `amogads/` (Make changes and publish):
+```bash
+cd amogads
+
+# 1. Modify component or token (e.g., src/design-system/components/ui/card.tsx)
+# 2. Build the package bundle
+npm run build:package
+
+# 3. Bump version (e.g. 1.0.2 -> 1.0.3)
+npm version patch
+
+# 4. Publish to NPM
+npm publish --access public
+```
+
+#### 2. In `amoganextapp/` (Create branch and adopt changes):
+```bash
+# Return to root of amoganextapp
+cd ..
+
+# 1. Create a fresh branch for this upgrade
+git checkout -b chore/update-amogads-v1.0.3
+
+# 2. Install the new package version from NPM
+npm install @amogads/ui@latest
+
+# 3. Verify locally
+npm run dev
+npm run build
+```
+
+#### 3. Merge branch into `main`:
+```bash
+# 1. Commit updated package.json & lockfile
+git add package.json package-lock.json
+git commit -m "chore(deps): update @amogads/ui to v1.0.3"
+
+# 2. Merge to main branch
+git checkout main
+git merge chore/update-amogads-v1.0.3
+
+# 3. Push to remote
+git push origin main
+```
+
+---
+
+### 🛡 Consumer Registry & Automation Status
+
+Consuming applications are tracked in [`consumers-registry.json`](consumers-registry.json):
+* `"automationStatus": "disabled"` *(Current Default)*: Background GitHub Action PR bots are paused. You have full manual control over when branches are created and merged in `amoganextapp`.
+* `"automationStatus": "enabled"`: GitHub Actions automatically pushes branches and opens PRs on every release.
+
+To inspect consumer version status:
 ```bash
 npm run consumers:status
 ```
-
-### Automatic Upgrades:
-When a new `@amogads/ui` release is published and version bumped in `package.json`, GitHub Actions automatically:
-1. Creates branch `chore/upgrade-amoga-ui-vX.Y.Z` in your repository.
-2. Updates `package.json` to the new version.
-3. Opens a detailed Pull Request on GitHub with safety verification and rollback instructions.

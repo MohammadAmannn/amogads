@@ -147,110 +147,117 @@ Triggered via GitHub Actions Workflow Dispatch:
 
 ---
 
-## 🤖 Cross-Repository Upgrade Automation
+## 🔄 Synchronization & Consuming App Workflow (`amogads` ↔ `amoganextapp`)
 
-AmogaDS provides a fully controlled, automated cross-repository dependency upgrade pipeline to keep all consuming applications up to date with `@amogads/ui` releases without risk of accidental code overwrites or regressions.
+`amogads` is the central design system source of truth published to NPM as **`@amogads/ui`**. When you make changes to components, tokens, or templates in `amogads`, follow this standard manual branching workflow to synchronize and adopt changes into your consumer application (e.g. `amoganextapp`).
 
 ```
-@amogads/ui Release Published (e.g. v1.4.0)
-  ↓
-Discover Registered Apps in consumers-registry.json
-  ↓
-Authenticate via Ephemeral GitHub App Token (Zero PATs)
-  ↓
-Create Isolation Branch (chore/upgrade-amoga-ui-v1.4.0)
-  ↓
-Update package.json & Lockfile ONLY (Protected Code Guard)
-  ↓
-Run Consuming Application CI & Build Checks
-  ↓
-Generate Detailed PR (Changelog + Safety Checks + Rollback Guide)
-  ↓
-Application Owner Reviews & Merges Manually (No Auto-Merge)
+┌─────────────────────────────────────────────────────────────┐
+│ Step 1: Update AmogaDS (Design System)                      │
+│ - Edit components in amogads/src/design-system/...          │
+│ - Run tests / build: npm run build:package                  │
+│ - Bump version & publish to NPM: npm publish                │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 2: Create Branch on Consumer App (amoganextapp)        │
+│ - git checkout -b chore/update-amogads-vX.Y.Z               │
+│ - npm install @amogads/ui@latest                            │
+│ - Verify app UI & build: npm run build                      │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ Step 3: Merge Branch with Main                              │
+│ - Commit & merge branch into amoganextapp/main              │
+│ - Push origin main                                          │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 1. Checking Version Status Across Applications
+### 📖 Step-by-Step Synchronization Example
 
-Run the central tracker from the `amogads/` directory:
+#### Scenario: Adding a new prop or style tweak to `Button` in `amogads` and adopting it in `amoganextapp`.
+
+#### Step 1: Make Changes and Publish in `amogads`
+Navigate to the `amogads` directory:
 ```bash
-npm run consumers:status
+cd amogads
+
+# 1. Edit component (e.g. src/design-system/components/ui/button.tsx)
+# 2. Build the package distribution
+npm run build:package
+
+# 3. Bump version (patch / minor / major)
+npm version patch
+
+# 4. Publish the updated package to NPM
+npm publish --access public
+```
+*(Example: `@amogads/ui` version is now `1.0.3` on NPM).*
+
+#### Step 2: Create a Branch in `amoganextapp` & Update Dependency
+Navigate back to your main application root (`amoganextapp`):
+```bash
+cd .. # (in amoganextapp root)
+
+# 1. Create a dedicated branch for the design system update
+git checkout -b chore/update-amogads-v1.0.3
+
+# 2. Install the newly published version from NPM
+npm install @amogads/ui@latest
+
+# 3. Test and verify locally
+npm run dev
+npm run build
 ```
 
-**Live Output Example**:
-```text
-===============================================================
-  🌟 AmogaDS (@amogads/ui) Central Consumer Tracker
-  📦 Current Design System Version: v1.0.0
-===============================================================
+#### Step 3: Commit and Merge into `main`
+```bash
+# 1. Stage and commit updated package.json & package-lock.json
+git add package.json package-lock.json
+git commit -m "chore(deps): update @amogads/ui to v1.0.3"
 
-┌─────────┬──────────────────────────────────┬──────────────────────────┬───────────┬──────────┬─────────────────┬────────────┬─────────────────────────┬───────────┐
-│ (index) │ Repository                       │ App Name                 │ Installed │ Target   │ Status          │ Automation │ Team                    │ Active PR │
-├─────────┼──────────────────────────────────┼──────────────────────────┼───────────┼──────────┼─────────────────┼────────────┼─────────────────────────┼───────────┤
-│ 0       │ 'MohammadAmannn/shadcn-admin'    │ 'Shadcn Admin Pilot App' │ 'v1.0.0'  │ 'v1.0.0' │ '✅ up-to-date' │ 'enabled'  │ '@amoga-admin'          │ 'None'    │
-│ 1       │ 'MohammadAmannn/amoga-analytics' │ 'Amoga Analytics Portal' │ 'v1.0.0'  │ 'v1.0.0' │ '✅ up-to-date' │ 'enabled'  │ '@amoga-analytics-team' │ 'None'    │
-└─────────┴──────────────────────────────────┴──────────────────────────┴───────────┴──────────┴─────────────────┴────────────┴─────────────────────────┴───────────┘
+# 2. Switch to main and merge your branch
+git checkout main
+git merge chore/update-amogads-v1.0.3
 
-📊 Summary: 2 registered apps | 2 up-to-date | 0 pending upgrade.
+# 3. Push to GitHub
+git push origin main
 ```
 
 ---
 
-### 2. How to Register a New Consuming Application
+## 🤖 Cross-Repository Registry & Automation Controls
 
-To register a new Next.js application for automated `@amogads/ui` upgrades, add an entry to [`consumers-registry.json`](consumers-registry.json):
+AmogaDS maintains a consumer registry in [`consumers-registry.json`](consumers-registry.json) to track connected applications:
 
 ```json
 {
-  "id": "my-new-app",
-  "name": "My Next.js Application",
-  "repository": "OrganizationOrOwner/my-new-app",
+  "id": "amoganextapp",
+  "name": "Amoga Next App",
+  "repository": "MohammadAmannn/amoganextapp",
   "defaultBranch": "main",
   "packagePath": "package.json",
-  "currentVersion": "1.0.0",
-  "targetVersion": "1.0.0",
+  "currentVersion": "1.0.2",
+  "targetVersion": "1.0.2",
   "updateStatus": "up-to-date",
-  "automationStatus": "enabled",
-  "team": "@my-app-team",
-  "lastCheckedAt": "2026-08-24T11:00:00Z",
-  "lastUpgradedAt": "2026-08-24T11:00:00Z",
-  "activePrUrl": null
+  "automationStatus": "disabled",
+  "team": "@MohammadAmannn"
 }
 ```
 
-#### Field Reference:
-* `repository`: GitHub repository in `owner/repo` format.
-* `defaultBranch`: Target branch for PRs (usually `main`).
-* `automationStatus`: Set to `"enabled"` to receive PRs, or `"paused"` / `"disabled"` to hold updates.
-* `team`: Team handle or maintainer notified for PR review.
+### Automation Modes:
+* `"automationStatus": "disabled"` *(Default)*: Automated GitHub Action PR bot is disabled. Developers manage their own branch creation, local verification, and merge into `main`.
+* `"automationStatus": "enabled"`: GitHub Actions will automatically clone the consumer, create a branch, and submit a PR via GitHub REST API whenever a release occurs.
 
----
-
-### 3. Application Code Protection & Security
-
-The automation engine ([scripts/upgrade-consumers.mjs](scripts/upgrade-consumers.mjs)) enforces strict boundaries:
-* **Zero Personal Access Tokens (PATs)**: Uses GitHub App installation tokens scoped with minimum required permissions (`contents: write`, `pull_requests: write`).
-* **Protected File Zones**: `app/`, `features/`, `components/custom/`, `src/lib/`, `src/services/`, and state stores are **never modified**.
-* **Strict Whitelist**: Automation is only allowed to touch `package.json` and lockfiles (`package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`). Any unexpected file modification immediately aborts the pipeline.
-
----
-
-### 4. Reviewing & Merging an Upgrade PR (Developer Guide)
-
-When an automated upgrade PR is opened in your consuming application:
-
-1. **Inspect Version Diff & Changelog**: Check whether the release is `PATCH`, `MINOR`, or `MAJOR` in the PR description.
-2. **Verify CI Status**: Ensure all automated checks (`Lint`, `Typecheck`, `Build`, `Tests`) pass on the PR branch.
-3. **Local Visual Verification (Optional)**:
-   ```bash
-   git fetch origin chore/upgrade-amoga-ui-vX.Y.Z
-   git checkout chore/upgrade-amoga-ui-vX.Y.Z
-   npm install
-   npm run dev
-   ```
-   Check light/dark mode and key user flows (forms, tables, navigation).
-4. **Manual Approval & Merge**: Approve and merge the PR. *(Auto-merging is intentionally disabled for safety).*
+### Check Status Across Consumers:
+Run from the `amogads/` directory:
+```bash
+npm run consumers:status
+```
 
 ---
 
