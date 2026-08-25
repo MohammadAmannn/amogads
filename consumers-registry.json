@@ -12,8 +12,8 @@
       "currentVersion": "1.0.1",
       "targetVersion": "1.0.1",
       "updateStatus": "up-to-date",
-      "automationStatus": "paused",
-      "team": "@amoga-admin",
+      "automationStatus": "enabled",
+      "team": "@MohammadAmannn",
       "lastCheckedAt": "2026-08-24T11:00:00Z",
       "lastUpgradedAt": "2026-08-24T11:00:00Z",
       "activePrUrl": null
@@ -50,3 +50,4 @@
     }
   ]
 }
+ 

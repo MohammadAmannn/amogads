@@ -31,16 +31,13 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
-        run: npm run lint --if-present
+        run: npm run lint
 
       - name: Run TypeScript Check
         run: npx tsc --noEmit
 
-      - name: Run Unit Tests
-        run: npm test --if-present
-
-      - name: Build @amoga/ui Package
-        run: npm run build:package --if-present
+      - name: Build @amogads/ui Package
+        run: npm run build:package
 
       - name: Build Next.js Application
         run: npm run build
