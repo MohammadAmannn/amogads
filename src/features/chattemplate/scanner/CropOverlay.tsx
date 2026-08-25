@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file CropOverlay.tsx
  * @description 4-Corner Draggable Quad Overlay for Manual Paper Boundary Adjustment.

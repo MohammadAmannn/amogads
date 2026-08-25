@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file useDocumentScanner.ts
  * @description Master React State Machine Hook for Document Scanner Session Management.

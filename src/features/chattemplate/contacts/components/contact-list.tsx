@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Contact } from '../types/contact.types'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'

@@ -52,7 +52,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { ConfigDrawer } from '@/components/config-drawer'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import { galleryRegistry, GALLERY_CATEGORIES, GalleryCategory, GalleryEntry } from './registry'
 
 // ─── Viewport config ─────────────────────────────────────────────────────────
@@ -309,7 +308,7 @@ export function GalleryPage() {
           {/* Top Left Sidebar Header: AppLogo (mobile) + Design System title + Search & Bell icons */}
           <div className='flex h-12 shrink-0 items-center justify-between px-3.5 border-b border-border/60 bg-background'>
             <div className='flex items-center gap-2 min-w-0'>
-              <SidebarTrigger className='h-8 w-8 shrink-0' />
+              <AppLogo className='shrink-0 md:hidden' />
               <h1 className='text-base font-bold text-foreground tracking-tight truncate'>
                 Design System
               </h1>

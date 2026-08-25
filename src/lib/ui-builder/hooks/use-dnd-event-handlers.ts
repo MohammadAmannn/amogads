@@ -1,3 +1,5 @@
+'use client'
+
 import { useCallback } from 'react';
 import { type DragStartEvent, type DragEndEvent } from '@dnd-kit/core';
 import { useLayerStore } from '@/lib/ui-builder/store/layer-store';

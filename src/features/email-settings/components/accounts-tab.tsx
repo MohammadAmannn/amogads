@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react'
 import { useEmailSettingsStore } from '../store'
 import { EmailAccount } from '../types'

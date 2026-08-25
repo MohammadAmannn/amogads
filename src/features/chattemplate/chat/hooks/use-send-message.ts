@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useCallback } from 'react'
 import { Message } from '../types/chat.types'
 import { createMessage } from '../repositories/message-repository'

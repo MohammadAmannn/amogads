@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file OcrPdfPreview.tsx
  * @description PDF review stage for OCR generated document before uploading and sending to chat thread.

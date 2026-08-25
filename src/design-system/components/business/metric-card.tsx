@@ -1,9 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '../../../lib/utils'
 
 export interface MetricCardProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file FileScanner.tsx
  * @description Drag & Drop File Upload Ingestion Zone for Document Images.

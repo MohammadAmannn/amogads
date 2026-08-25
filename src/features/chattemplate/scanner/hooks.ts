@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file hooks.ts
  * @description Consolidated React Hooks for Document Scanner, Camera Capture, PDF Preview & Uploads.

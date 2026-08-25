@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file ScanToolbar.tsx
  * @description Document Scanner Action Control Toolbar for Filter Toggles, Rotation, and Brightness Adjustments.

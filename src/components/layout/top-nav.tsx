@@ -1,2 +1,1 @@
-export * from '@/design-system/templates/top-nav'
-
+export { TopNav } from '@/design-system'

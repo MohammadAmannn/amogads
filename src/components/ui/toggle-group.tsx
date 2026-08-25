@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/toggle-group'
-
+export * from '@/design-system'

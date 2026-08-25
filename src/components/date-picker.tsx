@@ -1,2 +1,1 @@
-export * from '@/design-system/components/business/date-picker'
-
+export { DatePicker } from '@/design-system'

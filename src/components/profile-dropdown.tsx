@@ -1,3 +1,5 @@
+'use client'
+
 import useDialogState from '@/hooks/use-dialog-state'
 import { useAuthStore } from '@/stores/auth-store'
 // ✅ ADD THIS IMPORT

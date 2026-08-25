@@ -1,2 +1,1 @@
-export * from '@/design-system/templates/main'
-
+export { Main } from '@/design-system'

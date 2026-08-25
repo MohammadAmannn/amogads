@@ -8,18 +8,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/design-system/components/ui/table'
-import { Skeleton } from '@/design-system/components/ui/skeleton'
+} from '../ui/table'
+import { Skeleton } from '../ui/skeleton'
 import {
   Empty,
   EmptyHeader,
   EmptyTitle,
   EmptyDescription,
   EmptyMedia,
-} from '@/design-system/components/ui/empty'
-import { Button } from '@/design-system/components/ui/button'
+} from '../ui/empty'
+import { Button } from '../ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '../../../lib/utils'
 
 export interface ColumnDef<T> {
   key: string

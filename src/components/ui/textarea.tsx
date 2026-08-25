@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/textarea'
-
+export * from '@/design-system'

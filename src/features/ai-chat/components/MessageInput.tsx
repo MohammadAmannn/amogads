@@ -1,3 +1,5 @@
+'use client'
+
 import { useRef } from 'react'
 import { ArrowUp, Mic, History, Plus, Paperclip } from 'lucide-react'
 import { ModelSelector } from './ModelSelector'

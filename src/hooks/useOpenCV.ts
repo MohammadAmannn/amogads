@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file useOpenCV.ts
  * @description React hook for OpenCV.js asynchronous lazy-loading and runtime state management.

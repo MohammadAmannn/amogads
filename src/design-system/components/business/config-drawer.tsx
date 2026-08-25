@@ -6,14 +6,14 @@ import { Check, CircleCheck, RotateCcw, Search, Settings } from 'lucide-react'
 import { IconThemeDark } from '@/assets/custom/icon-theme-dark'
 import { IconThemeLight } from '@/assets/custom/icon-theme-light'
 import { IconThemeSystem } from '@/assets/custom/icon-theme-system'
-import { cn } from '@/lib/utils'
-import { useTheme } from '@/context/theme-provider'
+import { cn } from '../../../lib/utils'
+import { useTheme } from '../../../context/theme-provider'
 import {
   colorThemes,
   DEFAULT_COLOR_THEME,
   useColorTheme,
-} from '@/context/color-theme-provider'
-import { Button } from '@/components/ui/button'
+} from '../../../context/color-theme-provider'
+import { Button } from '../ui/button'
 import {
   Sheet,
   SheetContent,
@@ -22,7 +22,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet'
+} from '../ui/sheet'
 
 // ✅ ADDED: Allow custom trigger
 type ConfigDrawerProps = {

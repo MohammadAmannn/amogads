@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, type ReactNode, useMemo, useEffect, useCallback } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { createTransformAwareCollisionDetection } from '@/lib/ui-builder/context/dnd-context-colission-utils';

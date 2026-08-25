@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { FileText, Image, Video, Music, File } from 'lucide-react'
 import { downloadFileFromUrl } from '@/utils/download'

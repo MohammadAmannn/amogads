@@ -5,8 +5,8 @@ import {
   Palette,
 } from 'lucide-react'
 import useDialogState from '@/hooks/use-dialog-state'
-import { useAuthStore } from '@/stores/auth-store'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useAuthStore } from '../../stores/auth-store'
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar'
 import { ConfigDrawer } from '@/components/config-drawer'
 import {
   DropdownMenu,
@@ -15,13 +15,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '../components/ui/dropdown-menu'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar'
+} from '../components/ui/sidebar'
 import { SignOutDialog } from '@/components/sign-out-dialog'
 
 type NavUserProps = {

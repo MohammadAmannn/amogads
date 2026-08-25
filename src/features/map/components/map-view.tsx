@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useCallback, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { Card } from '@/components/ui/card'
 import { Map, MapMarker, MarkerContent, MarkerPopup } from '@/components/ui/map'

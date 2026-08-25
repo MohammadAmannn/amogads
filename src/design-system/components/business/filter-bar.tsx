@@ -1,11 +1,11 @@
 'use client'
 
 import * as React from 'react'
-import { Input } from '@/design-system/components/ui/input'
-import { Button } from '@/design-system/components/ui/button'
-import { Badge } from '@/design-system/components/ui/badge'
+import { Input } from '../ui/input'
+import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
 import { Search as SearchIcon, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '../../../lib/utils'
 
 export interface ActiveFilter {
   key: string

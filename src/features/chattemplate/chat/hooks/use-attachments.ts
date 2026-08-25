@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useCallback } from 'react'
 import { uploadAttachment } from '@/features/chattemplate/files/managers/attachment-uploader'
 
@@ -61,7 +63,8 @@ export function useAttachments() {
       const { xhr, promise } = uploadAttachment(
         file,
         { senderEmail, receiverEmail },
-        (percent) => {
+        undefined,
+        (percent: number) => {
           setUploads((prev) =>
             prev.map((u) => (u.id === uploadId ? { ...u, progress: percent } : u))
           )

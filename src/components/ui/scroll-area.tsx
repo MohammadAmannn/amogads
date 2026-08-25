@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/scroll-area'
-
+export * from '@/design-system'

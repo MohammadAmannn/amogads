@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/select'
-
+export * from '@/design-system'

@@ -1,8 +1,8 @@
 'use client'
 
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import { createClient } from '@/lib/client'
-import { useAuthStore } from '@/stores/auth-store'
+import { createClient } from '../../../lib/client'
+import { useAuthStore } from '../../../stores/auth-store'
 import { signOut as nextAuthSignOut } from 'next-auth/react'
 
 interface SignOutDialogProps {

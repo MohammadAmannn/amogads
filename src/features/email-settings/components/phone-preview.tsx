@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { useEmailSettingsStore } from '../store'
 import { Mail } from 'lucide-react'

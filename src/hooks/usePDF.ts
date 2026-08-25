@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file usePDF.ts
  * @description React hook for PDF compilation state, preview rendering, and memory cleanup.

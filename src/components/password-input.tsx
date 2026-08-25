@@ -1,2 +1,1 @@
-export * from '@/design-system/components/business/password-input'
-
+export { PasswordInput } from '@/design-system'

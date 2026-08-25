@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file useCapacitorDocScanner.ts
  * @description React hook for trigger-and-scan Native Capacitor Document Scanner flow.

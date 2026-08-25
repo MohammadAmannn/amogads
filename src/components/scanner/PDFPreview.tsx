@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file PDFPreview.tsx
  * @description Final Document PDF Preview Dialog View & Confirmation Controls.

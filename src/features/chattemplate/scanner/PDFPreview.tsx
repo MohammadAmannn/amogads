@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file PDFPreview.tsx
  * @description Final PDF Review & Compiled Page Viewer (iOS/Android Mobile & Desktop Compatible).

@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/hover-card'
-
+export * from '@/design-system'

@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { shareFileLink } from '@/services/share.service'
 

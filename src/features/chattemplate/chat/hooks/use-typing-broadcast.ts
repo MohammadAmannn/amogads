@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { TypingStatus, TypingBroadcastPayload, UserTypingState } from '../types/typing.types'

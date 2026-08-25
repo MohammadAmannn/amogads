@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from '../../lib/utils'
 import { AppLogo } from './app-logo'
 
 type HeaderProps = React.HTMLAttributes<HTMLElement> & {

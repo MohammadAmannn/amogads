@@ -1,2 +1,1 @@
-export * from '@/design-system/components/business/stats-01'
-
+export { Stats01 } from '@/design-system'

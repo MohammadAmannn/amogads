@@ -1,3 +1,5 @@
+'use client'
+
 import { useForm } from 'react-hook-form'
 import { describe, expect, it } from 'vitest'
 import { render } from 'vitest-browser-react'
@@ -8,7 +10,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-} from '@/components/ui/form'
+} from '../ui/form'
 import { PasswordInput } from './password-input'
 
 describe('PasswordInput', () => {

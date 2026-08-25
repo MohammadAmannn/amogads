@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/resizable'
-
+export * from '@/design-system'

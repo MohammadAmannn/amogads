@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, ChevronRight, Laptop, Moon, Sun } from 'lucide-react'

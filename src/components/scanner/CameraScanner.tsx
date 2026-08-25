@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file CameraScanner.tsx
  * @description Camera Capture Viewport supporting Web MediaDevices & Capacitor Native Camera.

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file OcrEditStudio.tsx
  * @description Interactive OCR edit studio featuring side-by-side image preview, text editor, multi-language selector, and copy controls.

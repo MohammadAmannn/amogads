@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/badge'
-
+export * from '@/design-system'

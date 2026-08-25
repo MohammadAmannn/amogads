@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { Conversation } from '../types/chat.types'
 import { getUserConversations, getOrCreateDirectConversation } from '../repositories/conversation-repository'

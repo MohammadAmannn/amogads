@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/carousel'
-
+export * from '@/design-system'

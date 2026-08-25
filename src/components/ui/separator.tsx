@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/separator'
-
+export * from '@/design-system'

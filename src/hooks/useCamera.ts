@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file useCamera.ts
  * @description React hook for Web MediaDevices Stream Camera Capture & Capacitor Native Camera integration.

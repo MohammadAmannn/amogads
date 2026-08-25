@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/aspect-ratio'
-
+export * from '@/design-system'

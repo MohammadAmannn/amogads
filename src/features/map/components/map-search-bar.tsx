@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import type { MapMarker as MapMarkerType } from '../types/marker'
 

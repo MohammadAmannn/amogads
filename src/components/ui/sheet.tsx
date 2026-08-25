@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/sheet'
-
+export * from '@/design-system'

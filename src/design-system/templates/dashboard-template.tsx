@@ -1,8 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { PageHeader } from '@/design-system/components/business/page-header'
-import { cn } from '@/lib/utils'
+import { PageHeader } from '../components/business/page-header'
+import { cn } from '../../lib/utils'
 
 export interface DashboardTemplateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   title: React.ReactNode

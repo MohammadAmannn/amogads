@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/tooltip'
-
+export * from '@/design-system'

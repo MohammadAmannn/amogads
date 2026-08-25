@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/breadcrumb'
-
+export * from '@/design-system'

@@ -1,2 +1,1 @@
-export * from '@/design-system/components/business/long-text'
-
+export { LongText } from '@/design-system'

@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/calendar'
-
+export * from '@/design-system'

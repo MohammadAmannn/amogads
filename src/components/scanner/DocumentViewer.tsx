@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file DocumentViewer.tsx
  * @description Inspection & Paginated Preview Component for Scanned Document Pages.

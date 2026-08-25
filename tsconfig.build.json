@@ -5,22 +5,32 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "noEmit": false,
     "declaration": true,
-    "declarationMap": true,
     "emitDeclarationOnly": true,
+    "outDir": "dist",
     "jsx": "react-jsx",
     "skipLibCheck": true,
-    "strict": true,
-    "incremental": false,
-    "ignoreDeprecations": "6.0",
+    "strict": false,
     "paths": {
       "@/*": ["./src/*"],
       "@/design-system/*": ["./src/design-system/*"]
     }
   },
   "include": [
-    "src/design-system/**/*"
+    "src/design-system/**/*",
+    "src/standard-pages/**/*",
+    "src/stores/**/*",
+    "src/services/**/*",
+    "src/server/**/*",
+    "src/sdk/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx"
   ]
 }

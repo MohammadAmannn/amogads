@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/dropdown-menu'
-
+export * from '@/design-system'

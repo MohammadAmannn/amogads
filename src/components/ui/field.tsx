@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/field'
-
+export * from '@/design-system'

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file DocumentScannerModal.tsx
  * @description Master Modal Dialog wrapping the Enterprise Document Scanner Experience.

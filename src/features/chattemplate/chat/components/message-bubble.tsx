@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useRef } from 'react'
 import { Check, CheckCheck, Clock, CornerUpLeft, MapPin } from 'lucide-react'
 import { toast } from 'sonner'

@@ -1,13 +1,15 @@
+'use client'
+
 import { type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ChevronRight, X } from 'lucide-react'
-import { useLayout } from '@/context/layout-provider'
+import { useLayout } from '../../context/layout-provider'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+} from '../components/ui/collapsible'
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -19,9 +21,9 @@ import {
   SidebarMenuSubItem,
   SidebarTrigger,
   useSidebar,
-} from '@/components/ui/sidebar'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+} from '../components/ui/sidebar'
+import { Button } from '../components/ui/button'
+import { Badge } from '../components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +31,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '../components/ui/dropdown-menu'
 import {
   type NavCollapsible,
   type NavItem,
@@ -37,7 +39,7 @@ import {
   type NavGroup as NavGroupProps,
 } from './types'
 
-import { cn } from '@/lib/utils'
+import { cn } from '../../lib/utils'
 
 export function NavGroup({ title, items }: NavGroupProps) {
   const { state, isMobile, openMobile, setOpenMobile } = useSidebar()

@@ -1,2 +1,1 @@
-export * from '@/design-system/templates/app-title'
-
+export { AppTitle } from '@/design-system'

@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/input-otp'
-
+export * from '@/design-system'

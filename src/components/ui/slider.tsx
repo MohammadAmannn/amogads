@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/slider'
-
+export * from '@/design-system'

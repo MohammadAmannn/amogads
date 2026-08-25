@@ -1,2 +1,7 @@
-export * from '@/design-system/components/business/qr-code-display'
-
+export {
+  QrCodeDisplay,
+  QRCodeDisplay,
+  downloadQrCode,
+  type QrCodeDisplayProps,
+  type QRCodeDisplayProps,
+} from '@/design-system'

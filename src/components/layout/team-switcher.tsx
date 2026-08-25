@@ -1,2 +1,1 @@
-export * from '@/design-system/templates/team-switcher'
-
+export { TeamSwitcher } from '@/design-system'

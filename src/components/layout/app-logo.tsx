@@ -1,2 +1,1 @@
-export * from '@/design-system/templates/app-logo'
-
+export { AppLogo } from '@/design-system'

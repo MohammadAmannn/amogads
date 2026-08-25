@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/checkbox'
-
+export * from '@/design-system'

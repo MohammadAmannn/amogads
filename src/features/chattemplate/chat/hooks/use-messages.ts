@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useCallback } from 'react'
 import { getOfflineMessages } from '../managers/message-queue'
 import { getConversationMessages } from '../repositories/message-repository'

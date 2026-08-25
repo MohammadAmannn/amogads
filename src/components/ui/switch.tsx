@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/switch'
-
+export * from '@/design-system'

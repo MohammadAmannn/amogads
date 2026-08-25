@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file CameraScanner.tsx
  * @description Enterprise Document Camera Viewfinder with Real-Time OpenCV AI Paper Contour Detection, 2-Second Hold-Still Auto Timer & Native Plugin Safety.

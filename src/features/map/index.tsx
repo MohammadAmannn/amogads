@@ -1,3 +1,5 @@
+'use client'
+
 import { useRef } from 'react'
 import { AppHeader } from '@/components/layout/app-header'
 import { Main } from '@/components/layout/main'

@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/accordion'
-
+export * from '@/design-system'

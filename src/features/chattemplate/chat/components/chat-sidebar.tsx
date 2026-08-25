@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Search, Loader2, MessageSquare, PanelLeft, Check, CheckCheck, Clock, Mic, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'

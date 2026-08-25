@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/drawer'
-
+export * from '@/design-system'

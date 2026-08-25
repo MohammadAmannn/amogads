@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/avatar'
-
+export * from '@/design-system'

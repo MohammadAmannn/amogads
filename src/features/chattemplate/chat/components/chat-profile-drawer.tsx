@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { X, FileText, Download, Play, ExternalLink, Search, Mail, Phone, Calendar, ShieldCheck, User, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'

@@ -1,2 +1,8 @@
-export * from '@/design-system/components/ui/minimal-tiptap/extensions/index'
-
+export * from "./code-block-lowlight"
+export * from "./color"
+export * from "./horizontal-rule"
+export * from "./image"
+export * from "./unset-all-marks"
+export * from "./reset-marks-on-enter"
+export * from "./file-handler"
+export * from "./markdown-paste"

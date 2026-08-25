@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/minimal-tiptap/extensions/reset-marks-on-enter/index'
-
+export * from "./reset-marks-on-enter"

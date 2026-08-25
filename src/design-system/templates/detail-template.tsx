@@ -1,10 +1,10 @@
 'use client'
 
 import * as React from 'react'
-import { PageHeader } from '@/design-system/components/business/page-header'
-import { Button } from '@/design-system/components/ui/button'
+import { PageHeader } from '../components/business/page-header'
+import { Button } from '../components/ui/button'
 import { ArrowLeft } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '../../lib/utils'
 
 export interface DetailTemplateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   title: React.ReactNode

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file ScanToolbar.tsx
  * @description Scanner Toolbar for Filters, Rotation, Crop Toggle & Brightness Sliders.

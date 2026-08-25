@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/pagination'
-
+export * from '@/design-system'

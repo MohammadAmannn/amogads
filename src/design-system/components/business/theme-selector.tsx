@@ -1,17 +1,19 @@
+'use client'
+
 import { Check, Palette } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '../../../lib/utils'
 import {
   colorThemes,
   useColorTheme,
-} from '@/context/color-theme-provider'
-import { useTheme } from '@/context/theme-provider'
-import { Button } from '@/components/ui/button'
+} from '../../../context/color-theme-provider'
+import { useTheme } from '../../../context/theme-provider'
+import { Button } from '../ui/button'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover'
-import { Separator } from '@/components/ui/separator'
+} from '../ui/popover'
+import { Separator } from '../ui/separator'
 
 export function ThemeSelector() {
   const { colorTheme, setColorTheme } = useColorTheme()

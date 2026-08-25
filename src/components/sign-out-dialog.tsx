@@ -1,2 +1,1 @@
-export * from '@/design-system/components/business/sign-out-dialog'
-
+export { SignOutDialog } from '@/design-system'

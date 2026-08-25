@@ -5,9 +5,9 @@ import { Bell } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { Header } from '@/components/layout/header'
 import { Search } from '@/components/search'
-import { Button } from '@/components/ui/button'
-import { useAuthStore } from '@/stores/auth-store'
-import { useNotificationStore } from '@/stores/notification-store'
+import { Button } from '../components/ui/button'
+import { useAuthStore } from '../../stores/auth-store'
+import { useNotificationStore } from '../../stores/notification-store'
 
 type AppHeaderProps = {
   title: string

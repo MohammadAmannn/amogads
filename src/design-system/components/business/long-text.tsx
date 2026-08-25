@@ -1,16 +1,18 @@
+'use client'
+
 import { useRef, useState } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from '../../../lib/utils'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover'
+} from '../ui/popover'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip'
+} from '../ui/tooltip'
 
 type LongTextProps = {
   children: React.ReactNode

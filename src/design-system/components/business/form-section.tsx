@@ -1,8 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { Separator } from '@/design-system/components/ui/separator'
-import { cn } from '@/lib/utils'
+import { Separator } from '../ui/separator'
+import { cn } from '../../../lib/utils'
 
 export interface FormSectionProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   title: React.ReactNode

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file ImageIngestionZone.tsx
  * @description Drag-and-drop file dropzone & camera capture trigger supporting images and PDFs.

@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file TextExtractorModal.tsx
  * @description Master responsive modal for Extract Text (OCR Image-to-PDF) workflow.

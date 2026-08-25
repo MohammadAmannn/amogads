@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/progress'
-
+export * from '@/design-system'

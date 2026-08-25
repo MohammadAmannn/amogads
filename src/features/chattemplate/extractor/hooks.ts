@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file hooks.ts
  * @description React hooks for Extract Text (OCR) flow management.

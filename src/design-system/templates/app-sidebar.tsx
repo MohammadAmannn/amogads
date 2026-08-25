@@ -1,11 +1,13 @@
-import { useLayout } from '@/context/layout-provider'
+'use client'
+
+import { useLayout } from '../../context/layout-provider'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarTrigger,
-} from '@/components/ui/sidebar'
+} from '../components/ui/sidebar'
 import { sidebarData } from './data/sidebar-data'
 import { NavGroup } from './nav-group'
 import { TeamSwitcher } from './team-switcher'

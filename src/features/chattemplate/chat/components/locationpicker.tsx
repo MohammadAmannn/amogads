@@ -1,3 +1,5 @@
+'use client'
+
 // components/chat/location-picker.tsx
 import { useState, useEffect, useRef } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'

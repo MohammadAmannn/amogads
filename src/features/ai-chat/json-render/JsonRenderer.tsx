@@ -1,3 +1,5 @@
+'use client'
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useMemo } from 'react'
 import { registry } from './registry'

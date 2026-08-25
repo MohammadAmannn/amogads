@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import { Menu } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import { cn } from '../../lib/utils'
+import { Button } from '../components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '../components/ui/dropdown-menu'
 
 type TopNavProps = React.HTMLAttributes<HTMLElement> & {
   links: {

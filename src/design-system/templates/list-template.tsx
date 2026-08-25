@@ -1,9 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { PageHeader } from '@/design-system/components/business/page-header'
-import { FilterBar, type ActiveFilter } from '@/design-system/components/business/filter-bar'
-import { cn } from '@/lib/utils'
+import { PageHeader } from '../components/business/page-header'
+import { FilterBar, type ActiveFilter } from '../components/business/filter-bar'
+import { cn } from '../../lib/utils'
 
 export interface ListTemplateProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
   title: React.ReactNode

@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Contact } from '@/features/chattemplate/contacts/types/contact.types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

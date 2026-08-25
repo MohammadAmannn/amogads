@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file CropOverlay.tsx
  * @description Interactive 4-Corner Draggable Quad Handle Overlay for Manual Crop Adjustments.

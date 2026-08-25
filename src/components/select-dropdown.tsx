@@ -1,2 +1,1 @@
-export * from '@/design-system/components/business/select-dropdown'
-
+export { SelectDropdown } from '@/design-system'

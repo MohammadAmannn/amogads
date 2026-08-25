@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect, useCallback } from 'react'
 import type { MapMarker } from '../types/marker'
 import { MapService } from '../services/map.service'

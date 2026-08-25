@@ -1,3 +1,5 @@
+'use client'
+
 /**
  * @file useSupabaseUpload.ts
  * @description React hook for uploading compiled PDF files to Supabase Storage via `/api/upload`.

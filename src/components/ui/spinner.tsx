@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/spinner'
-
+export * from '@/design-system'

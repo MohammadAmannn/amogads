@@ -1,12 +1,12 @@
 'use client'
 
 import { SearchIcon } from 'lucide-react'
-import { useSearch } from '@/context/search-provider'
+import { useSearch } from '../../context/search-provider'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar'
+} from '../components/ui/sidebar'
 
 export function SidebarSearch() {
   const { setOpen } = useSearch()

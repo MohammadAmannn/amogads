@@ -1,2 +1,1 @@
-export * from '@/design-system/components/ui/date-picker'
-
+export * from '@/design-system'

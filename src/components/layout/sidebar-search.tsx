@@ -1,2 +1,1 @@
-export * from '@/design-system/templates/sidebar-search'
-
+export { SidebarSearch } from '@/design-system'

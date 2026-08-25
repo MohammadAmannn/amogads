@@ -1,2 +1,1 @@
-export * from '@/design-system/components/business/confirm-dialog'
-
+export { ConfirmDialog } from '@/design-system'

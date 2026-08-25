@@ -17,6 +17,31 @@
       "types": "./dist/tokens.d.ts",
       "import": "./dist/tokens.mjs",
       "require": "./dist/tokens.js"
+    },
+    "./pages": {
+      "types": "./dist/pages.d.ts",
+      "import": "./dist/pages.mjs",
+      "require": "./dist/pages.js"
+    },
+    "./stores": {
+      "types": "./dist/stores.d.ts",
+      "import": "./dist/stores.mjs",
+      "require": "./dist/stores.js"
+    },
+    "./services": {
+      "types": "./dist/services.d.ts",
+      "import": "./dist/services.mjs",
+      "require": "./dist/services.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.js"
+    },
+    "./sdk": {
+      "types": "./dist/sdk.d.ts",
+      "import": "./dist/sdk.mjs",
+      "require": "./dist/sdk.js"
     }
   },
   "files": [

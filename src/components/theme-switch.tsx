@@ -1,2 +1,1 @@
-export * from '@/design-system/components/business/theme-switch'
-
+export { ThemeSwitch } from '@/design-system'

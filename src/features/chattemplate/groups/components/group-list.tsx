@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Group } from '../types/group.types'
 import { Contact } from '@/features/chattemplate/contacts/types/contact.types'
