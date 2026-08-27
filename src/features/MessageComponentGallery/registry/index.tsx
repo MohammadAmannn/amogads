@@ -39,7 +39,7 @@ import {
   AiPromptSuggestions as DsAiPromptSuggestions,
   AiChatHeader as DsAiChatHeader,
   Button as DsButton,
-} from '@amogads/ui'
+} from '@/design-system'
 import { Phone, Video } from 'lucide-react'
 
 // ─── Existing Message Page Components (unchanged) ────────────────────────────

@@ -25,7 +25,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/design-system/*": ["./src/design-system/*"]
+      "@/design-system/*": ["./src/design-system/*"],
+      "@amogads/ui": ["./src/design-system/index.ts"],
+      "@amogads/ui/*": ["./src/design-system/*"]
     },
     "allowJs": true,
     "esModuleInterop": true
