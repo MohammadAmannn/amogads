@@ -328,64 +328,90 @@ export default function CustomersPage() {
 
 You can build custom messaging and AI chat interfaces using standalone chat primitives from `@amogads/ui` without having to mount full standard pages:
 
-#### Complete Full-Featured Chat Application (`ChatSidebar`, `ChatCardItem`, `ChatMessageList`, `ChatHeader`, `ChatBubble`, `ChatInput`)
+#### Complete Master-Detail Chat Application Example
 ```tsx
-'use client'
-
 import React, { useState } from 'react'
 import {
   ChatSidebar,
   ChatCardItem,
-  ChatHeader,
   ChatMessageList,
   ChatBubble,
   ChatInput,
+  ChatHeader,
   TypingIndicator,
   ChatEmptyState,
   Button
 } from '@amogads/ui'
 import { Phone, Video, MoreVertical } from 'lucide-react'
 
-export function CompleteChatApplication() {
-  const [search, setSearch] = useState('')
-  const [activeTab, setActiveTab] = useState('all')
+export function CustomChatApp() {
+  const [activeTab, setActiveTab] = useState('chats')
   const [activeChatId, setActiveChatId] = useState('1')
   const [inputText, setInputText] = useState('')
+  const [search, setSearch] = useState('')
 
   const conversations = [
     {
       id: '1',
-      title: 'Sarah Connor',
-      lastMessage: 'Yes! The chat component library is ready.',
-      time: '10:15 AM',
-      unreadCount: 2,
-      isOnline: true,
+      title: 'Aman',
+      badgeLabel: 'Chat',
+      lastMessage: 'images (1).jpg',
+      time: 'about 3 hours ago',
+      membersCount: 2,
+      onlineCount: 0,
+      isActive: activeChatId === '1',
     },
     {
       id: '2',
-      title: 'Design Team Hub',
-      lastMessage: 'Alice: New mockups are uploaded to Figma.',
-      time: 'Yesterday',
-      unreadCount: 0,
-      isGroup: true,
+      title: 'DB Alerts',
+      badgeLabel: 'Chat',
+      lastMessage: 'Contact Created 🟢 Contact Added By: Bhanuprasad...',
+      time: '10 days ago',
+      membersCount: 3,
+      onlineCount: 0,
+      isActive: activeChatId === '2',
     }
   ]
 
   const [messages, setMessages] = useState([
     {
       id: 'm1',
-      content: 'Hey! Is the new AmogDS chat component library live?',
-      isOwn: false,
-      senderName: 'Sarah Connor',
-      time: '10:14 AM',
+      senderName: 'Mohammed Aman',
+      time: '01:05 PM',
       status: 'read' as const,
+      attachments: [
+        {
+          name: 'Dev_ops resume.pdf',
+          size: 507904,
+          type: 'pdf',
+          statusText: 'Parsed',
+        }
+      ]
     },
     {
       id: 'm2',
-      content: 'Yes! You can now compose custom chat experiences on any project.',
-      isOwn: true,
-      senderName: 'You',
-      time: '10:15 AM',
+      senderName: 'Mohammed Aman',
+      content: 'hy',
+      time: '09:06 AM',
+      status: 'read' as const,
+    },
+    {
+      id: 'm3',
+      senderName: 'Aman',
+      content: 'heello',
+      time: '09:07 AM',
+    },
+    {
+      id: 'm4',
+      senderName: 'Aman',
+      content: 'hyy',
+      time: '09:52 AM',
+    },
+    {
+      id: 'm5',
+      senderName: 'Mohammed Aman',
+      content: 'checking from amogds',
+      time: '09:52 AM',
       status: 'read' as const,
     }
   ])
@@ -396,11 +422,10 @@ export function CompleteChatApplication() {
       ...prev,
       {
         id: String(Date.now()),
+        senderName: 'Mohammed Aman',
         content: inputText,
-        isOwn: true,
-        senderName: 'You',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: 'sent' as const,
+        status: 'read' as const,
       }
     ])
     setInputText('')
@@ -408,30 +433,31 @@ export function CompleteChatApplication() {
 
   return (
     <div className="flex h-[750px] w-full border border-border rounded-2xl overflow-hidden bg-background shadow-lg">
-      {/* 1. Left Sidebar: Search, Tabs & Conversations */}
+      {/* 1. Left Sidebar: Subtabs, Search, Divider & Conversation Cards */}
       <ChatSidebar
-        title="Messages"
-        searchValue={search}
-        onSearchChange={setSearch}
-        onNewChat={() => console.log('New chat')}
         tabs={[
-          { id: 'all', label: 'All', count: conversations.length },
-          { id: 'unread', label: 'Unread', count: 1 },
-          { id: 'groups', label: 'Groups', count: 1 },
+          { id: 'chats', label: 'Chats' },
+          { id: 'contact', label: 'Contact' },
+          { id: 'groups', label: 'Groups' },
+          { id: 'folder', label: 'Folder' },
         ]}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        searchValue={search}
+        onSearchChange={setSearch}
+        sectionLabel="CHATS"
+        sectionCount={conversations.length}
       >
         {conversations.map((c) => (
           <ChatCardItem
             key={c.id}
             id={c.id}
             title={c.title}
+            badgeLabel={c.badgeLabel}
             lastMessage={c.lastMessage}
             time={c.time}
-            unreadCount={c.unreadCount}
-            isOnline={c.isOnline}
-            isGroup={c.isGroup}
+            membersCount={c.membersCount}
+            onlineCount={c.onlineCount}
             isActive={activeChatId === c.id}
             onClick={() => setActiveChatId(c.id)}
           />
@@ -441,7 +467,7 @@ export function CompleteChatApplication() {
       {/* 2. Main Chat Conversation Panel */}
       <div className="flex flex-1 flex-col h-full bg-background/50">
         <ChatHeader
-          title="Sarah Connor"
+          title="Aman"
           subtitle="Active now"
           status="online"
           actions={
@@ -453,28 +479,32 @@ export function CompleteChatApplication() {
           }
         />
 
+        {/* 3. Message Thread Feed (PDFs, Images, Locations, Text) */}
         <ChatMessageList autoScrollToBottom emptyState={<ChatEmptyState />}>
           {messages.map((msg) => (
             <ChatBubble
               key={msg.id}
-              content={msg.content}
-              isOwn={msg.isOwn}
               senderName={msg.senderName}
+              content={msg.content}
               time={msg.time}
               status={msg.status}
+              attachments={msg.attachments}
             />
           ))}
-          <TypingIndicator label="Sarah is typing..." />
+          <TypingIndicator label="Aman is typing..." />
         </ChatMessageList>
 
+        {/* 4. Rounded Pill Input Composer */}
         <div className="p-3 border-t border-border bg-background">
           <ChatInput
             value={inputText}
             onChange={setInputText}
             onSend={handleSend}
-            placeholder="Write a message..."
-            showAttachments
-            showEmoji
+            placeholder="Message"
+            showEmoji={true}
+            showAttachments={true}
+            showCamera={true}
+            showVoice={true}
           />
         </div>
       </div>
@@ -483,23 +513,54 @@ export function CompleteChatApplication() {
 }
 ```
 
-#### Standalone AI Chat Streaming Bubble (`AiChatBubble`)
+#### Contact & Group Managers (`ContactManager`, `GroupManager`)
 ```tsx
-import { AiChatBubble } from '@amogads/ui'
+import React from 'react'
+import { ContactManager, GroupManager } from '@amogads/ui'
 
-export function AiMessageExample() {
+export function ContactManagementSection() {
+  const contacts = [
+    { id: '1', name: 'Aman', email: 'amanmicropay@gmail.com', initials: 'AM', isEnabled: true }
+  ]
+
+  const groups = [
+    { id: 'g1', name: 'jj', membersCount: 3, ownerEmail: 'itsaman00786@gmail.com', isEnabled: true },
+    { id: 'g2', name: 'demo', membersCount: 3, ownerEmail: 'itsaman00786@gmail.com', isEnabled: true }
+  ]
+
   return (
-    <AiChatBubble
-      role="assistant"
-      modelName="Gemini 1.5 Pro"
-      content="Here is how you can use the AmogDS design system components in any React project."
-      citations={[
-        { title: 'AmogDS Documentation', url: 'https://amoga.io/docs' },
-      ]}
-      onCopy={() => console.log('Copied!')}
-      onThumbsUp={() => console.log('Liked!')}
-    />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
+      <ContactManager
+        contacts={contacts}
+        onChatClick={(c) => console.log('Chat with', c.name)}
+        onAddContact={(newC) => console.log('Added', newC)}
+        onDeleteClick={(c) => console.log('Delete', c.id)}
+      />
+
+      <GroupManager
+        groups={groups}
+        onChatClick={(g) => console.log('Open group', g.name)}
+        onAddGroup={(newG) => console.log('Create group', newG)}
+        onDeleteClick={(g) => console.log('Delete group', g.id)}
+      />
+    </div>
   )
+}
+```
+
+#### 📱 How to Use in React Native / Mobile Apps
+In React Native, you can install `@amogads/ui` to share the same Design Tokens, Business Services, and State Stores:
+```bash
+npm install @amogads/ui
+```
+```tsx
+import { SEMANTIC_TOKENS } from '@amogads/ui/tokens'
+import { useAuthStore, useNotificationStore } from '@amogads/ui/stores'
+import { chatService } from '@amogads/ui/services'
+
+export function MobileChatScreen() {
+  const user = useAuthStore((s) => s.auth.user)
+  // Consumes the exact shared business logic & tokens across web and mobile
 }
 ```
 

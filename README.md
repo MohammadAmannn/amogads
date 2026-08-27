@@ -73,7 +73,7 @@ src/
 | **Tokens** | `@amogads/ui/tokens`<br/>`@amogads/ui/theme.css` | `SEMANTIC_TOKENS`, `CHART_TOKENS`, `SIDEBAR_TOKENS`, CSS custom properties |
 | **Primitives** | `@amogads/ui` | `Button`, `Input`, `Card`, `Table`, `Tabs`, `Dialog`, `Sheet`, `Drawer`, `Select`, `Checkbox`, `RadioGroup`, `Slider`, `Switch`, `Badge`, `Avatar`, `Breadcrumb`, `DropdownMenu`, `Popover`, `Tooltip`, `Command`, `ContextMenu`, `Pagination`, `Progress`, `ScrollArea`, `Skeleton`, `Sonner`, `Toaster`, `Spinner`, `Textarea`, `Toggle`, `Kbd`, `Label`, `Empty`, `Field`, `Form`, `InputGroup`, `InputOTP` |
 | **Business Components** | `@amogads/ui` | `PageHeader`, `DataTable`, `StatusBadge`, `FilterBar`, `FormSection`, `MetricCard`, `ConfirmDialog`, `PasswordInput`, `SignOutDialog`, `ThemeSwitch`, `ThemeSelector`, `SelectDropdown`, `LongText`, `Search`, `Stats01`, `DatePicker`, `QrCodeDisplay` |
-| **Chat Components** | `@amogads/ui` | `ChatSidebar`, `ChatCardItem`, `ChatMessageList`, `ChatHeader`, `ChatBubble`, `ChatInput`, `TypingIndicator`, `ChatEmptyState`, `AiChatBubble` |
+| **Chat Components** | `@amogads/ui` | `ChatSidebar`, `ChatCardItem`, `ChatMessageList`, `ChatHeader`, `ChatBubble`, `ChatInput`, `TypingIndicator`, `ChatEmptyState`, `ContactManager`, `GroupManager` |
 | **Page Templates** | `@amogads/ui` | `ListTemplate`, `DetailTemplate`, `FormTemplate`, `WizardTemplate`, `DashboardTemplate`, `WorkspaceTemplate` |
 
 ---

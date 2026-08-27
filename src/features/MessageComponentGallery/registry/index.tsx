@@ -20,6 +20,21 @@ import {
   MoreHorizontal,
 } from 'lucide-react'
 
+import {
+  ChatSidebar as DsChatSidebar,
+  ChatCardItem as DsChatCardItem,
+  ChatMessageList as DsChatMessageList,
+  ChatHeader as DsChatHeader,
+  ChatBubble as DsChatBubble,
+  ChatInput as DsChatInput,
+  TypingIndicator as DsTypingIndicator,
+  ChatEmptyState as DsChatEmptyState,
+  ContactManager as DsContactManager,
+  GroupManager as DsGroupManager,
+  Button as DsButton,
+} from '@/design-system'
+import { Phone, Video } from 'lucide-react'
+
 // ─── Existing Message Page Components (unchanged) ────────────────────────────
 import { ChatCardItem } from '@/features/Message/components/sidebar/chat-card-item'
 import { ChatHeader } from '@/features/Message/components/chat/chat-header'
@@ -993,67 +1008,86 @@ export default function MapScreen() {
   // ───────────────────────── CHAT SECTION ───────────────────────────────────
 
   {
-    id: 'complete-chat-page',
-    name: 'Complete Chat Page (Layout)',
+    id: 'chat-sidebar',
+    name: 'Chat Sidebar',
     category: 'Chat',
-    badge: 'Chat Page',
-    description: 'Full-view dual-pane layout for Chat: Left sidebar with subtabs (Chats, Contacts, Groups, Folders) and conversation cards + Right area with active chat view, header, reactions, file progress, and composer.',
-    filePath: 'src/features/Message/components/chat/chat-view.tsx',
+    badge: 'Chat Sidebar',
+    description: 'Master sidebar container with subtabs (Chats, Contact, Groups, Folder), search bar, category divider line with count, and a scrollable conversation list.',
+    filePath: 'src/design-system/components/chat/chat-sidebar.tsx',
     states: [
-      { label: 'Interactive Live Chat Page', description: 'Full dual-pane chat conversation view' },
-    ],
-    renderPreview: (_si, opts) => <CompleteChatPagePreview isMobileView={opts?.isMobileView} />,
-    usageCode: (_si) => `<div className="flex h-full w-full">
-  <div className="w-80 border-r">
-    <SidebarHeader />
-    <CategoryToolbar categoryFilter="chat" />
-    <SubTabsBar categoryFilter="chat" activeTab="chats" />
-    <SidebarSearchBar categoryFilter="chat" />
-    {chats.map(c => (
-      <ChatCardItem key={c.id} email={c} isSelected={selectedId === c.id} onSelect={setSelected} />
-    ))}
-  </div>
-
-  <div className="flex-1">
-    <ChatView chatName="Alex Johnson" messages={messages} onSendMessage={handleSend} currentUser={currentUser} />
-  </div>
-</div>`,
-  },
-
-  {
-    id: 'chat-view',
-    name: 'Chat View (Full Screen)',
-    category: 'Chat',
-    badge: 'Chat View',
-    description: 'Complete chat conversation view. Includes header, scrollable message stream with multi-type bubbles (text, media, doc, reply), file upload progress, and message composer.',
-    filePath: 'src/features/Message/components/chat/chat-view.tsx',
-    states: [
-      { label: 'With Messages', description: 'Conversation with mock messages' },
-      { label: 'Empty', description: 'No messages yet state' },
+      { label: 'Interactive Sidebar', description: 'Chats list with subtabs and search' },
+      { label: 'Groups Tab', description: 'Filtered to groups' },
     ],
     renderPreview: (si) => (
-      <div className='w-full h-[540px] rounded-xl overflow-hidden border border-border relative'>
-        <ChatView
-          chatName='Alex Johnson'
-          chatAvatar=''
-          membersCount={2}
-          onlineCount={1}
-          messages={si === 1 ? [] : mockChatMessages}
-          onBack={() => toast.info('Back (preview only)')}
-          onSendMessage={() => toast.info('Send (preview only)')}
-          currentUser={mockCurrentUser}
-        />
+      <div className='w-full max-w-[340px] h-[520px] rounded-2xl overflow-hidden border border-border/80 bg-background shadow-md'>
+        <DsChatSidebar
+          tabs={[
+            { id: 'chats', label: 'Chats' },
+            { id: 'contact', label: 'Contact' },
+            { id: 'groups', label: 'Groups' },
+            { id: 'folder', label: 'Folder' },
+          ]}
+          activeTab={si === 1 ? 'groups' : 'chats'}
+          onTabChange={(t) => toast.info(`Tab: ${t}`)}
+          sectionLabel="CHATS"
+          sectionCount={2}
+          onSearchChange={() => {}}
+        >
+          <DsChatCardItem
+            id="1"
+            title="Aman"
+            badgeLabel="Chat"
+            time="about 3 hours ago"
+            membersCount={2}
+            onlineCount={0}
+            lastMessage="images (1).jpg"
+            isActive={true}
+            onClick={() => toast.info('Selected Aman')}
+          />
+          <DsChatCardItem
+            id="2"
+            title="DB Alerts"
+            badgeLabel="Chat"
+            time="10 days ago"
+            membersCount={3}
+            onlineCount={0}
+            lastMessage="Contact Created 🟢 Contact Added By: Bhanuprasad..."
+            isActive={false}
+            onClick={() => toast.info('Selected DB Alerts')}
+          />
+        </DsChatSidebar>
       </div>
     ),
-    usageCode: (si) => `<ChatView
-  chatName="Alex Johnson"
-  membersCount={2}
-  onlineCount={1}
-  messages={${si === 1 ? '[]' : 'mockChatMessages'}}
-  onBack={() => {}}
-  onSendMessage={(content, attachment, replyTo) => {}}
-  currentUser={currentUser}
-/>`,
+    usageCode: () => `<ChatSidebar
+  tabs={[
+    { id: 'chats', label: 'Chats' },
+    { id: 'contact', label: 'Contact' },
+    { id: 'groups', label: 'Groups' },
+    { id: 'folder', label: 'Folder' },
+  ]}
+  activeTab={activeTab}
+  onTabChange={setActiveTab}
+  sectionLabel="CHATS"
+  sectionCount={2}
+>
+  <ChatCardItem
+    title="Aman"
+    badgeLabel="Chat"
+    time="about 3 hours ago"
+    membersCount={2}
+    onlineCount={0}
+    lastMessage="images (1).jpg"
+    isActive={true}
+  />
+  <ChatCardItem
+    title="DB Alerts"
+    badgeLabel="Chat"
+    time="10 days ago"
+    membersCount={3}
+    onlineCount={0}
+    lastMessage="Contact Created..."
+  />
+</ChatSidebar>`,
   },
 
   {
@@ -1061,29 +1095,89 @@ export default function MapScreen() {
     name: 'Chat Card Item',
     category: 'Chat',
     badge: 'Chat Card',
-    description: 'Sidebar list card for a chat conversation or contact. Shows name, member count, last message snippet, and unread indicator.',
-    filePath: 'src/features/Message/components/sidebar/chat-card-item.tsx',
+    description: 'Conversation preview card for sidebar list. Displays contact name, pill badge (💬 Chat), timestamp, member & online counter, and last message snippet with active left accent stripe.',
+    filePath: 'src/design-system/components/chat/chat-card-item.tsx',
     states: [
-      { label: 'Default', description: 'Standard group chat card' },
-      { label: 'Unread', description: 'Card with unread indicator' },
-      { label: 'Selected', description: 'Active / selected state' },
-      { label: 'Collapsed', description: 'Icon-only collapsed mode' },
+      { label: 'Active / Selected', description: 'With purple left stripe and tinted background' },
+      { label: 'Default / Unselected', description: 'Clean hoverable conversation item' },
+      { label: 'Group with Attachment', description: 'Showing file attachment name' },
     ],
     renderPreview: (si) => (
-      <div className='w-full flex flex-col items-start justify-start'>
-        <ChatCardItem
-          email={si === 1 ? { ...mockChatEmails[2], read: false } : si === 2 ? mockChatEmails[0] : mockChatEmails[1]}
-          isSelected={si === 2}
-          isCollapsed={si === 3}
-          onSelect={noop}
+      <div className='w-full max-w-[340px] flex flex-col gap-2 p-2 bg-background border border-border/60 rounded-2xl'>
+        <DsChatCardItem
+          id="c1"
+          title={si === 2 ? 'DB Alerts' : 'Aman'}
+          badgeLabel="Chat"
+          time={si === 1 ? 'about 3 hours ago' : si === 2 ? '10 days ago' : 'about 3 hours ago'}
+          membersCount={si === 2 ? 3 : 2}
+          onlineCount={0}
+          lastMessage={si === 2 ? 'Contact Created 🟢 Contact Added By: Bhanuprasad...' : 'images (1).jpg'}
+          isActive={si === 0}
+          onClick={() => toast.info('Conversation clicked')}
         />
       </div>
     ),
     usageCode: (si) => `<ChatCardItem
-  email={mockChatEmail}
-  isSelected={${si === 2}}
-  isCollapsed={${si === 3}}
-  onSelect={(email) => console.log('selected', email.id)}
+  title="${si === 2 ? 'DB Alerts' : 'Aman'}"
+  badgeLabel="Chat"
+  time="${si === 2 ? '10 days ago' : 'about 3 hours ago'}"
+  membersCount={${si === 2 ? 3 : 2}}
+  onlineCount={0}
+  lastMessage="${si === 2 ? 'Contact Created...' : 'images (1).jpg'}"
+  isActive={${si === 0}}
+  onClick={() => {}}
+/>`,
+  },
+
+  {
+    id: 'chat-input',
+    name: 'Chat Input (Composer)',
+    category: 'Chat',
+    badge: 'Chat Input',
+    description: 'Modern messaging pill input container with emoji picker, attachment clip, camera trigger, and circular emerald green microphone/send button.',
+    filePath: 'src/design-system/components/chat/chat-input.tsx',
+    states: [
+      { label: 'Standard Pill Input', description: 'Clean rounded bar with emerald voice action' },
+      { label: 'With Typed Text', description: 'Switches action to Send button' },
+      { label: 'Replying to Message', description: 'With quote reply header banner' },
+    ],
+    renderPreview: (si) => (
+      <div className='w-full max-w-2xl p-4 bg-background border border-border rounded-2xl shadow-xs'>
+        <DsChatInput
+          value={si === 1 ? 'Sounds great! Will review the changes.' : ''}
+          onChange={() => {}}
+          onSend={() => toast.info('Message sent')}
+          placeholder="Message"
+          showAttachments={true}
+          showEmoji={true}
+          showCamera={true}
+          showVoice={true}
+          replyMessage={
+            si === 2
+              ? {
+                  senderName: 'Aman',
+                  content: 'images (1).jpg',
+                  onClear: () => toast.info('Cleared reply'),
+                }
+              : undefined
+          }
+          onAttachmentClick={() => toast.info('Attachment picker opened')}
+          onEmojiClick={() => toast.info('Emoji picker opened')}
+          onCameraClick={() => toast.info('Camera opened')}
+          onVoiceClick={() => toast.info('Recording voice message...')}
+        />
+      </div>
+    ),
+    usageCode: (si) => `<ChatInput
+  value={text}
+  onChange={setText}
+  onSend={handleSend}
+  placeholder="Message"
+  showEmoji={true}
+  showAttachments={true}
+  showCamera={true}
+  showVoice={true}
+  ${si === 2 ? `replyMessage={{ senderName: 'Aman', content: 'images (1).jpg' }}` : ''}
 />`,
   },
 
@@ -1092,116 +1186,383 @@ export default function MapScreen() {
     name: 'Chat Header',
     category: 'Chat',
     badge: 'Chat Header',
-    description: 'Top bar of a chat conversation. Shows avatar, name, member/online count, typing indicator, back button (mobile), and action menu.',
-    filePath: 'src/features/Message/components/chat/chat-header.tsx',
+    description: 'Conversation header bar with avatar, live presence status (online, offline, away, busy), group member count, and action button slots (audio, video, search, menu).',
+    filePath: 'src/design-system/components/chat/chat-header.tsx',
     states: [
-      { label: 'Default', description: 'Standard header' },
-      { label: 'Typing', description: 'Shows typing indicator' },
-      { label: 'Group Chat', description: 'Group with member count' },
+      { label: 'Online Direct Contact', description: 'Single user active now' },
+      { label: 'Group Channel', description: 'Group header with member count' },
+      { label: 'Away / Busy', description: 'Status badge variations' },
     ],
     renderPreview: (si) => (
-      <div className='w-full flex flex-col items-start justify-start'>
-        <ChatHeader
-          chatName={si === 2 ? 'Design Squad' : 'Alex Johnson'}
-          subtitle={si === 2 ? '5 members, 3 online' : 'Last seen 2 mins ago'}
-          typingText={si === 1 ? 'Alex is typing...' : undefined}
-          onBack={noop}
-          onShowProfile={noop}
+      <div className='w-full max-w-lg rounded-xl overflow-hidden border border-border bg-background shadow-xs'>
+        <DsChatHeader
+          title={si === 1 ? 'Design System Core Team' : 'Aman'}
+          subtitle={si === 1 ? undefined : si === 2 ? 'In a meeting • Do not disturb' : 'Active now'}
+          status={si === 2 ? 'busy' : 'online'}
+          isGroup={si === 1}
+          memberCount={si === 1 ? 8 : undefined}
+          actions={
+            <div className="flex items-center gap-1">
+              <DsButton variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast.info('Audio call')}>
+                <Phone className="h-4 w-4 text-muted-foreground" />
+              </DsButton>
+              <DsButton variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast.info('Video call')}>
+                <Video className="h-4 w-4 text-muted-foreground" />
+              </DsButton>
+              <DsButton variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast.info('More options')}>
+                <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+              </DsButton>
+            </div>
+          }
         />
       </div>
     ),
     usageCode: (si) => `<ChatHeader
-  chatName="${si === 2 ? 'Design Squad' : 'Alex Johnson'}"
-  subtitle="${si === 2 ? '5 members, 3 online' : 'Last seen 2 mins ago'}"
-  ${si === 1 ? 'typingText="Alex is typing..."' : ''}
-  onBack={() => {}}
-  onShowProfile={() => {}}
+  title="${si === 1 ? 'Design System Core Team' : 'Aman'}"
+  subtitle="${si === 1 ? '8 members' : 'Active now'}"
+  status="${si === 2 ? 'busy' : 'online'}"
+  isGroup={${si === 1}}
+  memberCount={${si === 1 ? 8 : 'undefined'}}
+  actions={
+    <>
+      <Button variant="ghost" size="icon"><Phone className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon"><Video className="h-4 w-4" /></Button>
+    </>
+  }
 />`,
+  },
+
+  {
+    id: 'chat-message-list',
+    name: 'Chat Message List',
+    category: 'Chat',
+    badge: 'Message List',
+    description: 'Scrollable message viewport container with automatic auto-scroll to bottom, infinite scroll top loader for history, and rich bubble rendering for text, live location cards, and media attachments.',
+    filePath: 'src/design-system/components/chat/chat-message-list.tsx',
+    states: [
+      { label: 'Active Message Feed', description: 'Feed with location card and image attachment' },
+      { label: 'Empty State', description: 'Zero message fallback' },
+      { label: 'Loading History', description: 'Infinite scroll spinner' },
+    ],
+    renderPreview: (si) => (
+      <div className='w-full max-w-xl h-[540px] flex flex-col rounded-2xl overflow-hidden border border-border/80 bg-background shadow-md'>
+        <DsChatMessageList
+          isLoadingMore={si === 2}
+          emptyState={
+            <DsChatEmptyState
+              title="No messages yet"
+              description="Send a message to start this conversation."
+            />
+          }
+        >
+          {si === 1 ? null : (
+            <div className="space-y-4 p-4">
+              {/* Message 1: Document attachment */}
+              <DsChatBubble
+                senderName="Mohammed Aman"
+                time="01:05 PM"
+                status="read"
+                attachments={[
+                  {
+                    id: 'doc1',
+                    name: 'Dev_ops resume.pdf',
+                    size: 507904,
+                    type: 'pdf',
+                    statusText: 'Parsed',
+                  },
+                ]}
+                onAttachmentPreview={(att) => toast.info(`Previewing ${att.name}`)}
+                onAttachmentClick={(att) => toast.info(`Downloading ${att.name}`)}
+              />
+
+              {/* Message 2: hy */}
+              <DsChatBubble
+                senderName="Mohammed Aman"
+                content="hy"
+                time="09:06 AM"
+                status="read"
+              />
+
+              {/* Message 3: heello */}
+              <DsChatBubble
+                senderName="Aman"
+                content="heello"
+                time="09:07 AM"
+              />
+
+              {/* Message 4: hyy */}
+              <DsChatBubble
+                senderName="Aman"
+                content="hyy"
+                time="09:52 AM"
+              />
+
+              {/* Message 5: checking from amogds */}
+              <DsChatBubble
+                senderName="Mohammed Aman"
+                content="checking from amogds"
+                time="09:52 AM"
+                status="read"
+              />
+            </div>
+          )}
+        </DsChatMessageList>
+      </div>
+    ),
+    usageCode: () => `<ChatMessageList autoScrollToBottom={true}>
+  {/* Document Message */}
+  <ChatBubble
+    senderName="Mohammed Aman"
+    time="01:05 PM"
+    status="read"
+    attachments={[
+      { name: 'Dev_ops resume.pdf', size: 507904, type: 'pdf', statusText: 'Parsed' }
+    ]}
+  />
+
+  {/* Text Message */}
+  <ChatBubble
+    senderName="Mohammed Aman"
+    content="hy"
+    time="09:06 AM"
+    status="read"
+  />
+
+  {/* Incoming Text Message */}
+  <ChatBubble
+    senderName="Aman"
+    content="heello"
+    time="09:07 AM"
+  />
+
+  <ChatBubble
+    senderName="Aman"
+    content="hyy"
+    time="09:52 AM"
+  />
+
+  <ChatBubble
+    senderName="Mohammed Aman"
+    content="checking from amogds"
+    time="09:52 AM"
+    status="read"
+  />
+</ChatMessageList>`,
   },
 
   {
     id: 'message-bubble',
     name: 'Message Bubble',
     category: 'Chat',
-    badge: 'Bubble',
-    description: 'Individual message bubble. Supports text, image, video, document, voice, location, reply-to, forward, and action toolbar on hover.',
-    filePath: 'src/features/Message/components/chat/message-bubble.tsx',
+    badge: 'Chat Bubble',
+    description: 'Pure, customizable message bubble. Supports text, file/PDF attachments, location cards, status delivery receipts (sent, delivered, read), and interactive reactions.',
+    filePath: 'src/design-system/components/chat/chat-bubble.tsx',
     states: [
-      { label: 'Text Message', description: 'Plain text bubble' },
-      { label: 'Own Message', description: 'Sent by current user' },
-      { label: 'With Document', description: 'PDF/document attachment' },
-      { label: 'With Reply', description: 'Reply-to reference' },
+      { label: 'Location Card', description: 'Map preview with address' },
+      { label: 'Image Attachment', description: 'Rich rounded media card' },
+      { label: 'Text with Reactions', description: 'Text message and reaction badges' },
     ],
-    renderPreview: (si) => {
-      const msgs = [mockChatMessages[0], mockChatMessages[1], mockChatMessageWithDoc, mockChatMessageReply]
-      return (
-        <div className='w-full flex flex-col items-start justify-start'>
-          <MessageBubble
-            msg={msgs[si] || msgs[0]}
-            isHighlighted={false}
-            activeToolbarMessageId={null}
-            setActiveToolbarMessageId={noop as any}
-            onScrollToReply={noop}
-            onPreviewDoc={noop}
-            onPreviewImage={noop}
-            onPreviewMap={noop}
-            onRetryPdf={noop}
-            formatTime={(d) => d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            formatFileSize={(b) => b < 1024 * 1024 ? `${Math.round(b / 1024)} KB` : `${(b / (1024 * 1024)).toFixed(1)} MB`}
-            getFileType={(n) => n.split('.').pop()?.toLowerCase()}
+    renderPreview: (si) => (
+      <div className='w-full max-w-md p-4 bg-muted/20 border border-border/60 rounded-2xl space-y-3'>
+        {si === 0 && (
+          <DsChatBubble
+            content="Location shared"
+            isOwn={false}
+            senderName="Aman"
+            time="09:53 AM"
+            status="read"
+            location={{
+              title: 'Current Location',
+              address: 'Jothwara, Jaipur',
+              latitude: 26.9389,
+              longitude: 75.7659,
+            }}
           />
-        </div>
-      )
-    },
-    usageCode: (si) => `<MessageBubble
-  msg={mockChatMessage}
-  isHighlighted={false}
-  activeToolbarMessageId={null}
-  setActiveToolbarMessageId={() => {}}
-  onScrollToReply={() => {}}
-  onPreviewDoc={(attachment) => {}}
-  onPreviewImage={(attachment) => {}}
-  onPreviewMap={(location) => {}}
-  onRetryPdf={(id) => {}}
-  formatTime={(date) => date.toLocaleTimeString()}
-  formatFileSize={(bytes) => \`\${Math.round(bytes/1024)} KB\`}
-  getFileType={(name) => name.split('.').pop()}
+        )}
+        {si === 1 && (
+          <DsChatBubble
+            isOwn={false}
+            senderName="Aman"
+            time="09:53 AM"
+            status="read"
+            attachments={[
+              {
+                id: 'img1',
+                name: 'images (1).jpg',
+                url: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80',
+                size: 145000,
+                type: 'image',
+              },
+            ]}
+          />
+        )}
+        {si === 2 && (
+          <DsChatBubble
+            content="Got it! Looks super clean and matches the designs."
+            isOwn={true}
+            senderName="You"
+            time="09:55 AM"
+            status="read"
+            reactions={[
+              { emoji: '👍', count: 2 },
+              { emoji: '🚀', count: 1 },
+            ]}
+          />
+        )}
+      </div>
+    ),
+    usageCode: (si) => `<ChatBubble
+  isOwn={${si === 2}}
+  senderName="${si === 2 ? 'You' : 'Aman'}"
+  time="09:53 AM"
+  status="read"
+  ${si === 0 ? `location={{ title: 'Current Location', address: 'Jothwara, Jaipur', latitude: 26.9389, longitude: 75.7659 }}` : ''}
+  ${si === 1 ? `attachments={[{ name: 'images (1).jpg', url: '...', type: 'image' }]}` : ''}
 />`,
   },
 
   {
-    id: 'file-upload-progress',
-    name: 'File Upload Progress',
+    id: 'typing-indicator',
+    name: 'Typing Indicator',
     category: 'Chat',
-    badge: 'Upload Bar',
-    description: 'Animated file upload progress bar shown inside the chat and composer while a file is being uploaded.',
-    filePath: 'src/features/Message/components/chat/file-upload-progress.tsx',
+    badge: 'Typing',
+    description: 'Smooth 3-dot pulse animation indicating live incoming message activity.',
+    filePath: 'src/design-system/components/chat/typing-indicator.tsx',
     states: [
-      { label: 'Uploading 45%', description: 'Mid-upload state' },
-      { label: 'Uploading 90%', description: 'Nearly complete' },
-      { label: 'Completed', description: 'Upload finished' },
+      { label: 'With User Name', description: 'Shows specific user typing' },
+      { label: 'Generic', description: 'Simple typing animation' },
     ],
-    renderPreview: (si) => {
-      const progress = si === 0 ? 45 : si === 1 ? 90 : 100
-      const status: 'uploading' | 'completed' | 'error' = si === 2 ? 'completed' : 'uploading'
-      return (
-        <div className='w-full flex flex-col items-start justify-start'>
-          <FileUploadProgress
-            fileName='Q3-Report-2026.pdf'
-            fileSize={1240000}
-            progress={progress}
-            status={status}
-            onCancel={() => toast.info('Cancel clicked (preview only)')}
-          />
-        </div>
-      )
-    },
-    usageCode: (si) => `<FileUploadProgress
-  fileName="Q3-Report-2026.pdf"
-  fileSize={1240000}
-  progress={${si === 0 ? 45 : si === 1 ? 90 : 100}}
-  status="${si === 2 ? 'completed' : 'uploading'}"
-  onCancel={() => {}}
+    renderPreview: (si) => (
+      <div className='w-full max-w-sm p-3 bg-background border border-border/60 rounded-xl'>
+        <DsTypingIndicator
+          label={si === 0 ? 'Aman is typing...' : 'Typing...'}
+        />
+      </div>
+    ),
+    usageCode: (si) => `<TypingIndicator
+  label="${si === 0 ? 'Aman is typing...' : 'Typing...'}"
+/>`,
+  },
+
+  {
+    id: 'chat-empty-state',
+    name: 'Chat Empty State',
+    category: 'Chat',
+    badge: 'Empty State',
+    description: 'Clean placeholder screen displayed when no conversation is selected or a message thread is empty.',
+    filePath: 'src/design-system/components/chat/chat-empty-state.tsx',
+    states: [
+      { label: 'Default', description: 'Standard empty conversation placeholder' },
+    ],
+    renderPreview: () => (
+      <div className='w-full max-w-md h-64 flex items-center justify-center rounded-xl border border-border bg-background shadow-xs'>
+        <DsChatEmptyState
+          title="No conversation selected"
+          description="Choose a chat from the sidebar or start a new conversation to begin messaging."
+        />
+      </div>
+    ),
+    usageCode: () => `<ChatEmptyState
+  title="No conversation selected"
+  description="Choose a chat from the sidebar to begin."
+/>`,
+  },
+
+  {
+    id: 'contact-manager',
+    name: 'Contact Manager',
+    category: 'Chat',
+    badge: 'Contacts',
+    description: 'Standalone contact management interface. Displays saved contacts with avatar initials, email, status toggle switch, and direct actions for Chat, Edit, and Delete.',
+    filePath: 'src/design-system/components/chat/contact-manager.tsx',
+    states: [
+      { label: 'Saved Contacts List', description: 'Interactive contact manager with action buttons' },
+      { label: 'Empty Contacts', description: 'Zero state fallback' },
+    ],
+    renderPreview: (si) => (
+      <div className='w-full max-w-xl p-2'>
+        <DsContactManager
+          contacts={
+            si === 1
+              ? []
+              : [
+                  {
+                    id: '1',
+                    name: 'Aman',
+                    email: 'amanmicropay@gmail.com',
+                    initials: 'AM',
+                    isEnabled: true,
+                  },
+                ]
+          }
+          onChatClick={(c) => toast.info(`Starting chat with ${c.name}`)}
+          onEditClick={(c) => toast.info(`Editing ${c.name}`)}
+          onDeleteClick={(c) => toast.info(`Deleted ${c.name}`)}
+          onToggleStatus={(c, checked) => toast.info(`${c.name} is now ${checked ? 'enabled' : 'disabled'}`)}
+          onAddContact={(newC) => toast.success(`Added ${newC.name} (${newC.email})`)}
+        />
+      </div>
+    ),
+    usageCode: () => `<ContactManager
+  contacts={[
+    { id: '1', name: 'Aman', email: 'amanmicropay@gmail.com', isEnabled: true }
+  ]}
+  onChatClick={(contact) => openDirectChat(contact.id)}
+  onAddContact={(newContact) => saveContact(newContact)}
+  onDeleteClick={(contact) => removeContact(contact.id)}
+/>`,
+  },
+
+  {
+    id: 'group-manager',
+    name: 'Groups Manager',
+    category: 'Chat',
+    badge: 'Groups',
+    description: 'Group channel manager for creating, searching, and managing team chat groups with member counts and instant chat triggers.',
+    filePath: 'src/design-system/components/chat/group-manager.tsx',
+    states: [
+      { label: 'Active Group Channels', description: 'Interactive group manager with channel cards' },
+      { label: 'Empty Groups', description: 'Zero state fallback' },
+    ],
+    renderPreview: (si) => (
+      <div className='w-full max-w-xl p-2'>
+        <DsGroupManager
+          groups={
+            si === 1
+              ? []
+              : [
+                  {
+                    id: 'g1',
+                    name: 'jj',
+                    membersCount: 3,
+                    ownerEmail: 'itsaman00786@gmail.com',
+                    isEnabled: true,
+                  },
+                  {
+                    id: 'g2',
+                    name: 'demo',
+                    membersCount: 3,
+                    ownerEmail: 'itsaman00786@gmail.com',
+                    isEnabled: true,
+                  },
+                ]
+          }
+          onChatClick={(g) => toast.info(`Opening group ${g.name}`)}
+          onEditClick={(g) => toast.info(`Editing group ${g.name}`)}
+          onDeleteClick={(g) => toast.info(`Deleted group ${g.name}`)}
+          onToggleStatus={(g, checked) => toast.info(`${g.name} is now ${checked ? 'enabled' : 'disabled'}`)}
+          onAddGroup={(newG) => toast.success(`Created group ${newG.name}`)}
+        />
+      </div>
+    ),
+    usageCode: () => `<GroupManager
+  groups={[
+    { id: '1', name: 'jj', membersCount: 3, ownerEmail: 'itsaman00786@gmail.com' },
+    { id: '2', name: 'demo', membersCount: 3, ownerEmail: 'itsaman00786@gmail.com' }
+  ]}
+  onChatClick={(group) => openGroupChat(group.id)}
+  onAddGroup={(newGroup) => createGroup(newGroup)}
+  onDeleteClick={(group) => deleteGroup(group.id)}
 />`,
   },
 
