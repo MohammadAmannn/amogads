@@ -1,5 +1,5 @@
 # AmogDS — Universal Platform Architecture & Developer Integration Guide
-**Version 1.0.2** | *Central Design System, Headless Backend & Multi-Platform SDK*
+**Version 1.1.0** | *Central Design System, Headless Backend & Multi-Platform SDK*
 
 ---
 
@@ -33,7 +33,7 @@ AmogDS is published and consumed as the `@amogads/ui` package with dedicated sub
 
 | Subpath Export | Purpose & Contents | Primary Consumers |
 | :--- | :--- | :--- |
-| **`@amogads/ui`** | Core UI library (`Button`, `Dialog`, `Sidebar`, `Input`, `Table`, `Header`, etc.) | Next.js, React Web |
+| **`@amogads/ui`** | Core UI primitives (`Button`, `Dialog`, `Sidebar`, `Input`, `Table`) & **Chat Suite (`ChatSidebar`, `ChatCardItem`, `ChatMessageList`, `ChatHeader`, `ChatBubble`, `ChatInput`, `TypingIndicator`, `AiChatBubble`)** | Next.js, React Web |
 | **`@amogads/ui/theme.css`** | CSS Design Tokens, Color Palettes, Tailwind utilities | Next.js, React Web |
 | **`@amogads/ui/tokens`** | Raw design tokens (colors, typography, spacing, breakpoints) as JS objects | React Native, Web, Figma |
 | **`@amogads/ui/pages`** | Full Standard Pages (`MessagePage`, `AiChatPage`, `AiSearchPage`, `VouchersPage`, `LinkMakerPage`, `MapTemplatePage`, `ChatTemplatePage`) | Next.js, React Web |

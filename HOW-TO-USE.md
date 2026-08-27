@@ -324,6 +324,187 @@ export default function CustomersPage() {
 
 ---
 
+### 4.4 Chat & Realtime Components (Modular UI Building Blocks)
+
+You can build custom messaging and AI chat interfaces using standalone chat primitives from `@amogads/ui` without having to mount full standard pages:
+
+#### Complete Full-Featured Chat Application (`ChatSidebar`, `ChatCardItem`, `ChatMessageList`, `ChatHeader`, `ChatBubble`, `ChatInput`)
+```tsx
+'use client'
+
+import React, { useState } from 'react'
+import {
+  ChatSidebar,
+  ChatCardItem,
+  ChatHeader,
+  ChatMessageList,
+  ChatBubble,
+  ChatInput,
+  TypingIndicator,
+  ChatEmptyState,
+  Button
+} from '@amogads/ui'
+import { Phone, Video, MoreVertical } from 'lucide-react'
+
+export function CompleteChatApplication() {
+  const [search, setSearch] = useState('')
+  const [activeTab, setActiveTab] = useState('all')
+  const [activeChatId, setActiveChatId] = useState('1')
+  const [inputText, setInputText] = useState('')
+
+  const conversations = [
+    {
+      id: '1',
+      title: 'Sarah Connor',
+      lastMessage: 'Yes! The chat component library is ready.',
+      time: '10:15 AM',
+      unreadCount: 2,
+      isOnline: true,
+    },
+    {
+      id: '2',
+      title: 'Design Team Hub',
+      lastMessage: 'Alice: New mockups are uploaded to Figma.',
+      time: 'Yesterday',
+      unreadCount: 0,
+      isGroup: true,
+    }
+  ]
+
+  const [messages, setMessages] = useState([
+    {
+      id: 'm1',
+      content: 'Hey! Is the new AmogDS chat component library live?',
+      isOwn: false,
+      senderName: 'Sarah Connor',
+      time: '10:14 AM',
+      status: 'read' as const,
+    },
+    {
+      id: 'm2',
+      content: 'Yes! You can now compose custom chat experiences on any project.',
+      isOwn: true,
+      senderName: 'You',
+      time: '10:15 AM',
+      status: 'read' as const,
+    }
+  ])
+
+  const handleSend = () => {
+    if (!inputText.trim()) return
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: String(Date.now()),
+        content: inputText,
+        isOwn: true,
+        senderName: 'You',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'sent' as const,
+      }
+    ])
+    setInputText('')
+  }
+
+  return (
+    <div className="flex h-[750px] w-full border border-border rounded-2xl overflow-hidden bg-background shadow-lg">
+      {/* 1. Left Sidebar: Search, Tabs & Conversations */}
+      <ChatSidebar
+        title="Messages"
+        searchValue={search}
+        onSearchChange={setSearch}
+        onNewChat={() => console.log('New chat')}
+        tabs={[
+          { id: 'all', label: 'All', count: conversations.length },
+          { id: 'unread', label: 'Unread', count: 1 },
+          { id: 'groups', label: 'Groups', count: 1 },
+        ]}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      >
+        {conversations.map((c) => (
+          <ChatCardItem
+            key={c.id}
+            id={c.id}
+            title={c.title}
+            lastMessage={c.lastMessage}
+            time={c.time}
+            unreadCount={c.unreadCount}
+            isOnline={c.isOnline}
+            isGroup={c.isGroup}
+            isActive={activeChatId === c.id}
+            onClick={() => setActiveChatId(c.id)}
+          />
+        ))}
+      </ChatSidebar>
+
+      {/* 2. Main Chat Conversation Panel */}
+      <div className="flex flex-1 flex-col h-full bg-background/50">
+        <ChatHeader
+          title="Sarah Connor"
+          subtitle="Active now"
+          status="online"
+          actions={
+            <>
+              <Button variant="ghost" size="icon"><Phone className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon"><Video className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
+            </>
+          }
+        />
+
+        <ChatMessageList autoScrollToBottom emptyState={<ChatEmptyState />}>
+          {messages.map((msg) => (
+            <ChatBubble
+              key={msg.id}
+              content={msg.content}
+              isOwn={msg.isOwn}
+              senderName={msg.senderName}
+              time={msg.time}
+              status={msg.status}
+            />
+          ))}
+          <TypingIndicator label="Sarah is typing..." />
+        </ChatMessageList>
+
+        <div className="p-3 border-t border-border bg-background">
+          <ChatInput
+            value={inputText}
+            onChange={setInputText}
+            onSend={handleSend}
+            placeholder="Write a message..."
+            showAttachments
+            showEmoji
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+#### Standalone AI Chat Streaming Bubble (`AiChatBubble`)
+```tsx
+import { AiChatBubble } from '@amogads/ui'
+
+export function AiMessageExample() {
+  return (
+    <AiChatBubble
+      role="assistant"
+      modelName="Gemini 1.5 Pro"
+      content="Here is how you can use the AmogDS design system components in any React project."
+      citations={[
+        { title: 'AmogDS Documentation', url: 'https://amoga.io/docs' },
+      ]}
+      onCopy={() => console.log('Copied!')}
+      onThumbsUp={() => console.log('Liked!')}
+    />
+  )
+}
+```
+
+---
+
 ## 5. Design Tokens & Semantic Rules
 
 Never use hardcoded hex values (`#ffffff`, `#1e293b`). Always use semantic Tailwind utility classes:

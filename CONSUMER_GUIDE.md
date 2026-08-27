@@ -118,6 +118,14 @@ export default function MapRoute() {
 }
 ```
 
+### 4.7 Standalone Chat & AI Components (Fine-Grained UI Control)
+If your application needs a customized chat screen instead of full pre-baked pages, import modular chat primitives directly from `@amogads/ui`:
+
+```tsx
+import { ChatHeader, ChatBubble, ChatInput, TypingIndicator, AiChatBubble } from '@amogads/ui'
+import { useChatStore } from '@amogads/ui/stores'
+```
+
 ---
 
 ## 5. Consuming Serverless API Handlers

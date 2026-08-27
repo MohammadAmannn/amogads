@@ -88,6 +88,10 @@ export { QrCodeDisplay, QRCodeDisplay, downloadQrCode, type QrCodeDisplayProps, 
 
 
 
+// ── Chat & Realtime Components ──────────────────────────────────────────────
+export * from './components/chat'
+
+
 // ── Reusable Page Templates ──────────────────────────────────────────────────
 export { ListTemplate, type ListTemplateProps } from './templates/list-template'
 export { DetailTemplate, type DetailTemplateProps } from './templates/detail-template'
