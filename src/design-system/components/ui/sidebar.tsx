@@ -117,6 +117,24 @@ function SidebarProvider({
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [toggleSidebar])
 
+  React.useEffect(() => {
+    const handleCustomToggle = (e: Event) => {
+      const customEvent = e as CustomEvent<{ open?: boolean }>
+      if (customEvent.detail && typeof customEvent.detail.open === 'boolean') {
+        if (isMobile) {
+          setOpenMobile(customEvent.detail.open)
+        } else {
+          setOpen(customEvent.detail.open)
+        }
+      } else {
+        toggleSidebar()
+      }
+    }
+
+    window.addEventListener("amoga:toggle-sidebar", handleCustomToggle)
+    return () => window.removeEventListener("amoga:toggle-sidebar", handleCustomToggle)
+  }, [isMobile, setOpenMobile, setOpen, toggleSidebar])
+
   // We add a state so that we can do data-state="expanded" or "collapsed".
   // This makes it easier to style the sidebar with Tailwind classes.
   const state = open ? "expanded" : "collapsed"

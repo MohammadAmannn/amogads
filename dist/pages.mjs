@@ -18302,7 +18302,7 @@ function ChatHeader({
         {
           type: "button",
           onClick: onBack,
-          className: "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/60 text-foreground transition-colors hover:bg-muted md:hidden ml-1",
+          className: "p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors hover:bg-muted md:hidden ml-1 cursor-pointer",
           title: "Close",
           "aria-label": "Close chat",
           children: /* @__PURE__ */ jsx174(X16, { className: "h-4.5 w-4.5" })
@@ -24229,9 +24229,9 @@ function MsgContactTab({ contacts, onRefresh, onSelectContact, onClose }) {
           size: "icon",
           variant: "ghost",
           onClick: onClose,
-          className: "h-8 w-8 rounded-lg md:hidden border border-border bg-muted/60 text-foreground hover:bg-muted shrink-0 cursor-pointer",
+          className: "h-8 w-8 rounded-lg md:hidden text-muted-foreground hover:text-foreground hover:bg-muted shrink-0 cursor-pointer",
           title: "Close view",
-          children: /* @__PURE__ */ jsx204(X26, { className: "h-4 w-4" })
+          children: /* @__PURE__ */ jsx204(X26, { className: "h-4.5 w-4.5" })
         }
       )
     ] }),
@@ -24701,9 +24701,9 @@ function MsgGroupTab({ groups, contacts, onRefresh, onSelectGroup, onClose }) {
           size: "icon",
           variant: "ghost",
           onClick: onClose,
-          className: "h-8 w-8 rounded-lg md:hidden border border-border bg-muted/60 text-foreground hover:bg-muted shrink-0 cursor-pointer",
+          className: "h-8 w-8 rounded-lg md:hidden text-muted-foreground hover:text-foreground hover:bg-muted shrink-0 cursor-pointer",
           title: "Close view",
-          children: /* @__PURE__ */ jsx205(X27, { className: "h-4 w-4" })
+          children: /* @__PURE__ */ jsx205(X27, { className: "h-4.5 w-4.5" })
         }
       )
     ] }),
@@ -26088,7 +26088,7 @@ Instructions:
           {
             type: "button",
             onClick: onBack,
-            className: "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/60 text-foreground transition-colors hover:bg-muted md:hidden ml-1",
+            className: "p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors hover:bg-muted md:hidden ml-1 cursor-pointer",
             title: "Close",
             "aria-label": "Close",
             children: /* @__PURE__ */ jsx214(X29, { className: "h-4.5 w-4.5" })
@@ -28937,9 +28937,9 @@ function MessageFeature() {
             "button",
             {
               onClick: () => setSelectedEmail(null),
-              className: "absolute top-3 left-4 z-50 shrink-0 rounded-full border bg-background p-1.5 text-muted-foreground transition-colors hover:bg-muted md:hidden",
+              className: "absolute top-3 right-4 z-50 shrink-0 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden cursor-pointer",
               title: "Close email",
-              children: /* @__PURE__ */ jsx224(X35, { className: "h-4 w-4" })
+              children: /* @__PURE__ */ jsx224(X35, { className: "h-4.5 w-4.5" })
             }
           ),
           previewAttachment ? /* @__PURE__ */ jsx224(
