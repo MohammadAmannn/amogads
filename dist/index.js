@@ -12140,18 +12140,30 @@ var sidebarData2 = {
 
 // src/design-system/templates/app-logo.tsx
 var import_jsx_runtime103 = require("react/jsx-runtime");
-function AppLogo({ className }) {
-  const { toggleSidebar } = useSidebar();
+function AppLogo({ className, onClick }) {
+  const { toggleSidebar, setOpenMobile, isMobile } = useSidebar();
   const team = sidebarData2.teams[0];
   const Logo = team.logo;
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (onClick) {
+      onClick();
+      return;
+    }
+    if (isMobile) {
+      setOpenMobile(true);
+    } else {
+      toggleSidebar();
+    }
+  };
   return /* @__PURE__ */ (0, import_jsx_runtime103.jsx)(
     Button,
     {
       type: "button",
       variant: "ghost",
-      onClick: toggleSidebar,
+      onClick: handleClick,
       className: cn(
-        "size-8 shrink-0 p-0 hover:bg-transparent sm:size-9",
+        "size-8 shrink-0 p-0 hover:bg-transparent sm:size-9 cursor-pointer",
         className
       ),
       "aria-label": "Open sidebar menu",

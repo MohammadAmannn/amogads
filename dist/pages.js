@@ -6089,18 +6089,30 @@ var init_sidebar_data2 = __esm({
 });
 
 // src/design-system/templates/app-logo.tsx
-function AppLogo({ className }) {
-  const { toggleSidebar } = useSidebar();
+function AppLogo({ className, onClick }) {
+  const { toggleSidebar, setOpenMobile, isMobile } = useSidebar();
   const team = sidebarData2.teams[0];
   const Logo = team.logo;
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (onClick) {
+      onClick();
+      return;
+    }
+    if (isMobile) {
+      setOpenMobile(true);
+    } else {
+      toggleSidebar();
+    }
+  };
   return /* @__PURE__ */ (0, import_jsx_runtime103.jsx)(
     Button,
     {
       type: "button",
       variant: "ghost",
-      onClick: toggleSidebar,
+      onClick: handleClick,
       className: cn(
-        "size-8 shrink-0 p-0 hover:bg-transparent sm:size-9",
+        "size-8 shrink-0 p-0 hover:bg-transparent sm:size-9 cursor-pointer",
         className
       ),
       "aria-label": "Open sidebar menu",
@@ -18214,38 +18226,38 @@ function ChatHeader({
   onShowProfile
 }) {
   return /* @__PURE__ */ (0, import_jsx_runtime175.jsxs)("div", { className: "flex flex-none shrink-0 items-center justify-between border-b border-border bg-muted/10 p-3 sm:p-4 select-none", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime175.jsxs)("div", { className: "flex min-w-0 items-center gap-2 sm:gap-3", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime175.jsx)("div", { className: "flex min-w-0 items-center gap-2 sm:gap-3", children: /* @__PURE__ */ (0, import_jsx_runtime175.jsxs)(
+      "div",
+      {
+        onClick: onShowProfile,
+        className: "flex cursor-pointer items-center gap-2.5 sm:gap-3 transition-opacity select-none hover:opacity-85 min-w-0",
+        title: "Click to view info",
+        children: [
+          /* @__PURE__ */ (0, import_jsx_runtime175.jsx)("div", { className: "relative shrink-0", children: /* @__PURE__ */ (0, import_jsx_runtime175.jsxs)(Avatar, { className: "h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-border/60", children: [
+            chatAvatar ? /* @__PURE__ */ (0, import_jsx_runtime175.jsx)(AvatarImage, { src: chatAvatar, alt: chatName }) : null,
+            /* @__PURE__ */ (0, import_jsx_runtime175.jsx)(AvatarFallback, { className: "rounded-xl bg-primary/10 font-bold text-primary", children: chatName?.charAt(0)?.toUpperCase() })
+          ] }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime175.jsxs)("div", { className: "flex min-w-0 flex-col", children: [
+            /* @__PURE__ */ (0, import_jsx_runtime175.jsx)("span", { className: "block truncate text-sm leading-tight font-bold text-foreground", children: chatName }),
+            /* @__PURE__ */ (0, import_jsx_runtime175.jsx)("span", { className: "truncate text-xs leading-tight text-muted-foreground", children: typingText || subtitle })
+          ] })
+        ]
+      }
+    ) }),
+    /* @__PURE__ */ (0, import_jsx_runtime175.jsxs)("div", { className: "flex items-center gap-1 shrink-0", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime175.jsx)(HeaderActions, { onDelete: onBack }),
       onBack && /* @__PURE__ */ (0, import_jsx_runtime175.jsx)(
         "button",
         {
           type: "button",
           onClick: onBack,
-          className: "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden",
+          className: "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/60 text-foreground transition-colors hover:bg-muted md:hidden ml-1",
           title: "Close",
           "aria-label": "Close chat",
           children: /* @__PURE__ */ (0, import_jsx_runtime175.jsx)(import_lucide_react95.X, { className: "h-4.5 w-4.5" })
         }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime175.jsxs)(
-        "div",
-        {
-          onClick: onShowProfile,
-          className: "flex cursor-pointer items-center gap-2.5 sm:gap-3 transition-opacity select-none hover:opacity-85 min-w-0",
-          title: "Click to view info",
-          children: [
-            /* @__PURE__ */ (0, import_jsx_runtime175.jsx)("div", { className: "relative shrink-0", children: /* @__PURE__ */ (0, import_jsx_runtime175.jsxs)(Avatar, { className: "h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-border/60", children: [
-              chatAvatar ? /* @__PURE__ */ (0, import_jsx_runtime175.jsx)(AvatarImage, { src: chatAvatar, alt: chatName }) : null,
-              /* @__PURE__ */ (0, import_jsx_runtime175.jsx)(AvatarFallback, { className: "rounded-xl bg-primary/10 font-bold text-primary", children: chatName?.charAt(0)?.toUpperCase() })
-            ] }) }),
-            /* @__PURE__ */ (0, import_jsx_runtime175.jsxs)("div", { className: "flex min-w-0 flex-col", children: [
-              /* @__PURE__ */ (0, import_jsx_runtime175.jsx)("span", { className: "block truncate text-sm leading-tight font-bold text-foreground", children: chatName }),
-              /* @__PURE__ */ (0, import_jsx_runtime175.jsx)("span", { className: "truncate text-xs leading-tight text-muted-foreground", children: typingText || subtitle })
-            ] })
-          ]
-        }
       )
-    ] }),
-    /* @__PURE__ */ (0, import_jsx_runtime175.jsx)("div", { className: "flex items-center gap-1 shrink-0", children: /* @__PURE__ */ (0, import_jsx_runtime175.jsx)(HeaderActions, { onDelete: onBack }) })
+    ] })
   ] });
 }
 
@@ -24022,26 +24034,26 @@ function MsgContactTab({ contacts, onRefresh, onSelectContact, onClose }) {
     }
   };
   return /* @__PURE__ */ (0, import_jsx_runtime205.jsxs)(Card, { className: "w-full max-w-3xl mx-auto border-border/80 bg-card/60 backdrop-blur-md shadow-md rounded-2xl", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime205.jsx)(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 pb-4", children: /* @__PURE__ */ (0, import_jsx_runtime205.jsxs)("div", { className: "flex items-center gap-3 min-w-0", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime205.jsxs)(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 pb-4", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime205.jsx)("div", { className: "flex items-center gap-3 min-w-0 flex-1", children: /* @__PURE__ */ (0, import_jsx_runtime205.jsxs)("div", { className: "space-y-1 min-w-0", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime205.jsxs)(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime205.jsx)(import_lucide_react122.Users, { className: "h-5 w-5 text-indigo-500 shrink-0" }),
+          /* @__PURE__ */ (0, import_jsx_runtime205.jsx)("span", { className: "truncate", children: "Contact Manager" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime205.jsx)(CardDescription, { className: "truncate", children: "Manage your saved contacts and start direct chat conversations." })
+      ] }) }),
       onClose && /* @__PURE__ */ (0, import_jsx_runtime205.jsx)(
         Button,
         {
           size: "icon",
           variant: "ghost",
           onClick: onClose,
-          className: "h-8 w-8 rounded-full md:hidden hover:bg-muted text-muted-foreground hover:text-foreground shrink-0 cursor-pointer",
+          className: "h-8 w-8 rounded-lg md:hidden border border-border bg-muted/60 text-foreground hover:bg-muted shrink-0 cursor-pointer",
           title: "Close view",
           children: /* @__PURE__ */ (0, import_jsx_runtime205.jsx)(import_lucide_react122.X, { className: "h-4 w-4" })
         }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime205.jsxs)("div", { className: "space-y-1 min-w-0", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime205.jsxs)(CardTitle, { className: "text-xl flex items-center gap-2", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime205.jsx)(import_lucide_react122.Users, { className: "h-5 w-5 text-indigo-500 shrink-0" }),
-          /* @__PURE__ */ (0, import_jsx_runtime205.jsx)("span", { className: "truncate", children: "Contact Manager" })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime205.jsx)(CardDescription, { className: "truncate", children: "Manage your saved contacts and start direct chat conversations." })
-      ] })
-    ] }) }),
+      )
+    ] }),
     /* @__PURE__ */ (0, import_jsx_runtime205.jsx)(CardContent, { className: "space-y-4", children: contacts.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime205.jsxs)("div", { className: "text-center py-12 border-2 border-dashed border-muted rounded-xl bg-muted/10", children: [
       /* @__PURE__ */ (0, import_jsx_runtime205.jsx)("p", { className: "text-muted-foreground mb-4 text-sm", children: "No contacts added yet." }),
       /* @__PURE__ */ (0, import_jsx_runtime205.jsxs)(
@@ -24483,26 +24495,26 @@ function MsgGroupTab({ groups, contacts, onRefresh, onSelectGroup, onClose }) {
     }
   };
   return /* @__PURE__ */ (0, import_jsx_runtime206.jsxs)(Card, { className: "w-full max-w-3xl mx-auto border-border/80 bg-card/60 backdrop-blur-md shadow-md rounded-2xl", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime206.jsx)(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 pb-4", children: /* @__PURE__ */ (0, import_jsx_runtime206.jsxs)("div", { className: "flex items-center gap-3 min-w-0", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime206.jsxs)(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 pb-4", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime206.jsx)("div", { className: "flex items-center gap-3 min-w-0 flex-1", children: /* @__PURE__ */ (0, import_jsx_runtime206.jsxs)("div", { className: "space-y-1 min-w-0", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime206.jsxs)(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime206.jsx)(import_lucide_react123.Users2, { className: "h-5 w-5 text-indigo-500 shrink-0" }),
+          /* @__PURE__ */ (0, import_jsx_runtime206.jsx)("span", { className: "truncate", children: "Groups Manager" })
+        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime206.jsx)(CardDescription, { className: "truncate", children: "Manage your group channels and start team conversations." })
+      ] }) }),
       onClose && /* @__PURE__ */ (0, import_jsx_runtime206.jsx)(
         Button,
         {
           size: "icon",
           variant: "ghost",
           onClick: onClose,
-          className: "h-8 w-8 rounded-full md:hidden hover:bg-muted text-muted-foreground hover:text-foreground shrink-0 cursor-pointer",
+          className: "h-8 w-8 rounded-lg md:hidden border border-border bg-muted/60 text-foreground hover:bg-muted shrink-0 cursor-pointer",
           title: "Close view",
           children: /* @__PURE__ */ (0, import_jsx_runtime206.jsx)(import_lucide_react123.X, { className: "h-4 w-4" })
         }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime206.jsxs)("div", { className: "space-y-1 min-w-0", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime206.jsxs)(CardTitle, { className: "text-xl flex items-center gap-2", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime206.jsx)(import_lucide_react123.Users2, { className: "h-5 w-5 text-indigo-500 shrink-0" }),
-          /* @__PURE__ */ (0, import_jsx_runtime206.jsx)("span", { className: "truncate", children: "Groups Manager" })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime206.jsx)(CardDescription, { className: "truncate", children: "Manage your group channels and start team conversations." })
-      ] })
-    ] }) }),
+      )
+    ] }),
     /* @__PURE__ */ (0, import_jsx_runtime206.jsx)(CardContent, { className: "space-y-4", children: groups.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime206.jsxs)("div", { className: "text-center py-12 border-2 border-dashed border-muted rounded-xl bg-muted/10", children: [
       /* @__PURE__ */ (0, import_jsx_runtime206.jsx)("p", { className: "text-muted-foreground mb-4 text-sm", children: "No groups created yet." }),
       /* @__PURE__ */ (0, import_jsx_runtime206.jsxs)(
@@ -25866,27 +25878,31 @@ Instructions:
     initialSentRef.current = true;
   }, []);
   return /* @__PURE__ */ (0, import_jsx_runtime215.jsxs)("div", { className: "fixed inset-0 z-50 flex h-full w-full flex-col bg-background overflow-hidden md:relative md:z-auto", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime215.jsxs)("div", { className: "flex shrink-0 items-center gap-2.5 sm:gap-3 border-b border-border bg-background px-3 sm:px-4 py-2.5 select-none", children: [
-      onBack && /* @__PURE__ */ (0, import_jsx_runtime215.jsx)(
-        "button",
-        {
-          type: "button",
-          onClick: onBack,
-          className: "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden",
-          title: "Close",
-          "aria-label": "Close",
-          children: /* @__PURE__ */ (0, import_jsx_runtime215.jsx)(import_lucide_react132.X, { className: "h-4.5 w-4.5" })
-        }
-      ),
-      /* @__PURE__ */ (0, import_jsx_runtime215.jsx)("div", { className: "flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-indigo-200/40 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-600 dark:border-indigo-800/40 dark:text-indigo-400", children: /* @__PURE__ */ (0, import_jsx_runtime215.jsx)(import_lucide_react132.Bot, { className: "h-4 w-4" }) }),
-      /* @__PURE__ */ (0, import_jsx_runtime215.jsxs)("div", { className: "min-w-0 flex-1", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime215.jsxs)("p", { className: "flex items-center gap-1.5 truncate text-sm font-semibold text-foreground leading-tight", children: [
-          "AI Assistant",
-          /* @__PURE__ */ (0, import_jsx_runtime215.jsx)(import_lucide_react132.Sparkles, { className: "h-3 w-3 text-indigo-400" })
-        ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime215.jsx)("p", { className: "truncate text-xs text-muted-foreground leading-tight", children: "Powered by AI \xB7 Ask anything" })
+    /* @__PURE__ */ (0, import_jsx_runtime215.jsxs)("div", { className: "flex shrink-0 items-center justify-between gap-2.5 sm:gap-3 border-b border-border bg-background px-3 sm:px-4 py-2.5 select-none", children: [
+      /* @__PURE__ */ (0, import_jsx_runtime215.jsxs)("div", { className: "flex min-w-0 items-center gap-2.5 sm:gap-3 flex-1", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime215.jsx)("div", { className: "flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-indigo-200/40 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-600 dark:border-indigo-800/40 dark:text-indigo-400", children: /* @__PURE__ */ (0, import_jsx_runtime215.jsx)(import_lucide_react132.Bot, { className: "h-4 w-4" }) }),
+        /* @__PURE__ */ (0, import_jsx_runtime215.jsxs)("div", { className: "min-w-0 flex-1", children: [
+          /* @__PURE__ */ (0, import_jsx_runtime215.jsxs)("p", { className: "flex items-center gap-1.5 truncate text-sm font-semibold text-foreground leading-tight", children: [
+            "AI Assistant",
+            /* @__PURE__ */ (0, import_jsx_runtime215.jsx)(import_lucide_react132.Sparkles, { className: "h-3 w-3 text-indigo-400" })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime215.jsx)("p", { className: "truncate text-xs text-muted-foreground leading-tight", children: "Powered by AI \xB7 Ask anything" })
+        ] })
       ] }),
-      /* @__PURE__ */ (0, import_jsx_runtime215.jsx)("div", { className: "flex items-center gap-1 shrink-0", children: /* @__PURE__ */ (0, import_jsx_runtime215.jsx)(HeaderActions, { onDelete: onBack }) })
+      /* @__PURE__ */ (0, import_jsx_runtime215.jsxs)("div", { className: "flex items-center gap-1 shrink-0", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime215.jsx)(HeaderActions, { onDelete: onBack }),
+        onBack && /* @__PURE__ */ (0, import_jsx_runtime215.jsx)(
+          "button",
+          {
+            type: "button",
+            onClick: onBack,
+            className: "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/60 text-foreground transition-colors hover:bg-muted md:hidden ml-1",
+            title: "Close",
+            "aria-label": "Close",
+            children: /* @__PURE__ */ (0, import_jsx_runtime215.jsx)(import_lucide_react132.X, { className: "h-4.5 w-4.5" })
+          }
+        )
+      ] })
     ] }),
     /* @__PURE__ */ (0, import_jsx_runtime215.jsx)("div", { className: "min-h-0 flex-1 overflow-y-auto", children: /* @__PURE__ */ (0, import_jsx_runtime215.jsx)(
       MessageList,

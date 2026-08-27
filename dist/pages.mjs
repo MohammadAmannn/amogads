@@ -6098,18 +6098,30 @@ var init_sidebar_data2 = __esm({
 
 // src/design-system/templates/app-logo.tsx
 import { jsx as jsx103 } from "react/jsx-runtime";
-function AppLogo({ className }) {
-  const { toggleSidebar } = useSidebar();
+function AppLogo({ className, onClick }) {
+  const { toggleSidebar, setOpenMobile, isMobile } = useSidebar();
   const team = sidebarData2.teams[0];
   const Logo = team.logo;
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (onClick) {
+      onClick();
+      return;
+    }
+    if (isMobile) {
+      setOpenMobile(true);
+    } else {
+      toggleSidebar();
+    }
+  };
   return /* @__PURE__ */ jsx103(
     Button,
     {
       type: "button",
       variant: "ghost",
-      onClick: toggleSidebar,
+      onClick: handleClick,
       className: cn(
-        "size-8 shrink-0 p-0 hover:bg-transparent sm:size-9",
+        "size-8 shrink-0 p-0 hover:bg-transparent sm:size-9 cursor-pointer",
         className
       ),
       "aria-label": "Open sidebar menu",
@@ -18265,38 +18277,38 @@ function ChatHeader({
   onShowProfile
 }) {
   return /* @__PURE__ */ jsxs129("div", { className: "flex flex-none shrink-0 items-center justify-between border-b border-border bg-muted/10 p-3 sm:p-4 select-none", children: [
-    /* @__PURE__ */ jsxs129("div", { className: "flex min-w-0 items-center gap-2 sm:gap-3", children: [
+    /* @__PURE__ */ jsx174("div", { className: "flex min-w-0 items-center gap-2 sm:gap-3", children: /* @__PURE__ */ jsxs129(
+      "div",
+      {
+        onClick: onShowProfile,
+        className: "flex cursor-pointer items-center gap-2.5 sm:gap-3 transition-opacity select-none hover:opacity-85 min-w-0",
+        title: "Click to view info",
+        children: [
+          /* @__PURE__ */ jsx174("div", { className: "relative shrink-0", children: /* @__PURE__ */ jsxs129(Avatar, { className: "h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-border/60", children: [
+            chatAvatar ? /* @__PURE__ */ jsx174(AvatarImage, { src: chatAvatar, alt: chatName }) : null,
+            /* @__PURE__ */ jsx174(AvatarFallback, { className: "rounded-xl bg-primary/10 font-bold text-primary", children: chatName?.charAt(0)?.toUpperCase() })
+          ] }) }),
+          /* @__PURE__ */ jsxs129("div", { className: "flex min-w-0 flex-col", children: [
+            /* @__PURE__ */ jsx174("span", { className: "block truncate text-sm leading-tight font-bold text-foreground", children: chatName }),
+            /* @__PURE__ */ jsx174("span", { className: "truncate text-xs leading-tight text-muted-foreground", children: typingText || subtitle })
+          ] })
+        ]
+      }
+    ) }),
+    /* @__PURE__ */ jsxs129("div", { className: "flex items-center gap-1 shrink-0", children: [
+      /* @__PURE__ */ jsx174(HeaderActions, { onDelete: onBack }),
       onBack && /* @__PURE__ */ jsx174(
         "button",
         {
           type: "button",
           onClick: onBack,
-          className: "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden",
+          className: "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/60 text-foreground transition-colors hover:bg-muted md:hidden ml-1",
           title: "Close",
           "aria-label": "Close chat",
           children: /* @__PURE__ */ jsx174(X16, { className: "h-4.5 w-4.5" })
         }
-      ),
-      /* @__PURE__ */ jsxs129(
-        "div",
-        {
-          onClick: onShowProfile,
-          className: "flex cursor-pointer items-center gap-2.5 sm:gap-3 transition-opacity select-none hover:opacity-85 min-w-0",
-          title: "Click to view info",
-          children: [
-            /* @__PURE__ */ jsx174("div", { className: "relative shrink-0", children: /* @__PURE__ */ jsxs129(Avatar, { className: "h-9 w-9 sm:h-10 sm:w-10 rounded-xl border border-border/60", children: [
-              chatAvatar ? /* @__PURE__ */ jsx174(AvatarImage, { src: chatAvatar, alt: chatName }) : null,
-              /* @__PURE__ */ jsx174(AvatarFallback, { className: "rounded-xl bg-primary/10 font-bold text-primary", children: chatName?.charAt(0)?.toUpperCase() })
-            ] }) }),
-            /* @__PURE__ */ jsxs129("div", { className: "flex min-w-0 flex-col", children: [
-              /* @__PURE__ */ jsx174("span", { className: "block truncate text-sm leading-tight font-bold text-foreground", children: chatName }),
-              /* @__PURE__ */ jsx174("span", { className: "truncate text-xs leading-tight text-muted-foreground", children: typingText || subtitle })
-            ] })
-          ]
-        }
       )
-    ] }),
-    /* @__PURE__ */ jsx174("div", { className: "flex items-center gap-1 shrink-0", children: /* @__PURE__ */ jsx174(HeaderActions, { onDelete: onBack }) })
+    ] })
   ] });
 }
 
@@ -24203,26 +24215,26 @@ function MsgContactTab({ contacts, onRefresh, onSelectContact, onClose }) {
     }
   };
   return /* @__PURE__ */ jsxs159(Card, { className: "w-full max-w-3xl mx-auto border-border/80 bg-card/60 backdrop-blur-md shadow-md rounded-2xl", children: [
-    /* @__PURE__ */ jsx204(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 pb-4", children: /* @__PURE__ */ jsxs159("div", { className: "flex items-center gap-3 min-w-0", children: [
+    /* @__PURE__ */ jsxs159(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 pb-4", children: [
+      /* @__PURE__ */ jsx204("div", { className: "flex items-center gap-3 min-w-0 flex-1", children: /* @__PURE__ */ jsxs159("div", { className: "space-y-1 min-w-0", children: [
+        /* @__PURE__ */ jsxs159(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx204(Users5, { className: "h-5 w-5 text-indigo-500 shrink-0" }),
+          /* @__PURE__ */ jsx204("span", { className: "truncate", children: "Contact Manager" })
+        ] }),
+        /* @__PURE__ */ jsx204(CardDescription, { className: "truncate", children: "Manage your saved contacts and start direct chat conversations." })
+      ] }) }),
       onClose && /* @__PURE__ */ jsx204(
         Button,
         {
           size: "icon",
           variant: "ghost",
           onClick: onClose,
-          className: "h-8 w-8 rounded-full md:hidden hover:bg-muted text-muted-foreground hover:text-foreground shrink-0 cursor-pointer",
+          className: "h-8 w-8 rounded-lg md:hidden border border-border bg-muted/60 text-foreground hover:bg-muted shrink-0 cursor-pointer",
           title: "Close view",
           children: /* @__PURE__ */ jsx204(X26, { className: "h-4 w-4" })
         }
-      ),
-      /* @__PURE__ */ jsxs159("div", { className: "space-y-1 min-w-0", children: [
-        /* @__PURE__ */ jsxs159(CardTitle, { className: "text-xl flex items-center gap-2", children: [
-          /* @__PURE__ */ jsx204(Users5, { className: "h-5 w-5 text-indigo-500 shrink-0" }),
-          /* @__PURE__ */ jsx204("span", { className: "truncate", children: "Contact Manager" })
-        ] }),
-        /* @__PURE__ */ jsx204(CardDescription, { className: "truncate", children: "Manage your saved contacts and start direct chat conversations." })
-      ] })
-    ] }) }),
+      )
+    ] }),
     /* @__PURE__ */ jsx204(CardContent, { className: "space-y-4", children: contacts.length === 0 ? /* @__PURE__ */ jsxs159("div", { className: "text-center py-12 border-2 border-dashed border-muted rounded-xl bg-muted/10", children: [
       /* @__PURE__ */ jsx204("p", { className: "text-muted-foreground mb-4 text-sm", children: "No contacts added yet." }),
       /* @__PURE__ */ jsxs159(
@@ -24675,26 +24687,26 @@ function MsgGroupTab({ groups, contacts, onRefresh, onSelectGroup, onClose }) {
     }
   };
   return /* @__PURE__ */ jsxs160(Card, { className: "w-full max-w-3xl mx-auto border-border/80 bg-card/60 backdrop-blur-md shadow-md rounded-2xl", children: [
-    /* @__PURE__ */ jsx205(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 pb-4", children: /* @__PURE__ */ jsxs160("div", { className: "flex items-center gap-3 min-w-0", children: [
+    /* @__PURE__ */ jsxs160(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 pb-4", children: [
+      /* @__PURE__ */ jsx205("div", { className: "flex items-center gap-3 min-w-0 flex-1", children: /* @__PURE__ */ jsxs160("div", { className: "space-y-1 min-w-0", children: [
+        /* @__PURE__ */ jsxs160(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx205(Users22, { className: "h-5 w-5 text-indigo-500 shrink-0" }),
+          /* @__PURE__ */ jsx205("span", { className: "truncate", children: "Groups Manager" })
+        ] }),
+        /* @__PURE__ */ jsx205(CardDescription, { className: "truncate", children: "Manage your group channels and start team conversations." })
+      ] }) }),
       onClose && /* @__PURE__ */ jsx205(
         Button,
         {
           size: "icon",
           variant: "ghost",
           onClick: onClose,
-          className: "h-8 w-8 rounded-full md:hidden hover:bg-muted text-muted-foreground hover:text-foreground shrink-0 cursor-pointer",
+          className: "h-8 w-8 rounded-lg md:hidden border border-border bg-muted/60 text-foreground hover:bg-muted shrink-0 cursor-pointer",
           title: "Close view",
           children: /* @__PURE__ */ jsx205(X27, { className: "h-4 w-4" })
         }
-      ),
-      /* @__PURE__ */ jsxs160("div", { className: "space-y-1 min-w-0", children: [
-        /* @__PURE__ */ jsxs160(CardTitle, { className: "text-xl flex items-center gap-2", children: [
-          /* @__PURE__ */ jsx205(Users22, { className: "h-5 w-5 text-indigo-500 shrink-0" }),
-          /* @__PURE__ */ jsx205("span", { className: "truncate", children: "Groups Manager" })
-        ] }),
-        /* @__PURE__ */ jsx205(CardDescription, { className: "truncate", children: "Manage your group channels and start team conversations." })
-      ] })
-    ] }) }),
+      )
+    ] }),
     /* @__PURE__ */ jsx205(CardContent, { className: "space-y-4", children: groups.length === 0 ? /* @__PURE__ */ jsxs160("div", { className: "text-center py-12 border-2 border-dashed border-muted rounded-xl bg-muted/10", children: [
       /* @__PURE__ */ jsx205("p", { className: "text-muted-foreground mb-4 text-sm", children: "No groups created yet." }),
       /* @__PURE__ */ jsxs160(
@@ -26058,27 +26070,31 @@ Instructions:
     initialSentRef.current = true;
   }, []);
   return /* @__PURE__ */ jsxs169("div", { className: "fixed inset-0 z-50 flex h-full w-full flex-col bg-background overflow-hidden md:relative md:z-auto", children: [
-    /* @__PURE__ */ jsxs169("div", { className: "flex shrink-0 items-center gap-2.5 sm:gap-3 border-b border-border bg-background px-3 sm:px-4 py-2.5 select-none", children: [
-      onBack && /* @__PURE__ */ jsx214(
-        "button",
-        {
-          type: "button",
-          onClick: onBack,
-          className: "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:hidden",
-          title: "Close",
-          "aria-label": "Close",
-          children: /* @__PURE__ */ jsx214(X29, { className: "h-4.5 w-4.5" })
-        }
-      ),
-      /* @__PURE__ */ jsx214("div", { className: "flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-indigo-200/40 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-600 dark:border-indigo-800/40 dark:text-indigo-400", children: /* @__PURE__ */ jsx214(Bot10, { className: "h-4 w-4" }) }),
-      /* @__PURE__ */ jsxs169("div", { className: "min-w-0 flex-1", children: [
-        /* @__PURE__ */ jsxs169("p", { className: "flex items-center gap-1.5 truncate text-sm font-semibold text-foreground leading-tight", children: [
-          "AI Assistant",
-          /* @__PURE__ */ jsx214(Sparkles15, { className: "h-3 w-3 text-indigo-400" })
-        ] }),
-        /* @__PURE__ */ jsx214("p", { className: "truncate text-xs text-muted-foreground leading-tight", children: "Powered by AI \xB7 Ask anything" })
+    /* @__PURE__ */ jsxs169("div", { className: "flex shrink-0 items-center justify-between gap-2.5 sm:gap-3 border-b border-border bg-background px-3 sm:px-4 py-2.5 select-none", children: [
+      /* @__PURE__ */ jsxs169("div", { className: "flex min-w-0 items-center gap-2.5 sm:gap-3 flex-1", children: [
+        /* @__PURE__ */ jsx214("div", { className: "flex h-8.5 w-8.5 shrink-0 items-center justify-center rounded-xl border border-indigo-200/40 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-indigo-600 dark:border-indigo-800/40 dark:text-indigo-400", children: /* @__PURE__ */ jsx214(Bot10, { className: "h-4 w-4" }) }),
+        /* @__PURE__ */ jsxs169("div", { className: "min-w-0 flex-1", children: [
+          /* @__PURE__ */ jsxs169("p", { className: "flex items-center gap-1.5 truncate text-sm font-semibold text-foreground leading-tight", children: [
+            "AI Assistant",
+            /* @__PURE__ */ jsx214(Sparkles15, { className: "h-3 w-3 text-indigo-400" })
+          ] }),
+          /* @__PURE__ */ jsx214("p", { className: "truncate text-xs text-muted-foreground leading-tight", children: "Powered by AI \xB7 Ask anything" })
+        ] })
       ] }),
-      /* @__PURE__ */ jsx214("div", { className: "flex items-center gap-1 shrink-0", children: /* @__PURE__ */ jsx214(HeaderActions, { onDelete: onBack }) })
+      /* @__PURE__ */ jsxs169("div", { className: "flex items-center gap-1 shrink-0", children: [
+        /* @__PURE__ */ jsx214(HeaderActions, { onDelete: onBack }),
+        onBack && /* @__PURE__ */ jsx214(
+          "button",
+          {
+            type: "button",
+            onClick: onBack,
+            className: "flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border bg-muted/60 text-foreground transition-colors hover:bg-muted md:hidden ml-1",
+            title: "Close",
+            "aria-label": "Close",
+            children: /* @__PURE__ */ jsx214(X29, { className: "h-4.5 w-4.5" })
+          }
+        )
+      ] })
     ] }),
     /* @__PURE__ */ jsx214("div", { className: "min-h-0 flex-1 overflow-y-auto", children: /* @__PURE__ */ jsx214(
       MessageList,
