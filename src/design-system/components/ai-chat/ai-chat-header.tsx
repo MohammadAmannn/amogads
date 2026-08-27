@@ -1,5 +1,8 @@
 import React from 'react'
 import {
+  Sparkles,
+  Bot,
+  ArrowLeft,
   Bell,
   Flag,
   MoreVertical,
@@ -13,7 +16,6 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Avatar, AvatarFallback, AvatarImage } from '@/design-system/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,16 +23,14 @@ import {
   DropdownMenuTrigger,
 } from '@/design-system/components/ui/dropdown-menu'
 
-export interface ChatHeaderProps {
-  title: string
+export interface AiChatHeaderProps {
+  title?: string
   subtitle?: string
-  avatarUrl?: string
-  status?: 'online' | 'offline' | 'away' | 'busy'
-  isGroup?: boolean
-  memberCount?: number
-  actions?: React.ReactNode
+  modelName?: string
+  showSparkles?: boolean
   showDefaultActions?: boolean
-  onAvatarClick?: () => void
+  onBack?: () => void
+  actions?: React.ReactNode
   onNotificationClick?: () => void
   onFlagClick?: () => void
   onReply?: () => void
@@ -44,16 +44,14 @@ export interface ChatHeaderProps {
   className?: string
 }
 
-export function ChatHeader({
-  title = 'Mohammed Aman',
-  subtitle = 'Last seen today at 04:58 PM',
-  avatarUrl,
-  status = 'online',
-  isGroup = false,
-  memberCount,
-  actions,
+export function AiChatHeader({
+  title = 'AI Assistant',
+  subtitle = 'Powered by AI • Ask anything',
+  modelName,
+  showSparkles = true,
   showDefaultActions = true,
-  onAvatarClick,
+  onBack,
+  actions,
   onNotificationClick,
   onFlagClick,
   onReply,
@@ -65,59 +63,42 @@ export function ChatHeader({
   onActionThis,
   onDelete,
   className,
-}: ChatHeaderProps) {
-  const getStatusColor = () => {
-    switch (status) {
-      case 'online':
-        return 'bg-emerald-500'
-      case 'away':
-        return 'bg-amber-500'
-      case 'busy':
-        return 'bg-red-500'
-      default:
-        return 'bg-slate-400'
-    }
-  }
-
-  const initials = title
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || 'MO'
-
+}: AiChatHeaderProps) {
   return (
     <div
       className={cn(
-        'flex items-center justify-between border-b border-border/80 bg-background/95 px-4 py-3 backdrop-blur-xs select-none',
+        'flex items-center justify-between px-4 py-3 border-b border-border/80 bg-background/95 backdrop-blur-xs select-none',
         className
       )}
     >
       {/* Left Column: Avatar + Info */}
       <div className="flex items-center gap-3 min-w-0">
-        <div className="relative cursor-pointer" onClick={onAvatarClick}>
-          <Avatar className="h-10 w-10 border border-border/60 shadow-2xs rounded-full">
-            {avatarUrl && <AvatarImage src={avatarUrl} alt={title} />}
-            <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          {!isGroup && (
-            <span
-              className={cn(
-                'absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-background',
-                getStatusColor()
-              )}
-            />
-          )}
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex h-8 w-8 items-center justify-center rounded-xl hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            title="Back"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+        )}
+
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-900/40 shrink-0 shadow-2xs">
+          <Bot className="h-5 w-5" />
         </div>
 
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate text-sm font-bold text-foreground tracking-tight leading-snug">
-            {title}
-          </h2>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <h3 className="truncate text-sm font-bold text-foreground tracking-tight leading-snug">
+              {title}
+            </h3>
+            {showSparkles && (
+              <Sparkles className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
+            )}
+          </div>
           <p className="truncate text-xs text-muted-foreground">
-            {subtitle ? subtitle : isGroup ? `${memberCount || 0} members` : <span className="capitalize">{status}</span>}
+            {subtitle ? subtitle : modelName ? `Powered by ${modelName}` : 'Powered by AI • Ask anything'}
           </p>
         </div>
       </div>

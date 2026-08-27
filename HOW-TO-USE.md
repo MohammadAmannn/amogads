@@ -513,7 +513,145 @@ export function CustomChatApp() {
 }
 ```
 
-#### Contact & Group Managers (`ContactManager`, `GroupManager`)
+#### 💬 Chat Suite Components Reference
+
+##### 1. `ChatSidebar` & `ChatCardItem`
+```tsx
+import React, { useState } from 'react'
+import { ChatSidebar, ChatCardItem } from '@amogads/ui'
+
+export function SidebarExample() {
+  const [activeTab, setActiveTab] = useState('chats')
+  const [search, setSearch] = useState('')
+  const [selectedChat, setSelectedChat] = useState('1')
+
+  const items = [
+    {
+      id: '1',
+      title: 'Aman',
+      badgeLabel: 'Chat',
+      lastMessage: 'images (1).jpg',
+      time: 'about 3 hours ago',
+      membersCount: 2,
+      onlineCount: 0,
+      isActive: selectedChat === '1',
+    },
+    {
+      id: '2',
+      title: 'DB Alerts',
+      badgeLabel: 'Chat',
+      lastMessage: 'Contact Created 🟢 Contact Added By: Bhanuprasad...',
+      time: '10 days ago',
+      membersCount: 3,
+      onlineCount: 0,
+      isActive: selectedChat === '2',
+    }
+  ]
+
+  return (
+    <ChatSidebar
+      tabs={[
+        { id: 'chats', label: 'Chats' },
+        { id: 'contact', label: 'Contact' },
+        { id: 'groups', label: 'Groups' },
+        { id: 'folder', label: 'Folder' },
+      ]}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      searchValue={search}
+      onSearchChange={setSearch}
+      sectionLabel="CHATS"
+      sectionCount={items.length}
+    >
+      {items.map((c) => (
+        <ChatCardItem
+          key={c.id}
+          {...c}
+          onClick={() => setSelectedChat(c.id)}
+        />
+      ))}
+    </ChatSidebar>
+  )
+}
+```
+
+##### 2. `ChatBubble` (Hover Bar, 3-Dot Menu, PDF Cards & Locations)
+```tsx
+import React from 'react'
+import { ChatBubble } from '@amogads/ui'
+
+export function ChatMessagesDemo() {
+  return (
+    <div className="space-y-4 max-w-xl p-4">
+      {/* Document / PDF Message with Parsed badge */}
+      <ChatBubble
+        senderName="Mohammed Aman"
+        time="01:05 PM"
+        status="read"
+        attachments={[
+          {
+            name: 'Dev_ops resume.pdf',
+            size: 507904,
+            type: 'pdf',
+            statusText: 'Parsed',
+          }
+        ]}
+        onAttachmentPreview={(att) => console.log('Preview', att.name)}
+        onAttachmentClick={(att) => console.log('Download', att.name)}
+        onReply={() => console.log('Reply')}
+        onForward={() => console.log('Forward')}
+        onPin={() => console.log('Pin')}
+        onStar={() => console.log('Star')}
+        onFavorite={() => console.log('Favorite')}
+        onFlag={() => console.log('Flag')}
+        onArchive={() => console.log('Archive')}
+        onActionThis={() => console.log('Action This')}
+        onDelete={() => console.log('Delete')}
+      />
+
+      {/* Plain text message */}
+      <ChatBubble
+        senderName="Mohammed Aman"
+        content="checking from amogds"
+        time="09:52 AM"
+        status="read"
+      />
+    </div>
+  )
+}
+```
+
+##### 3. `ChatInput` (Pill Composer with 9-Option Attachments Menu)
+```tsx
+import React, { useState } from 'react'
+import { ChatInput } from '@amogads/ui'
+
+export function ComposerExample() {
+  const [text, setText] = useState('')
+
+  return (
+    <ChatInput
+      value={text}
+      onChange={setText}
+      onSend={() => {
+        console.log('Sending:', text)
+        setText('')
+      }}
+      placeholder="Message"
+      showAttachments={true}
+      showEmoji={true}
+      showCamera={true}
+      showVoice={true}
+      onSelectAttachmentType={(type) => {
+        // 'images' | 'videos' | 'documents' | 'location' | 'image-converter' | 'doc-converter' | 'doc-scanner' | 'scan-document' | 'extract-text'
+        console.log('Selected tool:', type)
+      }}
+    />
+  )
+}
+```
+
+##### 4. Contact & Group Managers (`ContactManager`, `GroupManager`)
 ```tsx
 import React from 'react'
 import { ContactManager, GroupManager } from '@amogads/ui'
@@ -543,6 +681,156 @@ export function ContactManagementSection() {
         onAddGroup={(newG) => console.log('Create group', newG)}
         onDeleteClick={(g) => console.log('Delete group', g.id)}
       />
+    </div>
+  )
+}
+```
+
+---
+
+#### 🤖 AI Assistant Suite Components Reference
+
+##### 1. `AiChatInput` (with `AiModelSelector` and `AiToolSelector`)
+```tsx
+import React, { useState } from 'react'
+import { AiChatInput } from '@amogads/ui'
+
+export function AiInputExample() {
+  const [prompt, setPrompt] = useState('')
+  const [model, setModel] = useState('google/gemini-2.5-flash')
+  const [tool, setTool] = useState('chat')
+
+  return (
+    <AiChatInput
+      value={prompt}
+      onChange={setPrompt}
+      onSend={() => {
+        console.log('Prompt:', prompt, 'Model:', model, 'Tool:', tool)
+        setPrompt('')
+      }}
+      placeholder="Ask a question about your data..."
+      model={model}
+      onModelChange={setModel}
+      tool={tool}
+      onToolChange={setTool}
+      onVoiceToggle={() => console.log('Voice toggle')}
+      onHistoryClick={() => console.log('Open History')}
+      onNewChatClick={() => console.log('New Chat')}
+    />
+  )
+}
+```
+
+##### 2. `AiMessageList` & `AiMessageBubble`
+```tsx
+import React from 'react'
+import { AiMessageList, AiMessageBubble } from '@amogads/ui'
+
+export function AiFeedExample() {
+  return (
+    <AiMessageList>
+      {/* User prompt */}
+      <AiMessageBubble
+        role="user"
+        content="hy"
+      />
+
+      {/* Assistant response */}
+      <AiMessageBubble
+        role="assistant"
+        content="Hello! How can I help you today?"
+        modelName="Gemini 2.5 Flash"
+      />
+    </AiMessageList>
+  )
+}
+```
+
+##### 3. Complete AI Workspace Page
+```tsx
+import React, { useState } from 'react'
+import {
+  AiChatHeader,
+  AiMessageList,
+  AiMessageBubble,
+  AiChatInput,
+} from '@amogads/ui'
+
+export function CustomAiChat() {
+  const [prompt, setPrompt] = useState('')
+  const [model, setModel] = useState('google/gemini-2.5-flash')
+  const [tool, setTool] = useState('chat')
+
+  const [messages, setMessages] = useState([
+    {
+      id: '1',
+      role: 'user' as const,
+      content: 'hy',
+    },
+    {
+      id: '2',
+      role: 'assistant' as const,
+      content: 'Hello! How can I help you today?',
+      modelName: 'Gemini 2.5 Flash',
+    },
+  ])
+
+  const handleSend = (userText?: string) => {
+    const textToSend = userText || prompt
+    if (!textToSend.trim()) return
+
+    setMessages((prev) => [
+      ...prev,
+      { id: String(Date.now()), role: 'user', content: textToSend },
+      { id: String(Date.now() + 1), role: 'assistant', content: 'Here is what I found for you...', modelName: 'Gemini 2.5 Flash' },
+    ])
+    setPrompt('')
+  }
+
+  return (
+    <div className="flex flex-col h-[700px] w-full border border-border rounded-3xl overflow-hidden bg-background shadow-xl">
+      {/* 1. Header with Model Badge */}
+      <AiChatHeader
+        title="AI Assistant"
+        subtitle="Multi-model intelligence workspace"
+        modelName="Gemini 2.5 Flash"
+      />
+
+      {/* 2. Scrollable Message Feed */}
+      <AiMessageList
+        isEmpty={messages.length === 0}
+        onSelectPrompt={(selectedPrompt) => handleSend(selectedPrompt)}
+      >
+        <div className="space-y-4 max-w-3xl mx-auto w-full">
+          {messages.map((m) => (
+            <AiMessageBubble
+              key={m.id}
+              role={m.role}
+              content={m.content}
+              modelName={m.modelName}
+            />
+          ))}
+        </div>
+      </AiMessageList>
+
+      {/* 3. Rounded-3xl Pill Input Composer */}
+      <div className="p-4 bg-background border-t border-border/40">
+        <div className="max-w-3xl mx-auto">
+          <AiChatInput
+            value={prompt}
+            onChange={setPrompt}
+            onSend={() => handleSend()}
+            placeholder="Ask a question about your data..."
+            model={model}
+            onModelChange={setModel}
+            tool={tool}
+            onToolChange={setTool}
+            onVoiceToggle={() => console.log('Voice toggle')}
+            onHistoryClick={() => console.log('Open history')}
+            onNewChatClick={() => setMessages([])}
+          />
+        </div>
+      </div>
     </div>
   )
 }

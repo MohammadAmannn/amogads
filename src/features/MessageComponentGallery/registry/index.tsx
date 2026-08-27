@@ -31,8 +31,15 @@ import {
   ChatEmptyState as DsChatEmptyState,
   ContactManager as DsContactManager,
   GroupManager as DsGroupManager,
+  AiChatInput as DsAiChatInput,
+  AiMessageBubble as DsAiMessageBubble,
+  AiMessageList as DsAiMessageList,
+  AiModelSelector as DsAiModelSelector,
+  AiToolSelector as DsAiToolSelector,
+  AiPromptSuggestions as DsAiPromptSuggestions,
+  AiChatHeader as DsAiChatHeader,
   Button as DsButton,
-} from '@/design-system'
+} from '@amogads/ui'
 import { Phone, Video } from 'lucide-react'
 
 // ─── Existing Message Page Components (unchanged) ────────────────────────────
@@ -1569,67 +1576,237 @@ export default function MapScreen() {
   // ───────────────────────── AI ASSISTANT SECTION ───────────────────────────
 
   {
-    id: 'complete-ai-page',
-    name: 'Complete AI Page (Layout)',
+    id: 'ai-chat-input',
+    name: 'AI Chat Input (Composer)',
     category: 'AI',
-    badge: 'AI Assistant',
-    description: 'Full dual-pane layout for AI Assistant: Left sidebar with subtabs (AI Chat, Recent, Prompts) + Right area hosting the multi-model AI Assistant window with tool switcher and conversation stream.',
-    filePath: 'src/features/Message/components/panels/ai-chat-panel.tsx',
+    badge: 'AI Input',
+    description: 'Pill-shaped multi-model AI chat input. Features prompt textarea, voice microphone trigger, circular send button, and bottom toolbar with AI Model & Tool dropdown selectors.',
+    filePath: 'src/design-system/components/ai-chat/ai-chat-input.tsx',
     states: [
-      { label: 'Interactive AI Assistant Page', description: 'Full dual-pane AI assistant workspace' },
+      { label: 'Standard Composer', description: 'Clean rounded pill with model & tool toolbar' },
+      { label: 'With Prompt Input', description: 'Active send button state' },
+      { label: 'Voice Listening', description: 'Voice listening mode active' },
     ],
-    renderPreview: (_si, opts) => <CompleteAiPagePreview isMobileView={opts?.isMobileView} />,
-    usageCode: (_si) => `<div className="flex h-full w-full">
-  <div className="w-80 border-r">
-    <SidebarHeader />
-    <CategoryToolbar categoryFilter="ai" />
-    <SubTabsBar categoryFilter="ai" activeTab="ai-chat" />
-    <SidebarSearchBar categoryFilter="ai" />
-    <AiCardItem isSelected={true} onSelect={() => {}} />
-  </div>
-
-  <div className="flex-1">
-    <AiChatPanel onBack={() => {}} />
-  </div>
-</div>`,
-  },
-
-  {
-    id: 'ai-chat-panel',
-    name: 'AI Chat Window (Assistant)',
-    category: 'AI',
-    badge: 'AI Window',
-    description: 'Full AI Assistant chat window featuring multi-model selection (Gemini 2.5, Claude 3.5, GPT-4o, DeepSeek R1), tool switches (Chat, Web Search, Code), suggestion pills, rich markdown code syntax highlighting, citations/sources, voice input, and document analysis.',
-    filePath: 'src/features/Message/components/panels/ai-chat-panel.tsx',
-    states: [
-      { label: 'Active Conversation (Code & Sources)', description: 'Shows response with syntax highlighting, bullet points, and citations' },
-      { label: 'Empty State (Suggestions & Tools)', description: 'Initial prompt recommendation cards' },
-    ],
-    renderPreview: (si) => <AiChatWindowPreview initialState={si === 1 ? 'empty' : 'conversation'} />,
-    usageCode: (si) => `<AiChatPanel
-  onBack={() => handleClosePanel()}
+    renderPreview: (si) => (
+      <div className='w-full max-w-2xl p-4 bg-background border border-border/80 rounded-3xl shadow-sm'>
+        <DsAiChatInput
+          value={si === 1 ? 'Explain the new features of React 19.' : ''}
+          onChange={() => {}}
+          onSend={() => toast.info('Prompt submitted')}
+          placeholder="Ask a question about your data..."
+          model="google/gemini-2.5-flash"
+          tool="chat"
+          isListening={si === 2}
+          onVoiceToggle={() => toast.info('Voice toggle')}
+          onModelChange={(m) => toast.info(`Selected Model: ${m}`)}
+          onToolChange={(t) => toast.info(`Selected Tool: ${t}`)}
+          onHistoryClick={() => toast.info('Prompt History opened')}
+          onNewChatClick={() => toast.info('Started New AI Chat')}
+        />
+      </div>
+    ),
+    usageCode: (si) => `<AiChatInput
+  value={prompt}
+  onChange={setPrompt}
+  onSend={handleSendPrompt}
+  placeholder="Ask a question about your data..."
+  model="google/gemini-2.5-flash"
+  tool="chat"
+  onModelChange={setModel}
+  onToolChange={setTool}
+  onVoiceToggle={handleVoiceToggle}
+  onHistoryClick={openHistory}
+  onNewChatClick={startNewChat}
 />`,
   },
 
   {
-    id: 'ai-card-item',
-    name: 'AI Card Item',
+    id: 'ai-message-list',
+    name: 'AI Message List',
     category: 'AI',
-    badge: 'AI Card',
-    description: 'Sidebar card for the AI Assistant entry point. Shows Bot icon, AI badge, and last prompt preview.',
-    filePath: 'src/features/Message/components/sidebar/ai-card-item.tsx',
+    badge: 'Message List',
+    description: 'Conversation stream for AI chat with auto-scroll and initial prompt suggestion cards fallback.',
+    filePath: 'src/design-system/components/ai-chat/ai-message-list.tsx',
     states: [
-      { label: 'Default', description: 'Normal unselected state' },
-      { label: 'Selected', description: 'Active / selected state' },
+      { label: 'Active Conversation Feed', description: 'User question and assistant answer stream' },
+      { label: 'Initial Prompt Suggestions', description: 'Zero state prompt cards' },
     ],
     renderPreview: (si) => (
-      <div className='w-full flex flex-col items-start justify-start'>
-        <AiCardItem isSelected={si === 1} onSelect={noop} />
+      <div className='w-full max-w-2xl h-[420px] flex flex-col rounded-3xl overflow-hidden border border-border/80 bg-background shadow-md'>
+        <DsAiMessageList isEmpty={si === 1} onSelectPrompt={(p) => toast.info(`Selected prompt: ${p}`)}>
+          <div className="space-y-3 p-2">
+            {/* User Message: hy */}
+            <DsAiMessageBubble
+              role="user"
+              content="hy"
+            />
+
+            {/* Assistant Message: Hello! How can I help you today? */}
+            <DsAiMessageBubble
+              role="assistant"
+              content="Hello! How can I help you today?"
+              modelName="Gemini 2.5 Flash"
+            />
+          </div>
+        </DsAiMessageList>
       </div>
     ),
-    usageCode: (si) => `<AiCardItem
-  isSelected={${si === 1}}
-  onSelect={() => setSelectedView('ai')}
+    usageCode: (si) => `<AiMessageList isEmpty={${si === 1}} onSelectPrompt={(prompt) => handleSend(prompt)}>
+  <AiMessageBubble
+    role="user"
+    content="hy"
+  />
+  <AiMessageBubble
+    role="assistant"
+    content="Hello! How can I help you today?"
+    modelName="Gemini 2.5 Flash"
+  />
+</AiMessageList>`,
+  },
+
+  {
+    id: 'ai-message-bubble',
+    name: 'AI Message Bubble',
+    category: 'AI',
+    badge: 'AI Bubble',
+    description: 'Clean message bubble for AI interactions. Renders user prompts with dark circle avatar, and assistant answers with markdown formatting, syntax highlighting, and citations.',
+    filePath: 'src/design-system/components/ai-chat/ai-message-bubble.tsx',
+    states: [
+      { label: 'Assistant Response with Sources', description: 'Formatted markdown with citations list' },
+      { label: 'User Prompt', description: 'Clean user question' },
+      { label: 'Thinking / Streaming', description: 'Loading animated dots' },
+    ],
+    renderPreview: (si) => (
+      <div className='w-full max-w-xl p-4 bg-background border border-border/70 rounded-2xl space-y-3'>
+        {si === 0 && (
+          <DsAiMessageBubble
+            role="assistant"
+            modelName="Gemini 2.5 Flash"
+            content="Hello! How can I help you today? You can ask me to explain code, search documentation, or generate UI components."
+            sources={[
+              { title: 'AmogDS Documentation', url: 'https://amoga.io' },
+              { title: 'Component API Reference', url: 'https://amoga.io/docs' },
+            ]}
+          />
+        )}
+        {si === 1 && (
+          <DsAiMessageBubble
+            role="user"
+            content="hy"
+          />
+        )}
+        {si === 2 && (
+          <DsAiMessageBubble
+            role="assistant"
+            content=""
+            isLoading={true}
+          />
+        )}
+      </div>
+    ),
+    usageCode: (si) => `<AiMessageBubble
+  role="${si === 1 ? 'user' : 'assistant'}"
+  content="${si === 1 ? 'hy' : 'Hello! How can I help you today?'}"
+  ${si === 0 ? `modelName="Gemini 2.5 Flash" sources={[{ title: 'Docs', url: '...' }]}` : ''}
+  ${si === 2 ? 'isLoading={true}' : ''}
+/>`,
+  },
+
+  {
+    id: 'ai-model-selector',
+    name: 'AI Model Selector',
+    category: 'AI',
+    badge: 'Model Picker',
+    description: 'Standalone model picker dropdown button supporting Gemini 2.5, GPT-4o, Claude 3.5, DeepSeek, and Llama 3.3.',
+    filePath: 'src/design-system/components/ai-chat/ai-model-selector.tsx',
+    states: [
+      { label: 'Default Selector', description: 'Interactive model dropdown' },
+    ],
+    renderPreview: () => (
+      <div className='p-6 bg-background border border-border/80 rounded-2xl flex items-center justify-center'>
+        <DsAiModelSelector
+          model="google/gemini-2.5-flash"
+          onModelChange={(m) => toast.info(`Switched to ${m}`)}
+        />
+      </div>
+    ),
+    usageCode: () => `<AiModelSelector
+  model="google/gemini-2.5-flash"
+  onModelChange={(modelId) => setModel(modelId)}
+/>`,
+  },
+
+  {
+    id: 'ai-tool-selector',
+    name: 'AI Tool Selector',
+    category: 'AI',
+    badge: 'Tool Picker',
+    description: 'Standalone tool switcher dropdown button for switching between AI Chat, Web Search, and UI Render.',
+    filePath: 'src/design-system/components/ai-chat/ai-tool-selector.tsx',
+    states: [
+      { label: 'Default Selector', description: 'Interactive tool dropdown' },
+    ],
+    renderPreview: () => (
+      <div className='p-6 bg-background border border-border/80 rounded-2xl flex items-center justify-center'>
+        <DsAiToolSelector
+          tool="chat"
+          onToolChange={(t) => toast.info(`Switched to ${t}`)}
+        />
+      </div>
+    ),
+    usageCode: () => `<AiToolSelector
+  tool="chat"
+  onToolChange={(toolId) => setTool(toolId)}
+/>`,
+  },
+
+  {
+    id: 'ai-prompt-suggestions',
+    name: 'AI Prompt Suggestions',
+    category: 'AI',
+    badge: 'Suggestions',
+    description: 'Interactive prompt recommendation cards for zero-state onboarding.',
+    filePath: 'src/design-system/components/ai-chat/ai-prompt-suggestions.tsx',
+    states: [
+      { label: 'Default Grid', description: '4-card suggestion grid' },
+    ],
+    renderPreview: () => (
+      <div className='w-full max-w-2xl bg-background border border-border/80 rounded-3xl overflow-hidden'>
+        <DsAiPromptSuggestions
+          onSelectPrompt={(p) => toast.info(`Clicked prompt: ${p}`)}
+        />
+      </div>
+    ),
+    usageCode: () => `<AiPromptSuggestions
+  onSelectPrompt={(prompt, tool) => handlePrompt(prompt, tool)}
+/>`,
+  },
+
+  {
+    id: 'ai-chat-header',
+    name: 'AI Chat Header',
+    category: 'AI',
+    badge: 'AI Header',
+    description: 'Top header bar for AI Assistant conversations with title, model badge, and optional back navigation trigger.',
+    filePath: 'src/design-system/components/ai-chat/ai-chat-header.tsx',
+    states: [
+      { label: 'Default Header', description: 'With Gemini 2.5 model badge' },
+    ],
+    renderPreview: () => (
+      <div className='w-full max-w-xl bg-background border border-border/80 rounded-2xl overflow-hidden shadow-xs'>
+        <DsAiChatHeader
+          title="AI Assistant"
+          subtitle="Multi-model intelligence workspace"
+          modelName="Gemini 2.5 Flash"
+          onBack={() => toast.info('Back clicked')}
+        />
+      </div>
+    ),
+    usageCode: () => `<AiChatHeader
+  title="AI Assistant"
+  subtitle="Multi-model intelligence workspace"
+  modelName="Gemini 2.5 Flash"
+  onBack={() => handleBack()}
 />`,
   },
 

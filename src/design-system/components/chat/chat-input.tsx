@@ -1,7 +1,40 @@
-import React, { useRef, useEffect } from 'react'
-import { Send, Paperclip, Smile, Mic, Camera, X } from 'lucide-react'
+import React, { useRef, useEffect, useState } from 'react'
+import {
+  Send,
+  Paperclip,
+  Smile,
+  Mic,
+  Camera,
+  X,
+  ImagePlus,
+  Video,
+  FileText,
+  MapPin,
+  FileImage,
+  RefreshCw,
+  Scan,
+  ScanLine,
+  FileCode2,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/design-system/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/design-system/components/ui/dropdown-menu'
+
+export type AttachmentOptionType =
+  | 'images'
+  | 'videos'
+  | 'documents'
+  | 'location'
+  | 'image-converter'
+  | 'doc-converter'
+  | 'doc-scanner'
+  | 'scan-document'
+  | 'extract-text'
 
 export interface ChatInputProps {
   value: string
@@ -21,6 +54,7 @@ export interface ChatInputProps {
   showCamera?: boolean
   showVoice?: boolean
   onAttachmentClick?: () => void
+  onSelectAttachmentType?: (type: AttachmentOptionType) => void
   onEmojiClick?: () => void
   onCameraClick?: () => void
   onVoiceClick?: () => void
@@ -42,6 +76,7 @@ export function ChatInput({
   showCamera = true,
   showVoice = true,
   onAttachmentClick,
+  onSelectAttachmentType,
   onEmojiClick,
   onCameraClick,
   onVoiceClick,
@@ -49,6 +84,7 @@ export function ChatInput({
   className,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [isAttachOpen, setIsAttachOpen] = useState(false)
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -69,6 +105,14 @@ export function ChatInput({
 
   const hasText = value.trim().length > 0
 
+  const handleSelectOption = (type: AttachmentOptionType) => {
+    setIsAttachOpen(false)
+    onSelectAttachmentType?.(type)
+    if (type === 'images' || type === 'documents') {
+      onAttachmentClick?.()
+    }
+  }
+
   return (
     <div className={cn('flex flex-col gap-1 w-full', className)}>
       {/* Replying Banner */}
@@ -81,7 +125,7 @@ export function ChatInput({
           {replyMessage.onClear && (
             <button
               onClick={replyMessage.onClear}
-              className="ml-2 rounded-sm p-0.5 hover:bg-muted text-muted-foreground hover:text-foreground"
+              className="ml-2 rounded-sm p-0.5 hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
             >
               <X className="h-3.5 w-3.5" />
             </button>
@@ -120,18 +164,95 @@ export function ChatInput({
             className="max-h-28 min-h-[24px] w-full resize-none bg-transparent px-1 py-1 text-sm outline-none placeholder:text-muted-foreground/80 disabled:cursor-not-allowed disabled:opacity-50 leading-normal"
           />
 
-          {/* Paperclip Button */}
+          {/* Paperclip Button with Exact Attachment Menu from Screenshot */}
           {showAttachments && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={onAttachmentClick}
-              disabled={disabled || isLoading}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full shrink-0"
-            >
-              <Paperclip className="h-4.5 w-4.5" />
-            </Button>
+            <DropdownMenu open={isAttachOpen} onOpenChange={setIsAttachOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  disabled={disabled || isLoading}
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full shrink-0"
+                  title="Attachments"
+                >
+                  <Paperclip className="h-4.5 w-4.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="top" sideOffset={8} className="w-56 rounded-2xl p-1.5 shadow-xl border border-border/80 bg-background text-foreground">
+                <DropdownMenuItem
+                  onClick={() => handleSelectOption('images')}
+                  className="gap-3 py-2 px-2.5 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                >
+                  <ImagePlus className="h-4 w-4 text-slate-600 dark:text-slate-400 shrink-0" />
+                  <span>Images</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleSelectOption('videos')}
+                  className="gap-3 py-2 px-2.5 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                >
+                  <Video className="h-4 w-4 text-slate-600 dark:text-slate-400 shrink-0" />
+                  <span>Videos</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleSelectOption('documents')}
+                  className="gap-3 py-2 px-2.5 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                >
+                  <FileText className="h-4 w-4 text-slate-600 dark:text-slate-400 shrink-0" />
+                  <span>Documents</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleSelectOption('location')}
+                  className="gap-3 py-2 px-2.5 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                >
+                  <MapPin className="h-4 w-4 text-slate-600 dark:text-slate-400 shrink-0" />
+                  <span>Location</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleSelectOption('image-converter')}
+                  className="gap-3 py-2 px-2.5 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                >
+                  <FileImage className="h-4 w-4 text-slate-600 dark:text-slate-400 shrink-0" />
+                  <span>Image Converter</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleSelectOption('doc-converter')}
+                  className="gap-3 py-2 px-2.5 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                >
+                  <RefreshCw className="h-4 w-4 text-slate-600 dark:text-slate-400 shrink-0" />
+                  <span>Doc Converter</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleSelectOption('doc-scanner')}
+                  className="gap-3 py-2 px-2.5 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                >
+                  <Scan className="h-4 w-4 text-slate-600 dark:text-slate-400 shrink-0" />
+                  <span>Doc Scanner</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleSelectOption('scan-document')}
+                  className="gap-3 py-2 px-2.5 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                >
+                  <ScanLine className="h-4 w-4 text-slate-600 dark:text-slate-400 shrink-0" />
+                  <span>Scan Document</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleSelectOption('extract-text')}
+                  className="gap-3 py-2 px-2.5 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                >
+                  <FileCode2 className="h-4 w-4 text-slate-600 dark:text-slate-400 shrink-0" />
+                  <span>Extract Text</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
 
           {/* Camera Button */}
@@ -143,6 +264,7 @@ export function ChatInput({
               onClick={onCameraClick}
               disabled={disabled || isLoading}
               className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full shrink-0"
+              title="Camera"
             >
               <Camera className="h-4.5 w-4.5" />
             </Button>

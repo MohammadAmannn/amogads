@@ -91,6 +91,9 @@ export { QrCodeDisplay, QRCodeDisplay, downloadQrCode, type QrCodeDisplayProps, 
 // ── Chat & Realtime Components ──────────────────────────────────────────────
 export * from './components/chat'
 
+// ── AI Assistant & Multi-Model Chat ─────────────────────────────────────────
+export * from './components/ai-chat'
+
 
 // ── Reusable Page Templates ──────────────────────────────────────────────────
 export { ListTemplate, type ListTemplateProps } from './templates/list-template'

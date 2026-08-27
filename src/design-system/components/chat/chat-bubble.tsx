@@ -1,7 +1,37 @@
 import React from 'react'
-import { Check, CheckCheck, Clock, AlertCircle, Download, FileText, MapPin, Eye } from 'lucide-react'
+import {
+  Check,
+  CheckCheck,
+  Clock,
+  AlertCircle,
+  Download,
+  FileText,
+  MapPin,
+  Eye,
+  MoreHorizontal,
+  CornerUpLeft,
+  CornerUpRight,
+  Pin,
+  Star,
+  Heart,
+  Flag,
+  Archive,
+  Bell,
+  Trash2,
+  ChevronRight,
+  ThumbsUp,
+  ThumbsDown,
+  Copy,
+  Share2,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/design-system/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/design-system/components/ui/dropdown-menu'
 
 export type ChatMessageStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'failed'
 
@@ -40,9 +70,22 @@ export interface ChatBubbleProps {
     id?: string
   }
   isHighlighted?: boolean
+  showActions?: boolean
   className?: string
   bubbleClassName?: string
   onReply?: () => void
+  onForward?: () => void
+  onPin?: () => void
+  onStar?: () => void
+  onFavorite?: () => void
+  onFlag?: () => void
+  onArchive?: () => void
+  onActionThis?: () => void
+  onDelete?: () => void
+  onThumbsUp?: () => void
+  onThumbsDown?: () => void
+  onCopy?: () => void
+  onShare?: () => void
   onActionClick?: (action: string) => void
   onAttachmentClick?: (attachment: ChatAttachmentItem) => void
   onAttachmentPreview?: (attachment: ChatAttachmentItem) => void
@@ -63,9 +106,22 @@ export function ChatBubble({
   reactions = [],
   replyTo,
   isHighlighted = false,
+  showActions = true,
   className,
   bubbleClassName,
   onReply,
+  onForward,
+  onPin,
+  onStar,
+  onFavorite,
+  onFlag,
+  onArchive,
+  onActionThis,
+  onDelete,
+  onThumbsUp,
+  onThumbsDown,
+  onCopy,
+  onShare,
   onActionClick,
   onAttachmentClick,
   onAttachmentPreview,
@@ -90,6 +146,13 @@ export function ChatBubble({
       default:
         return null
     }
+  }
+
+  const handleCopy = () => {
+    if (content) {
+      navigator.clipboard?.writeText(content)
+    }
+    onCopy?.()
   }
 
   const imageAttachments = attachments.filter((att) => att.type === 'image' || att.url?.match(/\.(jpeg|jpg|gif|png|webp)/i))
@@ -120,7 +183,7 @@ export function ChatBubble({
       </Avatar>
 
       {/* Main Column */}
-      <div className="flex flex-col min-w-0 flex-1 items-start">
+      <div className="flex flex-col min-w-0 flex-1 items-start relative">
         {/* Sender Name */}
         {senderName && (
           <span className="text-xs font-semibold text-foreground/85 mb-1">
@@ -183,7 +246,7 @@ export function ChatBubble({
                   <button
                     type="button"
                     onClick={() => onAttachmentPreview?.(att)}
-                    className="p-1 rounded-md hover:bg-muted hover:text-foreground transition-colors"
+                    className="p-1 rounded-md hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
                     title="Preview"
                   >
                     <Eye className="h-4 w-4" />
@@ -191,7 +254,7 @@ export function ChatBubble({
                   <button
                     type="button"
                     onClick={() => onAttachmentClick?.(att)}
-                    className="p-1 rounded-md hover:bg-muted hover:text-foreground transition-colors"
+                    className="p-1 rounded-md hover:bg-muted hover:text-foreground transition-colors cursor-pointer"
                     title="Download"
                   >
                     <Download className="h-4 w-4" />
@@ -259,6 +322,143 @@ export function ChatBubble({
           {formattedTime && <span>{formattedTime}</span>}
           {renderStatusIcon()}
         </div>
+
+        {/* Hover Action Bar: Pill Bar with ThumbsUp, ThumbsDown, Copy, Share, 3-dots (Matching Screenshot 2) */}
+        {showActions && (
+          <div className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-border/80 bg-background/95 backdrop-blur-xs px-3 py-1 shadow-md">
+              <button
+                type="button"
+                onClick={onThumbsUp}
+                className="p-0.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                title="Like"
+              >
+                <ThumbsUp className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={onThumbsDown}
+                className="p-0.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                title="Dislike"
+              >
+                <ThumbsDown className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="p-0.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                title="Copy"
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={onShare}
+                className="p-0.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                title="Share"
+              >
+                <Share2 className="h-3.5 w-3.5" />
+              </button>
+
+              {/* 3-Dot More Menu Matching Screenshot 2 */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="p-0.5 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    title="More actions"
+                  >
+                    <MoreHorizontal className="h-3.5 w-3.5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  side="top"
+                  sideOffset={8}
+                  className="w-48 rounded-2xl p-1.5 shadow-2xl border border-border/80 bg-background text-foreground space-y-0.5"
+                >
+                  <DropdownMenuItem
+                    onClick={onReply}
+                    className="gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                  >
+                    <CornerUpLeft className="h-4 w-4 text-blue-600 shrink-0" />
+                    <span>Reply</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={onForward}
+                    className="gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                  >
+                    <CornerUpRight className="h-4 w-4 text-sky-500 shrink-0" />
+                    <span>Forward</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={onPin}
+                    className="gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                  >
+                    <Pin className="h-4 w-4 text-purple-600 shrink-0" />
+                    <span>Pin Message</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={onStar}
+                    className="gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                  >
+                    <Star className="h-4 w-4 text-amber-500 shrink-0" />
+                    <span>Star</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={onFavorite}
+                    className="gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                  >
+                    <Heart className="h-4 w-4 text-rose-500 shrink-0" />
+                    <span>Favorite</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={onFlag}
+                    className="gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                  >
+                    <Flag className="h-4 w-4 text-red-600 shrink-0" />
+                    <span>Flag</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={onArchive}
+                    className="gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                  >
+                    <Archive className="h-4 w-4 text-indigo-600 shrink-0" />
+                    <span>Archive</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={onActionThis}
+                    className="flex items-center justify-between py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Bell className="h-4 w-4 text-orange-500 shrink-0" />
+                      <span>Action This</span>
+                    </div>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={onDelete}
+                    className="flex items-center justify-between py-1.5 px-2 text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer rounded-xl"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Trash2 className="h-4 w-4 text-rose-500 shrink-0" />
+                      <span>Delete</span>
+                    </div>
+                    <ChevronRight className="h-3.5 w-3.5 text-rose-400" />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        )}
 
         {/* Emoji Reactions Row */}
         {reactions.length > 0 && (
