@@ -9937,26 +9937,26 @@ function ChatHeader({
         return "bg-slate-400";
     }
   };
-  const initials = title.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || "MO";
+  const initials = title?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || "MA";
   return /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(
     "div",
     {
       className: cn(
-        "flex items-center justify-between border-b border-border/80 bg-background/95 px-4 py-3 backdrop-blur-xs select-none",
+        "flex items-center justify-between border-b border-border bg-background px-4 py-3 select-none",
         className
       ),
       children: [
         /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "flex items-center gap-3 min-w-0", children: [
-          /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "relative cursor-pointer", onClick: onAvatarClick, children: [
-            /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(Avatar, { className: "h-10 w-10 border border-border/60 shadow-2xs rounded-full", children: [
-              avatarUrl && /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(AvatarImage, { src: avatarUrl, alt: title }),
-              /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(AvatarFallback, { className: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold", children: initials })
+          /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "relative cursor-pointer shrink-0", onClick: onAvatarClick, children: [
+            /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(Avatar, { className: "h-10 w-10 rounded-xl border border-border/60 shadow-2xs", children: [
+              avatarUrl && /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(AvatarImage, { src: avatarUrl, alt: title, className: "rounded-xl" }),
+              /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(AvatarFallback, { className: "rounded-xl bg-primary/10 text-primary font-bold text-sm", children: initials })
             ] }),
             !isGroup && /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
               "span",
               {
                 className: cn(
-                  "absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-background",
+                  "absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-background",
                   getStatusColor()
                 )
               }
@@ -9964,18 +9964,18 @@ function ChatHeader({
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "min-w-0 flex-1", children: [
             /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("h2", { className: "truncate text-sm font-bold text-foreground tracking-tight leading-snug", children: title }),
-            /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("p", { className: "truncate text-xs text-muted-foreground", children: subtitle ? subtitle : isGroup ? `${memberCount || 0} members` : /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("span", { className: "capitalize", children: status }) })
+            /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("p", { className: "truncate text-xs text-muted-foreground leading-tight", children: subtitle ? subtitle : isGroup ? `${memberCount || 0} members` : /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("span", { className: "capitalize", children: status }) })
           ] })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("div", { className: "flex items-center gap-1.5 shrink-0", children: actions ? actions : showDefaultActions ? /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "flex items-center gap-1", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("div", { className: "flex items-center gap-1 shrink-0", children: actions ? actions : showDefaultActions ? /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "flex items-center gap-1", children: [
           /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
             "button",
             {
               type: "button",
               onClick: onNotificationClick,
-              className: "flex h-8 w-8 items-center justify-center rounded-full text-amber-500 hover:bg-amber-500/10 transition-colors cursor-pointer",
-              title: "Notifications",
-              children: /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Bell, { className: "h-4 w-4 fill-amber-500/20 text-amber-500" })
+              className: "p-1.5 rounded-lg hover:bg-muted text-amber-500 hover:text-amber-600 transition-colors cursor-pointer",
+              title: "Act on this",
+              children: /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Bell, { className: "h-4.5 w-4.5" })
             }
           ),
           /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
@@ -9983,9 +9983,9 @@ function ChatHeader({
             {
               type: "button",
               onClick: onFlagClick,
-              className: "flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer",
+              className: "p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer",
               title: "Flag",
-              children: /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Flag, { className: "h-4 w-4" })
+              children: /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Flag, { className: "h-4.5 w-4.5" })
             }
           ),
           /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(DropdownMenu, { children: [
@@ -9993,92 +9993,91 @@ function ChatHeader({
               "button",
               {
                 type: "button",
-                className: "flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer",
-                title: "More actions",
-                children: /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.MoreVertical, { className: "h-4 w-4" })
+                className: "p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer",
+                title: "More options",
+                children: /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.MoreVertical, { className: "h-4.5 w-4.5" })
               }
             ) }),
             /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(
               DropdownMenuContent,
               {
                 align: "end",
-                sideOffset: 6,
-                className: "w-48 rounded-2xl p-1.5 shadow-2xl border border-border/80 bg-background text-foreground space-y-0.5",
+                className: "w-48 border border-border/80 bg-background shadow-lg p-1 space-y-0.5 rounded-xl",
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onReply,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.CornerUpLeft, { className: "h-4 w-4 text-blue-600 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.CornerUpLeft, { className: "h-4 w-4 text-blue-500" }),
                         /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("span", { children: "Reply" })
-                      ]
+                      ] })
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onForward,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.CornerUpRight, { className: "h-4 w-4 text-sky-500 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.CornerUpRight, { className: "h-4 w-4 text-sky-500" }),
                         /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("span", { children: "Forward" })
-                      ]
+                      ] })
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onPin,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Pin, { className: "h-4 w-4 text-purple-600 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Pin, { className: "h-4 w-4 text-purple-600" }),
                         /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("span", { children: "Pin Message" })
-                      ]
+                      ] })
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onStar,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Star, { className: "h-4 w-4 text-amber-500 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Star, { className: "h-4 w-4 text-amber-500" }),
                         /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("span", { children: "Star" })
-                      ]
+                      ] })
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onFavorite,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Heart, { className: "h-4 w-4 text-rose-500 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Heart, { className: "h-4 w-4 text-rose-500" }),
                         /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("span", { children: "Favorite" })
-                      ]
+                      ] })
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onArchive,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Archive, { className: "h-4 w-4 text-indigo-600 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Archive, { className: "h-4 w-4 text-indigo-600" }),
                         /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("span", { children: "Archive" })
-                      ]
+                      ] })
                     }
                   ),
                   /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)(
                     DropdownMenuItem,
                     {
                       onClick: onActionThis,
-                      className: "flex items-center justify-between py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
                       children: [
                         /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "flex items-center gap-2.5", children: [
-                          /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Bell, { className: "h-4 w-4 text-orange-500 shrink-0" }),
+                          /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Bell, { className: "h-4 w-4 text-amber-500" }),
                           /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("span", { children: "Action This" })
                         ] }),
                         /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.ChevronRight, { className: "h-3.5 w-3.5 text-muted-foreground" })
@@ -10089,10 +10088,10 @@ function ChatHeader({
                     DropdownMenuItem,
                     {
                       onClick: onDelete,
-                      className: "flex items-center justify-between py-1.5 px-2 text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer rounded-xl",
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-500 hover:text-rose-600 rounded-md",
                       children: [
                         /* @__PURE__ */ (0, import_jsx_runtime79.jsxs)("div", { className: "flex items-center gap-2.5", children: [
-                          /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Trash2, { className: "h-4 w-4 text-rose-500 shrink-0" }),
+                          /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.Trash2, { className: "h-4 w-4 text-rose-500" }),
                           /* @__PURE__ */ (0, import_jsx_runtime79.jsx)("span", { children: "Delete" })
                         ] }),
                         /* @__PURE__ */ (0, import_jsx_runtime79.jsx)(import_lucide_react35.ChevronRight, { className: "h-3.5 w-3.5 text-rose-400" })
@@ -11180,7 +11179,7 @@ var import_lucide_react47 = require("lucide-react");
 var import_jsx_runtime93 = require("react/jsx-runtime");
 function AiChatHeader({
   title = "AI Assistant",
-  subtitle = "Powered by AI \u2022 Ask anything",
+  subtitle = "Powered by AI \xB7 Ask anything",
   modelName,
   showSparkles = true,
   showDefaultActions = true,
@@ -11202,7 +11201,7 @@ function AiChatHeader({
     "div",
     {
       className: cn(
-        "flex items-center justify-between px-4 py-3 border-b border-border/80 bg-background/95 backdrop-blur-xs select-none",
+        "flex items-center justify-between px-4 py-3 border-b border-border bg-background select-none",
         className
       ),
       children: [
@@ -11217,24 +11216,24 @@ function AiChatHeader({
               children: /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.ArrowLeft, { className: "h-4 w-4" })
             }
           ),
-          /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("div", { className: "flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-900/40 shrink-0 shadow-2xs", children: /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Bot, { className: "h-5 w-5" }) }),
+          /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("div", { className: "flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-900/40 shrink-0 shadow-2xs", children: /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Bot, { className: "h-5 w-5" }) }),
           /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "min-w-0", children: [
             /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "flex items-center gap-1.5", children: [
               /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("h3", { className: "truncate text-sm font-bold text-foreground tracking-tight leading-snug", children: title }),
               showSparkles && /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Sparkles, { className: "h-3.5 w-3.5 text-indigo-500 shrink-0" })
             ] }),
-            /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("p", { className: "truncate text-xs text-muted-foreground", children: subtitle ? subtitle : modelName ? `Powered by ${modelName}` : "Powered by AI \u2022 Ask anything" })
+            /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("p", { className: "truncate text-xs text-muted-foreground leading-tight", children: subtitle ? subtitle : modelName ? `Powered by ${modelName}` : "Powered by AI \xB7 Ask anything" })
           ] })
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("div", { className: "flex items-center gap-1.5 shrink-0", children: actions ? actions : showDefaultActions ? /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "flex items-center gap-1", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("div", { className: "flex items-center gap-1 shrink-0", children: actions ? actions : showDefaultActions ? /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "flex items-center gap-1", children: [
           /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(
             "button",
             {
               type: "button",
               onClick: onNotificationClick,
-              className: "flex h-8 w-8 items-center justify-center rounded-full text-amber-500 hover:bg-amber-500/10 transition-colors cursor-pointer",
-              title: "Notifications",
-              children: /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Bell, { className: "h-4 w-4 fill-amber-500/20 text-amber-500" })
+              className: "p-1.5 rounded-lg hover:bg-muted text-amber-500 hover:text-amber-600 transition-colors cursor-pointer",
+              title: "Act on this",
+              children: /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Bell, { className: "h-4.5 w-4.5" })
             }
           ),
           /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(
@@ -11242,9 +11241,9 @@ function AiChatHeader({
             {
               type: "button",
               onClick: onFlagClick,
-              className: "flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer",
+              className: "p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer",
               title: "Flag",
-              children: /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Flag, { className: "h-4 w-4" })
+              children: /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Flag, { className: "h-4.5 w-4.5" })
             }
           ),
           /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)(DropdownMenu, { children: [
@@ -11252,92 +11251,91 @@ function AiChatHeader({
               "button",
               {
                 type: "button",
-                className: "flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer",
-                title: "More actions",
-                children: /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.MoreVertical, { className: "h-4 w-4" })
+                className: "p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer",
+                title: "More options",
+                children: /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.MoreVertical, { className: "h-4.5 w-4.5" })
               }
             ) }),
             /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)(
               DropdownMenuContent,
               {
                 align: "end",
-                sideOffset: 6,
-                className: "w-48 rounded-2xl p-1.5 shadow-2xl border border-border/80 bg-background text-foreground space-y-0.5",
+                className: "w-48 border border-border/80 bg-background shadow-lg p-1 space-y-0.5 rounded-xl",
                 children: [
-                  /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onReply,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.CornerUpLeft, { className: "h-4 w-4 text-blue-600 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.CornerUpLeft, { className: "h-4 w-4 text-blue-500" }),
                         /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("span", { children: "Reply" })
-                      ]
+                      ] })
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onForward,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.CornerUpRight, { className: "h-4 w-4 text-sky-500 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.CornerUpRight, { className: "h-4 w-4 text-sky-500" }),
                         /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("span", { children: "Forward" })
-                      ]
+                      ] })
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onPin,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Pin, { className: "h-4 w-4 text-purple-600 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Pin, { className: "h-4 w-4 text-purple-600" }),
                         /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("span", { children: "Pin Message" })
-                      ]
+                      ] })
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onStar,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Star, { className: "h-4 w-4 text-amber-500 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Star, { className: "h-4 w-4 text-amber-500" }),
                         /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("span", { children: "Star" })
-                      ]
+                      ] })
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onFavorite,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Heart, { className: "h-4 w-4 text-rose-500 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Heart, { className: "h-4 w-4 text-rose-500" }),
                         /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("span", { children: "Favorite" })
-                      ]
+                      ] })
                     }
                   ),
-                  /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)(
+                  /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(
                     DropdownMenuItem,
                     {
                       onClick: onArchive,
-                      className: "gap-2.5 py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
-                      children: [
-                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Archive, { className: "h-4 w-4 text-indigo-600 shrink-0" }),
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
+                      children: /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "flex items-center gap-2.5", children: [
+                        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Archive, { className: "h-4 w-4 text-indigo-600" }),
                         /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("span", { children: "Archive" })
-                      ]
+                      ] })
                     }
                   ),
                   /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)(
                     DropdownMenuItem,
                     {
                       onClick: onActionThis,
-                      className: "flex items-center justify-between py-1.5 px-2 text-xs font-semibold cursor-pointer rounded-xl hover:bg-muted",
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-muted/80 rounded-md",
                       children: [
                         /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "flex items-center gap-2.5", children: [
-                          /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Bell, { className: "h-4 w-4 text-orange-500 shrink-0" }),
+                          /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Bell, { className: "h-4 w-4 text-amber-500" }),
                           /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("span", { children: "Action This" })
                         ] }),
                         /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.ChevronRight, { className: "h-3.5 w-3.5 text-muted-foreground" })
@@ -11348,10 +11346,10 @@ function AiChatHeader({
                     DropdownMenuItem,
                     {
                       onClick: onDelete,
-                      className: "flex items-center justify-between py-1.5 px-2 text-xs font-semibold text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer rounded-xl",
+                      className: "cursor-pointer text-xs flex items-center justify-between py-2 px-2.5 font-medium hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-500 hover:text-rose-600 rounded-md",
                       children: [
                         /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("div", { className: "flex items-center gap-2.5", children: [
-                          /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Trash2, { className: "h-4 w-4 text-rose-500 shrink-0" }),
+                          /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.Trash2, { className: "h-4 w-4 text-rose-500" }),
                           /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("span", { children: "Delete" })
                         ] }),
                         /* @__PURE__ */ (0, import_jsx_runtime93.jsx)(import_lucide_react47.ChevronRight, { className: "h-3.5 w-3.5 text-rose-400" })
