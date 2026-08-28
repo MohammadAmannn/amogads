@@ -10,6 +10,7 @@ import { Message } from '@/features/ai-chat/types'
 
 import { HeaderActions } from '../chat/header-actions'
 import { FileUploadProgress } from '../chat/file-upload-progress'
+import { useEmailSettingsStore } from '@/features/email-settings/store'
 
 const TAVILY_API_KEY = process.env.NEXT_PUBLIC_TAVILY_API_KEY ?? ''
 
@@ -21,9 +22,13 @@ interface AiChatPanelProps {
 }
 
 export function AiChatPanel({ onBack }: AiChatPanelProps) {
+  const activeAiAccount = useEmailSettingsStore(
+    (state) => state.config.aiAccounts?.find((a) => a.isEnabled)
+  )
+
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [model, setModel] = useState('google/gemini-2.5-flash')
+  const [model, setModel] = useState(activeAiAccount?.model || 'google/gemini-2.5-flash')
   const [api, setApi] = useState('openrouter')
   const [messages, setMessages] = useState<Message[]>([])
   const [showModelDropdown, setShowModelDropdown] = useState(false)
@@ -33,6 +38,12 @@ export function AiChatPanel({ onBack }: AiChatPanelProps) {
   const [isListening, setIsListening] = useState(false)
   const [isSpeechSupported, setIsSpeechSupported] = useState(true)
   const [showImageModal, setShowImageModal] = useState(false)
+
+  useEffect(() => {
+    if (activeAiAccount?.model) {
+      setModel(activeAiAccount.model)
+    }
+  }, [activeAiAccount?.model])
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [aiUploadState, setAiUploadState] = useState<{
     fileName: string
@@ -161,10 +172,20 @@ export function AiChatPanel({ onBack }: AiChatPanelProps) {
           }
         }
 
+        const currentAiAccount = useEmailSettingsStore.getState().config.aiAccounts?.find((a) => a.isEnabled)
+        const customApiKey = currentAiAccount?.apiKey
+        const effectiveModel = model || currentAiAccount?.model || 'google/gemini-2.5-flash'
+
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: finalPrompt, model, api, tool: activeTool }),
+          body: JSON.stringify({
+            message: finalPrompt,
+            model: effectiveModel,
+            api,
+            tool: activeTool,
+            apiKey: customApiKey,
+          }),
         })
 
         const data = await response.json()

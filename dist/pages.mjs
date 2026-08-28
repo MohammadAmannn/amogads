@@ -118,12 +118,34 @@ function sanitizeSupabaseUrl(url) {
   return cleaned;
 }
 function createClient() {
-  const envUrl = sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const envUrl = sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || "");
   const envKey = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "").trim();
   if (typeof window === "undefined") {
     return createBrowserClient(envUrl, envKey);
   }
-  if (!clientSingleton) {
+  try {
+    const raw = localStorage.getItem("email-settings-workspace");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const chatAccounts = parsed?.state?.config?.chatAccounts;
+      const activeAccount = Array.isArray(chatAccounts) ? chatAccounts.find((acc) => acc.isEnabled && acc.supabaseUrl && acc.supabaseAnonKey) : null;
+      if (activeAccount) {
+        const cleanUrl = sanitizeSupabaseUrl(activeAccount.supabaseUrl);
+        const cleanKey = activeAccount.supabaseAnonKey.trim();
+        if (!clientSingleton || cachedChatUrl !== cleanUrl || cachedChatKey !== cleanKey) {
+          cachedChatUrl = cleanUrl;
+          cachedChatKey = cleanKey;
+          clientSingleton = createBrowserClient(cleanUrl, cleanKey);
+        }
+        return clientSingleton;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to read custom chat Supabase settings from localStorage:", e);
+  }
+  if (!clientSingleton || cachedChatUrl !== envUrl || cachedChatKey !== envKey) {
+    cachedChatUrl = envUrl;
+    cachedChatKey = envKey;
     clientSingleton = createBrowserClient(envUrl, envKey);
   }
   return clientSingleton;
@@ -186,10 +208,12 @@ function getStorageSupabaseUrl() {
   }
   return sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || "");
 }
-var clientSingleton, storageClientSingleton, cachedStorageUrl, cachedStorageKey;
+var clientSingleton, cachedChatUrl, cachedChatKey, storageClientSingleton, cachedStorageUrl, cachedStorageKey;
 var init_client = __esm({
   "src/lib/supabase/client.ts"() {
     clientSingleton = null;
+    cachedChatUrl = null;
+    cachedChatKey = null;
     storageClientSingleton = null;
     cachedStorageUrl = null;
     cachedStorageKey = null;
@@ -15543,7 +15567,20 @@ var DEFAULT_USER_FOLDERS = [
 ];
 async function getUserStorageFilesAndFolders(userEmail) {
   const supabase = getStorageSupabaseClient();
-  const normalizedEmail = normalizeContactEmail(userEmail) || "user@domain.com";
+  let normalizedEmail = normalizeContactEmail(userEmail);
+  if (!normalizedEmail && typeof window !== "undefined") {
+    try {
+      const storeStr = localStorage.getItem("email-settings-workspace");
+      if (storeStr) {
+        const parsed = JSON.parse(storeStr);
+        const accEmail = parsed?.state?.config?.accounts?.[0]?.email;
+        const stgEmail = parsed?.state?.config?.storageAccounts?.[0]?.name;
+        normalizedEmail = normalizeContactEmail(accEmail) || normalizeContactEmail(stgEmail);
+      }
+    } catch (e) {
+    }
+  }
+  if (!normalizedEmail) normalizedEmail = "amanmicropay@gmail.com";
   const displayEmail = normalizedEmail.toLowerCase();
   const filesMap = /* @__PURE__ */ new Map();
   const getPublicStorageUrl = (path) => {
@@ -27192,12 +27229,220 @@ function ImageModal({ isOpen, imageUrl, onClose }) {
 
 // src/features/Message/components/panels/ai-chat-panel.tsx
 init_header_actions();
+
+// src/features/email-settings/store.ts
+import { create as create4 } from "zustand";
+import { persist as persist2 } from "zustand/middleware";
+var DEFAULT_STORAGE_CONFIG = {
+  supabaseUrl: "",
+  supabaseAnonKey: "",
+  bucketName: "chat-files",
+  isCustomEnabled: false,
+  status: "untested"
+};
+var DEFAULT_CONFIG = {
+  profile: {
+    name: "Alex Rivera",
+    bio: "Senior UX Architect & Tech Writer | Crafting digital experiences \u2728",
+    avatarUrl: ""
+  },
+  accounts: [
+    {
+      id: "1",
+      email: "user@gmail.com",
+      protocol: "IMAP",
+      isEnabled: true,
+      incomingServer: "imap.gmail.com",
+      incomingPort: 993,
+      outgoingServer: "smtp.gmail.com",
+      outgoingPort: 587,
+      useSSL: true,
+      useTLS: true
+    },
+    {
+      id: "2",
+      email: "user@outlook.com",
+      protocol: "IMAP",
+      isEnabled: true,
+      incomingServer: "outlook.office365.com",
+      incomingPort: 993,
+      outgoingServer: "smtp-mail.outlook.com",
+      outgoingPort: 587,
+      useSSL: true,
+      useTLS: true
+    }
+  ],
+  storageAccounts: [],
+  chatAccounts: [],
+  aiAccounts: [],
+  theme: {
+    preset: "custom",
+    appTheme: "system",
+    appColorTheme: "zinc"
+  },
+  storage: DEFAULT_STORAGE_CONFIG
+};
+var useEmailSettingsStore = create4()(
+  persist2(
+    (set) => ({
+      config: DEFAULT_CONFIG,
+      updateProfile: (profileUpdates) => set((state) => ({
+        config: {
+          ...state.config,
+          profile: {
+            ...state.config.profile,
+            ...profileUpdates
+          }
+        }
+      })),
+      addAccount: (newAccount) => set((state) => {
+        const accountWithId = {
+          ...newAccount,
+          id: `account-${Date.now()}`
+        };
+        return {
+          config: {
+            ...state.config,
+            accounts: [...state.config.accounts, accountWithId]
+          }
+        };
+      }),
+      updateAccount: (id, updates) => set((state) => ({
+        config: {
+          ...state.config,
+          accounts: state.config.accounts.map(
+            (account) => account.id === id ? { ...account, ...updates } : account
+          )
+        }
+      })),
+      removeAccount: (id) => set((state) => ({
+        config: {
+          ...state.config,
+          accounts: state.config.accounts.filter((account) => account.id !== id)
+        }
+      })),
+      addStorageAccount: (newAccount) => set((state) => {
+        const accountWithId = {
+          ...newAccount,
+          id: `storage-${Date.now()}`
+        };
+        return {
+          config: {
+            ...state.config,
+            storageAccounts: [...state.config.storageAccounts || [], accountWithId]
+          }
+        };
+      }),
+      updateStorageAccount: (id, updates) => set((state) => ({
+        config: {
+          ...state.config,
+          storageAccounts: (state.config.storageAccounts || []).map(
+            (account) => account.id === id ? { ...account, ...updates } : account
+          )
+        }
+      })),
+      removeStorageAccount: (id) => set((state) => ({
+        config: {
+          ...state.config,
+          storageAccounts: (state.config.storageAccounts || []).filter((account) => account.id !== id)
+        }
+      })),
+      addChatAccount: (newAccount) => set((state) => {
+        const accountWithId = {
+          ...newAccount,
+          id: `chat-${Date.now()}`
+        };
+        return {
+          config: {
+            ...state.config,
+            chatAccounts: [...state.config.chatAccounts || [], accountWithId]
+          }
+        };
+      }),
+      updateChatAccount: (id, updates) => set((state) => ({
+        config: {
+          ...state.config,
+          chatAccounts: (state.config.chatAccounts || []).map(
+            (account) => account.id === id ? { ...account, ...updates } : account
+          )
+        }
+      })),
+      removeChatAccount: (id) => set((state) => ({
+        config: {
+          ...state.config,
+          chatAccounts: (state.config.chatAccounts || []).filter((account) => account.id !== id)
+        }
+      })),
+      addAiAccount: (newAccount) => set((state) => {
+        const accountWithId = {
+          ...newAccount,
+          id: `ai-${Date.now()}`
+        };
+        return {
+          config: {
+            ...state.config,
+            aiAccounts: [...state.config.aiAccounts || [], accountWithId]
+          }
+        };
+      }),
+      updateAiAccount: (id, updates) => set((state) => ({
+        config: {
+          ...state.config,
+          aiAccounts: (state.config.aiAccounts || []).map(
+            (account) => account.id === id ? { ...account, ...updates } : account
+          )
+        }
+      })),
+      removeAiAccount: (id) => set((state) => ({
+        config: {
+          ...state.config,
+          aiAccounts: (state.config.aiAccounts || []).filter((account) => account.id !== id)
+        }
+      })),
+      updateTheme: (themeUpdates) => set((state) => ({
+        config: {
+          ...state.config,
+          theme: {
+            ...state.config.theme,
+            ...themeUpdates
+          }
+        }
+      })),
+      updateStorage: (storageUpdates) => set((state) => ({
+        config: {
+          ...state.config,
+          storage: {
+            ...state.config.storage || DEFAULT_STORAGE_CONFIG,
+            ...storageUpdates
+          }
+        }
+      })),
+      resetStorage: () => set((state) => ({
+        config: {
+          ...state.config,
+          storage: DEFAULT_STORAGE_CONFIG
+        }
+      })),
+      resetConfig: () => set({
+        config: DEFAULT_CONFIG
+      })
+    }),
+    {
+      name: "email-settings-workspace"
+    }
+  )
+);
+
+// src/features/Message/components/panels/ai-chat-panel.tsx
 import { jsx as jsx218, jsxs as jsxs173 } from "react/jsx-runtime";
 var TAVILY_API_KEY = process.env.NEXT_PUBLIC_TAVILY_API_KEY ?? "";
 function AiChatPanel({ onBack }) {
+  const activeAiAccount = useEmailSettingsStore(
+    (state) => state.config.aiAccounts?.find((a) => a.isEnabled)
+  );
   const [input, setInput] = useState66("");
   const [loading, setLoading] = useState66(false);
-  const [model, setModel] = useState66("google/gemini-2.5-flash");
+  const [model, setModel] = useState66(activeAiAccount?.model || "google/gemini-2.5-flash");
   const [api, setApi] = useState66("openrouter");
   const [messages, setMessages] = useState66([]);
   const [showModelDropdown, setShowModelDropdown] = useState66(false);
@@ -27207,6 +27452,11 @@ function AiChatPanel({ onBack }) {
   const [isListening, setIsListening] = useState66(false);
   const [isSpeechSupported, setIsSpeechSupported] = useState66(true);
   const [showImageModal, setShowImageModal] = useState66(false);
+  useEffect43(() => {
+    if (activeAiAccount?.model) {
+      setModel(activeAiAccount.model);
+    }
+  }, [activeAiAccount?.model]);
   const [selectedImage, setSelectedImage] = useState66(null);
   const [aiUploadState, setAiUploadState] = useState66(null);
   const handleAiFileSelect = (file) => {
@@ -27327,10 +27577,19 @@ Instructions:
             console.error("Tavily error:", err);
           }
         }
+        const currentAiAccount = useEmailSettingsStore.getState().config.aiAccounts?.find((a) => a.isEnabled);
+        const customApiKey = currentAiAccount?.apiKey;
+        const effectiveModel = model || currentAiAccount?.model || "google/gemini-2.5-flash";
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: finalPrompt, model, api, tool: activeTool })
+          body: JSON.stringify({
+            message: finalPrompt,
+            model: effectiveModel,
+            api,
+            tool: activeTool,
+            apiKey: customApiKey
+          })
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Failed to get response");
@@ -27600,155 +27859,6 @@ function NotificationDetailPanel({
 init_header_actions();
 import { useState as useState69 } from "react";
 import { X as X35 } from "lucide-react";
-
-// src/features/email-settings/store.ts
-import { create as create4 } from "zustand";
-import { persist as persist2 } from "zustand/middleware";
-var DEFAULT_STORAGE_CONFIG = {
-  supabaseUrl: "",
-  supabaseAnonKey: "",
-  bucketName: "chat-files",
-  isCustomEnabled: false,
-  status: "untested"
-};
-var DEFAULT_CONFIG = {
-  profile: {
-    name: "Alex Rivera",
-    bio: "Senior UX Architect & Tech Writer | Crafting digital experiences \u2728",
-    avatarUrl: ""
-  },
-  accounts: [
-    {
-      id: "1",
-      email: "user@gmail.com",
-      protocol: "IMAP",
-      isEnabled: true,
-      incomingServer: "imap.gmail.com",
-      incomingPort: 993,
-      outgoingServer: "smtp.gmail.com",
-      outgoingPort: 587,
-      useSSL: true,
-      useTLS: true
-    },
-    {
-      id: "2",
-      email: "user@outlook.com",
-      protocol: "IMAP",
-      isEnabled: true,
-      incomingServer: "outlook.office365.com",
-      incomingPort: 993,
-      outgoingServer: "smtp-mail.outlook.com",
-      outgoingPort: 587,
-      useSSL: true,
-      useTLS: true
-    }
-  ],
-  storageAccounts: [],
-  theme: {
-    preset: "custom",
-    appTheme: "system",
-    appColorTheme: "zinc"
-  },
-  storage: DEFAULT_STORAGE_CONFIG
-};
-var useEmailSettingsStore = create4()(
-  persist2(
-    (set) => ({
-      config: DEFAULT_CONFIG,
-      updateProfile: (profileUpdates) => set((state) => ({
-        config: {
-          ...state.config,
-          profile: {
-            ...state.config.profile,
-            ...profileUpdates
-          }
-        }
-      })),
-      addAccount: (newAccount) => set((state) => {
-        const accountWithId = {
-          ...newAccount,
-          id: `account-${Date.now()}`
-        };
-        return {
-          config: {
-            ...state.config,
-            accounts: [...state.config.accounts, accountWithId]
-          }
-        };
-      }),
-      updateAccount: (id, updates) => set((state) => ({
-        config: {
-          ...state.config,
-          accounts: state.config.accounts.map(
-            (account) => account.id === id ? { ...account, ...updates } : account
-          )
-        }
-      })),
-      removeAccount: (id) => set((state) => ({
-        config: {
-          ...state.config,
-          accounts: state.config.accounts.filter((account) => account.id !== id)
-        }
-      })),
-      addStorageAccount: (newAccount) => set((state) => {
-        const accountWithId = {
-          ...newAccount,
-          id: `storage-${Date.now()}`
-        };
-        return {
-          config: {
-            ...state.config,
-            storageAccounts: [...state.config.storageAccounts || [], accountWithId]
-          }
-        };
-      }),
-      updateStorageAccount: (id, updates) => set((state) => ({
-        config: {
-          ...state.config,
-          storageAccounts: (state.config.storageAccounts || []).map(
-            (account) => account.id === id ? { ...account, ...updates } : account
-          )
-        }
-      })),
-      removeStorageAccount: (id) => set((state) => ({
-        config: {
-          ...state.config,
-          storageAccounts: (state.config.storageAccounts || []).filter((account) => account.id !== id)
-        }
-      })),
-      updateTheme: (themeUpdates) => set((state) => ({
-        config: {
-          ...state.config,
-          theme: {
-            ...state.config.theme,
-            ...themeUpdates
-          }
-        }
-      })),
-      updateStorage: (storageUpdates) => set((state) => ({
-        config: {
-          ...state.config,
-          storage: {
-            ...state.config.storage || DEFAULT_STORAGE_CONFIG,
-            ...storageUpdates
-          }
-        }
-      })),
-      resetStorage: () => set((state) => ({
-        config: {
-          ...state.config,
-          storage: DEFAULT_STORAGE_CONFIG
-        }
-      })),
-      resetConfig: () => set({
-        config: DEFAULT_CONFIG
-      })
-    }),
-    {
-      name: "email-settings-workspace"
-    }
-  )
-);
 
 // src/features/email-settings/components/profile-tab.tsx
 init_input2();
@@ -28784,22 +28894,28 @@ function FileUploadForm2({
   const handleSave = async (data) => {
     try {
       const supabase = getStorageSupabaseClient();
-      const normalizedEmail = normalizeContactEmail(userEmail) || "user@domain.com";
+      const primaryAccountEmail = config.accounts && config.accounts.length > 0 ? config.accounts[0].email : null;
+      const storageAccountEmail = config.storageAccounts && config.storageAccounts.length > 0 ? config.storageAccounts[0].name : null;
+      const effectiveEmail = normalizeContactEmail(userEmail) || normalizeContactEmail(primaryAccountEmail) || normalizeContactEmail(storageAccountEmail) || "amanmicropay@gmail.com";
+      const supabaseUrl = getStorageSupabaseUrl();
       let hasUploadError = false;
       let uploadErrorMessage = "";
       for (const att of data.attachments) {
         if (att.fileObj) {
           const sanitizedFileName = att.fileObj.name.replace(/[^a-zA-Z0-9_.-]/g, "_");
-          const storagePath = `${normalizedEmail}/${data.folder}/${data.subFolder}/${sanitizedFileName}`;
+          const storagePath = `${effectiveEmail}/${data.folder}/${data.subFolder}/${sanitizedFileName}`;
           try {
             const { error: uploadError } = await supabase.storage.from("chat-files").upload(storagePath, att.fileObj, {
               upsert: true,
+              contentType: att.fileObj.type || "application/octet-stream",
               cacheControl: "3600"
             });
             if (uploadError) {
               console.error("Supabase storage upload error:", uploadError);
               hasUploadError = true;
               uploadErrorMessage = uploadError.message;
+            } else {
+              att.url = `${supabaseUrl}/storage/v1/object/public/chat-files/${storagePath}`;
             }
           } catch (e) {
             console.error("Storage upload warning:", e);
@@ -28815,32 +28931,51 @@ function FileUploadForm2({
         let sizeInBytes = 1024 * 450;
         if (att.size.includes("KB")) sizeInBytes = Math.round(parseFloat(att.size) * 1024);
         else if (att.size.includes("MB")) sizeInBytes = Math.round(parseFloat(att.size) * 1024 * 1024);
+        const sanitizedFileName = att.fileObj ? att.fileObj.name.replace(/[^a-zA-Z0-9_.-]/g, "_") : att.name;
+        const storagePath = `${effectiveEmail}/${data.folder}/${data.subFolder}/${sanitizedFileName}`;
+        const publicFileUrl = att.url || `${supabaseUrl}/storage/v1/object/public/chat-files/${storagePath}`;
         return {
           id: `stg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
           fileName: att.name,
-          fileUrl: att.url || "#",
+          fileUrl: publicFileUrl,
           fileSize: sizeInBytes,
           category: data.subFolder,
           section: data.folder,
-          folderPath: `${data.folder}/${normalizedEmail}/${data.subFolder}`,
+          folderPath: `${data.folder}/${effectiveEmail}/${data.subFolder}`,
           updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
-          senderName: normalizedEmail,
+          senderName: effectiveEmail,
           version: "v1.0"
         };
       });
-      if (newStorageItems.length === 0 && data.subject.trim()) {
+      if (newStorageItems.length === 0 && (data.subject.trim() || data.remarks.trim() || data.body.trim())) {
+        const cat = data.subFolder.toLowerCase();
+        const ext = cat === "pdf" ? "pdf" : cat === "xls" ? "xlsx" : cat === "csv" ? "csv" : cat === "txt" ? "txt" : "docx";
+        const baseTitle = (data.subject || data.remarks || "Document").replace(/[^a-zA-Z0-9_-]/g, "_");
+        const fullFileName = `${baseTitle}.${ext}`;
+        const storagePath = `${effectiveEmail}/${data.folder}/${data.subFolder}/${fullFileName}`;
+        const noteContent = `Title: ${data.subject}
+Remarks: ${data.remarks}
+Notes: ${data.body}`;
+        try {
+          const mime = ext === "pdf" ? "application/pdf" : ext === "docx" ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "text/plain";
+          const blob = new Blob([noteContent], { type: mime });
+          await supabase.storage.from("chat-files").upload(storagePath, blob, {
+            upsert: true,
+            contentType: mime
+          });
+        } catch (e) {
+          console.warn("Storage note upload error:", e);
+        }
         newStorageItems.push({
           id: `stg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-          fileName: `${data.subject.replace(/[^a-zA-Z0-9_-]/g, "_")}.docx`,
-          fileUrl: `data:text/plain;charset=utf-8,Document Title: ${data.subject}
-Remarks: ${data.remarks}
-Body: ${data.body.replace(/<[^>]*>?/gm, "")}`,
+          fileName: fullFileName,
+          fileUrl: `${supabaseUrl}/storage/v1/object/public/chat-files/${storagePath}`,
           fileSize: 1024 * 48,
-          category: data.subFolder || "Doc",
+          category: data.subFolder || "Pdf",
           section: data.folder || "Files",
-          folderPath: `${data.folder || "Files"}/${normalizedEmail}/${data.subFolder || "Doc"}`,
+          folderPath: `${data.folder || "Files"}/${effectiveEmail}/${data.subFolder || "Pdf"}`,
           updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
-          senderName: normalizedEmail,
+          senderName: effectiveEmail,
           version: "v1.0"
         });
       }
@@ -35577,9 +35712,12 @@ function SchemaEditor({ schema, onSchemaChange, onAction, onClose }) {
 import { Fragment as Fragment37, jsx as jsx253, jsxs as jsxs199 } from "react/jsx-runtime";
 var TAVILY_API_KEY2 = process.env.NEXT_PUBLIC_TAVILY_API_KEY ?? "";
 function AiChat() {
+  const activeAiAccount = useEmailSettingsStore(
+    (state) => state.config.aiAccounts?.find((a) => a.isEnabled)
+  );
   const [input, setInput] = useState82("");
   const [loading, setLoading] = useState82(false);
-  const [model, setModel] = useState82("google/gemini-2.5-flash");
+  const [model, setModel] = useState82(activeAiAccount?.model || "google/gemini-2.5-flash");
   const [api, setApi] = useState82("openrouter");
   const [messages, setMessages] = useState82([]);
   const [showModelDropdown, setShowModelDropdown] = useState82(false);
@@ -35597,6 +35735,11 @@ function AiChat() {
   const inputRef = useRef36(null);
   const accumulatedTranscriptRef = useRef36("");
   const messagesEndRef = useRef36(null);
+  useEffect51(() => {
+    if (activeAiAccount?.model) {
+      setModel(activeAiAccount.model);
+    }
+  }, [activeAiAccount?.model]);
   useEffect51(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -35663,10 +35806,19 @@ Instructions:
             console.error("Tavily Error:", error);
           }
         }
+        const currentAiAccount = useEmailSettingsStore.getState().config.aiAccounts?.find((a) => a.isEnabled);
+        const customApiKey = currentAiAccount?.apiKey;
+        const effectiveModel = model || currentAiAccount?.model || "google/gemini-2.5-flash";
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: finalPrompt, model, api, tool: activeTool })
+          body: JSON.stringify({
+            message: finalPrompt,
+            model: effectiveModel,
+            api,
+            tool: activeTool,
+            apiKey: customApiKey
+          })
         });
         const data = await response.json();
         if (!response.ok)
@@ -35727,7 +35879,7 @@ Instructions:
           ...prev,
           {
             role: "assistant",
-            content: "Something went wrong. Please try again."
+            content: error?.message || "Something went wrong. Please try again."
           }
         ]);
       } finally {

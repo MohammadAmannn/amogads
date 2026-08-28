@@ -45,7 +45,21 @@ export async function getUserStorageFilesAndFolders(userEmail?: string | null): 
   folders: UserFolder[]
 }> {
   const supabase = getStorageSupabaseClient()
-  const normalizedEmail = normalizeContactEmail(userEmail) || 'user@domain.com'
+  let normalizedEmail = normalizeContactEmail(userEmail)
+  if (!normalizedEmail && typeof window !== 'undefined') {
+    try {
+      const storeStr = localStorage.getItem('email-settings-workspace')
+      if (storeStr) {
+        const parsed = JSON.parse(storeStr)
+        const accEmail = parsed?.state?.config?.accounts?.[0]?.email
+        const stgEmail = parsed?.state?.config?.storageAccounts?.[0]?.name
+        normalizedEmail = normalizeContactEmail(accEmail) || normalizeContactEmail(stgEmail)
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+  if (!normalizedEmail) normalizedEmail = 'amanmicropay@gmail.com'
   const displayEmail = normalizedEmail.toLowerCase()
 
   const filesMap = new Map<string, StorageFileItem>()

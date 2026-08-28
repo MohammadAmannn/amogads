@@ -12990,6 +12990,8 @@ import { create as create2 } from "zustand";
 // src/lib/supabase/client.ts
 import { createBrowserClient as createBrowserClient2 } from "@supabase/ssr";
 var clientSingleton2 = null;
+var cachedChatUrl = null;
+var cachedChatKey = null;
 function sanitizeSupabaseUrl(url) {
   if (!url) return "";
   let cleaned = url.trim();
@@ -13003,12 +13005,34 @@ function sanitizeSupabaseUrl(url) {
   return cleaned;
 }
 function createClient2() {
-  const envUrl = sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const envUrl = sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || "");
   const envKey = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "").trim();
   if (typeof window === "undefined") {
     return createBrowserClient2(envUrl, envKey);
   }
-  if (!clientSingleton2) {
+  try {
+    const raw = localStorage.getItem("email-settings-workspace");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const chatAccounts = parsed?.state?.config?.chatAccounts;
+      const activeAccount = Array.isArray(chatAccounts) ? chatAccounts.find((acc) => acc.isEnabled && acc.supabaseUrl && acc.supabaseAnonKey) : null;
+      if (activeAccount) {
+        const cleanUrl = sanitizeSupabaseUrl(activeAccount.supabaseUrl);
+        const cleanKey = activeAccount.supabaseAnonKey.trim();
+        if (!clientSingleton2 || cachedChatUrl !== cleanUrl || cachedChatKey !== cleanKey) {
+          cachedChatUrl = cleanUrl;
+          cachedChatKey = cleanKey;
+          clientSingleton2 = createBrowserClient2(cleanUrl, cleanKey);
+        }
+        return clientSingleton2;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to read custom chat Supabase settings from localStorage:", e);
+  }
+  if (!clientSingleton2 || cachedChatUrl !== envUrl || cachedChatKey !== envKey) {
+    cachedChatUrl = envUrl;
+    cachedChatKey = envKey;
     clientSingleton2 = createBrowserClient2(envUrl, envKey);
   }
   return clientSingleton2;

@@ -1,6 +1,9 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 let clientSingleton: ReturnType<typeof createBrowserClient> | null = null
+let cachedChatUrl: string | null = null
+let cachedChatKey: string | null = null
+
 let storageClientSingleton: ReturnType<typeof createBrowserClient> | null = null
 let cachedStorageUrl: string | null = null
 let cachedStorageKey: string | null = null
@@ -22,15 +25,52 @@ export function sanitizeSupabaseUrl(url?: string | null): string {
   return cleaned
 }
 
-export function createClient() {
-  const envUrl = sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL!)
+/**
+ * Returns the active Supabase client for real-time Chat and general database operations.
+ * If the user configured and enabled custom Supabase credentials in App Settings (Chat tab),
+ * this returns a client connected to their personal Supabase project without needing .env.
+ * Otherwise, it falls back seamlessly to the default Amoga Supabase instance from process.env.
+ */
+export function createClient(): ReturnType<typeof createBrowserClient> {
+  const envUrl = sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || '')
   const envKey = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '').trim()
 
   if (typeof window === 'undefined') {
     return createBrowserClient(envUrl, envKey)
   }
 
-  if (!clientSingleton) {
+  try {
+    const raw = localStorage.getItem('email-settings-workspace')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      const chatAccounts = parsed?.state?.config?.chatAccounts
+      const activeAccount = Array.isArray(chatAccounts)
+        ? chatAccounts.find((acc: any) => acc.isEnabled && acc.supabaseUrl && acc.supabaseAnonKey)
+        : null
+
+      if (activeAccount) {
+        const cleanUrl = sanitizeSupabaseUrl(activeAccount.supabaseUrl)
+        const cleanKey = activeAccount.supabaseAnonKey.trim()
+
+        if (
+          !clientSingleton ||
+          cachedChatUrl !== cleanUrl ||
+          cachedChatKey !== cleanKey
+        ) {
+          cachedChatUrl = cleanUrl
+          cachedChatKey = cleanKey
+          clientSingleton = createBrowserClient(cleanUrl, cleanKey)
+        }
+        return clientSingleton
+      }
+    }
+  } catch (e) {
+    console.error('Failed to read custom chat Supabase settings from localStorage:', e)
+  }
+
+  if (!clientSingleton || cachedChatUrl !== envUrl || cachedChatKey !== envKey) {
+    cachedChatUrl = envUrl
+    cachedChatKey = envKey
     clientSingleton = createBrowserClient(envUrl, envKey)
   }
   return clientSingleton

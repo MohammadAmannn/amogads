@@ -33,16 +33,16 @@ Common Components & Props:
 
 export async function handleChatPost(request: NextRequest) {
   try {
-    const { message, model, tool } = await request.json()
+    const { message, model, tool, apiKey } = await request.json()
 
     if (!message) {
       return NextResponse.json({ error: 'Message is required' }, { status: 400 })
     }
 
-    const openRouterApiKey = process.env.OPENROUTER_API_KEY
+    const openRouterApiKey = apiKey?.trim() || process.env.OPENROUTER_API_KEY
     if (!openRouterApiKey) {
       return NextResponse.json(
-        { error: 'OpenRouter API key is not configured' },
+        { error: 'OpenRouter API key is not configured. Please add your key in App Settings -> AI API.' },
         { status: 500 }
       )
     }

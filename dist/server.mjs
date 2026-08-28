@@ -39,14 +39,14 @@ Common Components & Props:
 `;
 async function handleChatPost(request) {
   try {
-    const { message, model, tool } = await request.json();
+    const { message, model, tool, apiKey } = await request.json();
     if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
-    const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+    const openRouterApiKey = apiKey?.trim() || process.env.OPENROUTER_API_KEY;
     if (!openRouterApiKey) {
       return NextResponse.json(
-        { error: "OpenRouter API key is not configured" },
+        { error: "OpenRouter API key is not configured. Please add your key in App Settings -> AI API." },
         { status: 500 }
       );
     }
@@ -685,6 +685,8 @@ import { NextResponse as NextResponse6 } from "next/server";
 // src/lib/supabase/client.ts
 import { createBrowserClient } from "@supabase/ssr";
 var clientSingleton = null;
+var cachedChatUrl = null;
+var cachedChatKey = null;
 function sanitizeSupabaseUrl(url) {
   if (!url) return "";
   let cleaned = url.trim();
@@ -698,12 +700,34 @@ function sanitizeSupabaseUrl(url) {
   return cleaned;
 }
 function createClient3() {
-  const envUrl = sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const envUrl = sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || "");
   const envKey = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "").trim();
   if (typeof window === "undefined") {
     return createBrowserClient(envUrl, envKey);
   }
-  if (!clientSingleton) {
+  try {
+    const raw = localStorage.getItem("email-settings-workspace");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const chatAccounts = parsed?.state?.config?.chatAccounts;
+      const activeAccount = Array.isArray(chatAccounts) ? chatAccounts.find((acc) => acc.isEnabled && acc.supabaseUrl && acc.supabaseAnonKey) : null;
+      if (activeAccount) {
+        const cleanUrl = sanitizeSupabaseUrl(activeAccount.supabaseUrl);
+        const cleanKey = activeAccount.supabaseAnonKey.trim();
+        if (!clientSingleton || cachedChatUrl !== cleanUrl || cachedChatKey !== cleanKey) {
+          cachedChatUrl = cleanUrl;
+          cachedChatKey = cleanKey;
+          clientSingleton = createBrowserClient(cleanUrl, cleanKey);
+        }
+        return clientSingleton;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to read custom chat Supabase settings from localStorage:", e);
+  }
+  if (!clientSingleton || cachedChatUrl !== envUrl || cachedChatKey !== envKey) {
+    cachedChatUrl = envUrl;
+    cachedChatKey = envKey;
     clientSingleton = createBrowserClient(envUrl, envKey);
   }
   return clientSingleton;

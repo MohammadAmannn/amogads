@@ -18,14 +18,19 @@ import {
   SpeechRecognitionEvent,
   SpeechRecognitionErrorEvent,
 } from './types'
+import { useEmailSettingsStore } from '@/features/email-settings/store'
 
 // Tavily API Key - used via /api/chat server route for web-search tool
 const TAVILY_API_KEY = process.env.NEXT_PUBLIC_TAVILY_API_KEY ?? ''
 
 export function AiChat() {
+  const activeAiAccount = useEmailSettingsStore(
+    (state) => state.config.aiAccounts?.find((a) => a.isEnabled)
+  )
+
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [model, setModel] = useState('google/gemini-2.5-flash')
+  const [model, setModel] = useState(activeAiAccount?.model || 'google/gemini-2.5-flash')
   const [api, setApi] = useState('openrouter')
   const [messages, setMessages] = useState<Message[]>([])
   const [showModelDropdown, setShowModelDropdown] = useState(false)
@@ -44,6 +49,12 @@ export function AiChat() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const accumulatedTranscriptRef = useRef<string>('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (activeAiAccount?.model) {
+      setModel(activeAiAccount.model)
+    }
+  }, [activeAiAccount?.model])
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -126,10 +137,20 @@ Instructions:
           }
         }
 
+        const currentAiAccount = useEmailSettingsStore.getState().config.aiAccounts?.find((a) => a.isEnabled)
+        const customApiKey = currentAiAccount?.apiKey
+        const effectiveModel = model || currentAiAccount?.model || 'google/gemini-2.5-flash'
+
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: finalPrompt, model, api, tool: activeTool }),
+          body: JSON.stringify({
+            message: finalPrompt,
+            model: effectiveModel,
+            api,
+            tool: activeTool,
+            apiKey: customApiKey,
+          }),
         })
 
         const data = await response.json()
@@ -196,13 +217,13 @@ Instructions:
             images: imageUrls.length > 0 ? imageUrls : undefined,
           },
         ])
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error sending message:', error)
         setMessages((prev) => [
           ...prev,
           {
             role: 'assistant',
-            content: 'Something went wrong. Please try again.',
+            content: error?.message || 'Something went wrong. Please try again.',
           },
         ])
       } finally {
