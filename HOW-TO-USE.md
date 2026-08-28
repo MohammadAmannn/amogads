@@ -14,6 +14,8 @@ Welcome to the developer guide for consuming **`@amogads/ui`** (Amoga Design Sys
    - [Architectural Page Templates](#43-architectural-page-templates)
 5. [Design Tokens & Semantic Rules](#5-design-tokens--semantic-rules)
 6. [Cross-Repository Upgrades & Registration](#6-cross-repository-upgrades--registration)
+7. [App Settings & Zero-Env Runtime Configuration](#7-app-settings--zero-env-runtime-configuration)
+8. [React Native & Mobile Integration Guide](#8-react-native--mobile-integration-guide)
 
 ---
 
@@ -1030,4 +1032,157 @@ Consuming applications are tracked in [`consumers-registry.json`](consumers-regi
 To inspect consumer version status:
 ```bash
 npm run consumers:status
+```
+
+---
+
+## 7. App Settings & Zero-Env Runtime Configuration
+
+`@amogads/ui` includes an end-user **App Settings** suite (`/app-settings`) providing dynamic runtime configuration. When users enter credentials in the UI, the application immediately routes requests to their personal services without needing `.env` keys.
+
+### 7.1 Mounting App Settings in Your App
+```tsx
+// app/app-settings/page.tsx
+'use client'
+
+import EmailSettingsFeature from '@amogads/ui'
+// Or named import from pages:
+// import { EmailSettingsFeature } from '@amogads/ui/pages'
+
+export default function SettingsPage() {
+  return <EmailSettingsFeature />
+}
+```
+
+### 7.2 The 6 Settings Tabs
+
+```
+App Settings Tabs
+├── 1. Profile  → Display name, bio description, and avatar
+├── 2. Files    → Custom Supabase project URL & Anon Key for file storage
+├── 3. Chat     → Custom Supabase project URL & Anon Key for real-time chat & database
+├── 4. AI API   → OpenRouter API Key and AI model selection
+├── 5. Email    → Custom IMAP/SMTP accounts
+└── 6. Theme    → Design system presets, dark mode, and color themes
+```
+
+### 7.3 How Zero-Env Dynamic Runtime Works
+
+```tsx
+import { useEmailSettingsStore } from '@amogads/ui/stores'
+import { createClient, getStorageSupabaseClient } from '@amogads/ui/sdk'
+
+export function DynamicIntegrationExample() {
+  const { config } = useEmailSettingsStore()
+
+  const queryUserDatabase = async () => {
+    // createClient() automatically reads localStorage ('email-settings-workspace')
+    // If user configured a Chat Supabase account and enabled it,
+    // this client connects to THEIR Supabase project directly.
+    const supabase = createClient()
+    const { data, error } = await supabase.from('conversations').select('*')
+    console.log('Conversations from dynamic Supabase instance:', data)
+  }
+
+  const uploadToUserStorage = async (file: File) => {
+    // getStorageSupabaseClient() automatically targets the user's custom bucket
+    const storageClient = getStorageSupabaseClient()
+    const bucket = config.storageAccounts?.[0]?.bucketName || 'chat-files'
+    
+    const { data, error } = await storageClient.storage
+      .from(bucket)
+      .upload(`uploads/${file.name}`, file)
+    console.log('Uploaded to custom storage:', data)
+  }
+
+  return (
+    <div className="space-y-4">
+      <button onClick={queryUserDatabase}>Test Dynamic DB Connection</button>
+    </div>
+  )
+}
+```
+
+---
+
+## 8. React Native & Mobile Integration Guide
+
+`@amogads/ui` provides design tokens and device bridges for React Native and Capacitor mobile apps.
+
+### 8.1 Using Design Tokens in React Native
+
+Tokens from `@amogads/ui/tokens` can be directly consumed in React Native `StyleSheet` objects or NativeWind:
+
+```tsx
+import React from 'react'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { SEMANTIC_TOKENS, RADIUS_TOKENS } from '@amogads/ui/tokens'
+
+export function MobileCard({ title, subtitle, onPress }: any) {
+  return (
+    <View style={styles.cardContainer}>
+      <Text style={styles.header}>{title}</Text>
+      <Text style={styles.description}>{subtitle}</Text>
+      <TouchableOpacity style={styles.actionBtn} onPress={onPress} activeOpacity={0.8}>
+        <Text style={styles.actionText}>View Details</Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  cardContainer: {
+    backgroundColor: '#18181b', // Zinc 900
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginVertical: 8,
+  },
+  header: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fafafa',
+  },
+  description: {
+    fontSize: 14,
+    color: '#a1a1aa',
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  actionBtn: {
+    backgroundColor: '#6366f1', // Indigo 500
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  actionText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+})
+```
+
+### 8.2 Native Scanner & Camera Hooks (Capacitor / Hybrid Mobile)
+
+```tsx
+import { useCapacitorDocScanner } from '@amogads/ui/services'
+
+export function MobileScannerWidget() {
+  const { isAvailable, startScan } = useCapacitorDocScanner()
+
+  const handleScan = async () => {
+    if (isAvailable) {
+      const result = await startScan()
+      console.log('Scanned pages:', result.scannedImages)
+    }
+  }
+
+  return (
+    <button onClick={handleScan}>
+      📷 Scan Document with Device Camera
+    </button>
+  )
+}
 ```
