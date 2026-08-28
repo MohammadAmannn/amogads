@@ -29,8 +29,29 @@ export interface ProfileConfig {
   avatarUrl?: string
 }
 
+export interface SupabaseAccount {
+  id: string
+  name: string
+  supabaseUrl: string
+  supabaseAnonKey: string
+  bucketName: string
+  isEnabled: boolean
+  defaultFolder?: string
+}
+
+export interface SupabaseStorageConfig {
+  supabaseUrl: string
+  supabaseAnonKey: string
+  bucketName?: string
+  isCustomEnabled: boolean
+  lastTestedAt?: string
+  status?: 'connected' | 'error' | 'untested'
+}
+
 export interface EmailSettingsConfig {
   profile: ProfileConfig
   accounts: EmailAccount[]
+  storageAccounts?: SupabaseAccount[]
   theme: ThemeConfig
+  storage?: SupabaseStorageConfig
 }

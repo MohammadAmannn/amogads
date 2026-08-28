@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { ProfileTab } from './components/profile-tab'
+import { FilesTab } from './components/files-tab'
 import { LinksTab } from './components/accounts-tab'
 import { ThemesTab } from './components/themes-tab'
 import { PhonePreview } from './components/phone-preview'
@@ -24,7 +25,7 @@ export default function EmailSettingsFeature() {
 
   return (
     <div className='flex h-full flex-col w-full overflow-hidden bg-background text-foreground'>
-      <AppHeader title='Email Settings' />
+      <AppHeader title='App Settings' />
 
       <Main fixed className='flex flex-grow flex-1 min-h-0 overflow-hidden p-3 sm:p-4 md:p-6'>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 w-full h-full overflow-hidden">
@@ -40,6 +41,12 @@ export default function EmailSettingsFeature() {
                     className="h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap"
                   >
                     Profile
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="files"
+                    className="h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap"
+                  >
+                    Files
                   </TabsTrigger>
                   <TabsTrigger
                     value="links"
@@ -89,6 +96,9 @@ export default function EmailSettingsFeature() {
               <div className="flex-1 overflow-y-auto no-scrollbar pr-0 sm:pr-1 pb-20 lg:pb-6 space-y-4">
                 <TabsContent value="profile" className="mt-0 focus-visible:outline-none">
                   <ProfileTab />
+                </TabsContent>
+                <TabsContent value="files" className="mt-0 focus-visible:outline-none">
+                  <FilesTab />
                 </TabsContent>
                 <TabsContent value="links" className="mt-0 focus-visible:outline-none">
                   <LinksTab />

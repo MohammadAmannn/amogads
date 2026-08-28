@@ -735,18 +735,26 @@ var import_server7 = require("next/server");
 // src/lib/supabase/client.ts
 var import_ssr2 = require("@supabase/ssr");
 var clientSingleton = null;
+function sanitizeSupabaseUrl(url) {
+  if (!url) return "";
+  let cleaned = url.trim();
+  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
+    cleaned = `https://${cleaned}`;
+  }
+  cleaned = cleaned.replace(/\/rest\/v1\/?$/i, "");
+  cleaned = cleaned.replace(/\/auth\/v1\/?$/i, "");
+  cleaned = cleaned.replace(/\/storage\/v1\/?$/i, "");
+  cleaned = cleaned.replace(/\/+$/, "");
+  return cleaned;
+}
 function createClient3() {
+  const envUrl = sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const envKey = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "").trim();
   if (typeof window === "undefined") {
-    return (0, import_ssr2.createBrowserClient)(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-    );
+    return (0, import_ssr2.createBrowserClient)(envUrl, envKey);
   }
   if (!clientSingleton) {
-    clientSingleton = (0, import_ssr2.createBrowserClient)(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-    );
+    clientSingleton = (0, import_ssr2.createBrowserClient)(envUrl, envKey);
   }
   return clientSingleton;
 }
@@ -1613,9 +1621,12 @@ async function handleMessagesPost(request) {
       message: body.message,
       messageType: body.messageType || "text",
       fileUrl: body.fileUrl,
-      fileName: body.fileName,
-      replyToMessageId: body.replyToMessageId,
-      forwardedFromMessageId: body.forwardedFromMessageId,
+      replyMetadata: body.replyToMessageId ? {
+        replyto_message_id: body.replyToMessageId,
+        replyto_user_id: body.replyToUserId || null,
+        replyemoji: null,
+        parent_message_id: null
+      } : void 0,
       locationData: body.location
     });
     if (!msg) {

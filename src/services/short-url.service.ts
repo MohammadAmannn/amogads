@@ -42,7 +42,12 @@ export class ShortUrlService {
   /**
    * Retrieves a shortened URL target mapping.
    */
-  static async getUrl(shortUrlSuffix: string): Promise<{ targetUrl: string; expiresAtMs: number } | null> {
-    return getShortUrl(shortUrlSuffix)
+  static async getUrl(shortUrlSuffix: string): Promise<{ targetUrl: string; expiresAt: string } | null> {
+    const entry = await getShortUrl(shortUrlSuffix)
+    if (!entry) return null
+    return {
+      targetUrl: entry.targetUrl,
+      expiresAt: entry.expiresAt,
+    }
   }
 }

@@ -78,9 +78,14 @@ export async function handleMessagesPost(request: NextRequest) {
       message: body.message,
       messageType: body.messageType || 'text',
       fileUrl: body.fileUrl,
-      fileName: body.fileName,
-      replyToMessageId: body.replyToMessageId,
-      forwardedFromMessageId: body.forwardedFromMessageId,
+      replyMetadata: body.replyToMessageId
+        ? {
+            replyto_message_id: body.replyToMessageId,
+            replyto_user_id: body.replyToUserId || null,
+            replyemoji: null,
+            parent_message_id: null,
+          }
+        : undefined,
       locationData: body.location,
     })
 

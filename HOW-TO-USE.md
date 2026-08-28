@@ -867,8 +867,89 @@ Never use hardcoded hex values (`#ffffff`, `#1e293b`). Always use semantic Tailw
 | `bg-muted`, `text-muted-foreground` | Subtle labels, captions, disabled states |
 | `border-border`, `border-input` | Component dividers and form outlines |
 | `bg-success`, `text-success-foreground` | Approvals, active status, success toast |
-| `bg-warning`, `text-warning-foreground` | Non-blocking alerts, cautions |
-| `bg-destructive`, `text-destructive-foreground` | Deletions, critical error alerts |
+---
+
+### 4.5 Files & Document Management Suite
+
+Amoga Design System provides an enterprise-ready suite for file management, cloud storage explorer, document composers, and storage analytics.
+
+```tsx
+import React, { useState } from 'react'
+import {
+  UserFileCardsView,
+  FileCardItem,
+  FileUploadForm,
+  FolderTreeItem,
+  StorageStatCard,
+} from '@amogads/ui'
+
+// 1. File Manager Explorer View
+export function FileManagerExample() {
+  const [selectedFolder, setSelectedFolder] = useState({
+    id: 'finance-folder',
+    name: 'Finance & Invoices',
+    path: 'Files/user/Finance',
+    fileCount: 12,
+    level: 1,
+  })
+
+  return (
+    <UserFileCardsView
+      folder={selectedFolder}
+      files={[
+        {
+          id: 'pdf-1',
+          fileName: 'Audit_Report_2026.pdf',
+          fileUrl: 'https://example.com/doc.pdf',
+          fileSize: 2450000,
+          updatedAt: new Date().toISOString(),
+          category: 'Pdf',
+          section: 'Finance',
+        },
+      ]}
+      onSelectFileForPreview={(file) => console.log('Preview:', file)}
+      onDownloadFile={(file) => console.log('Download:', file)}
+      onDeleteFile={(file) => console.log('Delete:', file)}
+      onUploadClick={() => console.log('Open uploader')}
+    />
+  )
+}
+
+// 2. Individual File Card Item
+export function FileCardExample() {
+  return (
+    <FileCardItem
+      file={{
+        id: 'img-1',
+        fileName: 'Product_Hero.png',
+        fileUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600',
+        fileSize: 4850000,
+        updatedAt: new Date().toISOString(),
+        category: 'Images',
+        section: 'Design',
+      }}
+      viewMode="grid"
+      onPreview={(file) => console.log('Preview:', file)}
+      onDownload={(file) => console.log('Download:', file)}
+    />
+  )
+}
+
+// 3. Document Composer & File Uploader
+export function FileUploadFormExample() {
+  return (
+    <FileUploadForm
+      initialSubject="Q3 Financial Statements"
+      initialFolder="Finance"
+      initialSubFolder="Pdf"
+      onClose={() => console.log('Close')}
+      onSave={async (data) => {
+        console.log('Saving document with attachments:', data)
+      }}
+    />
+  )
+}
+```
 
 ---
 

@@ -94,6 +94,9 @@ export * from './components/chat'
 // ── AI Assistant & Multi-Model Chat ─────────────────────────────────────────
 export * from './components/ai-chat'
 
+// ── Files & Document Management ─────────────────────────────────────────────
+export * from './components/files'
+
 
 // ── Reusable Page Templates ──────────────────────────────────────────────────
 export { ListTemplate, type ListTemplateProps } from './templates/list-template'

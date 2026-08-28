@@ -61,18 +61,26 @@ module.exports = __toCommonJS(services_exports);
 // src/lib/supabase/client.ts
 var import_ssr = require("@supabase/ssr");
 var clientSingleton = null;
+function sanitizeSupabaseUrl(url) {
+  if (!url) return "";
+  let cleaned = url.trim();
+  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
+    cleaned = `https://${cleaned}`;
+  }
+  cleaned = cleaned.replace(/\/rest\/v1\/?$/i, "");
+  cleaned = cleaned.replace(/\/auth\/v1\/?$/i, "");
+  cleaned = cleaned.replace(/\/storage\/v1\/?$/i, "");
+  cleaned = cleaned.replace(/\/+$/, "");
+  return cleaned;
+}
 function createClient() {
+  const envUrl = sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const envKey = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "").trim();
   if (typeof window === "undefined") {
-    return (0, import_ssr.createBrowserClient)(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-    );
+    return (0, import_ssr.createBrowserClient)(envUrl, envKey);
   }
   if (!clientSingleton) {
-    clientSingleton = (0, import_ssr.createBrowserClient)(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-    );
+    clientSingleton = (0, import_ssr.createBrowserClient)(envUrl, envKey);
   }
   return clientSingleton;
 }
@@ -1863,7 +1871,12 @@ var ShortUrlService = class {
    * Retrieves a shortened URL target mapping.
    */
   static async getUrl(shortUrlSuffix) {
-    return getShortUrl(shortUrlSuffix);
+    const entry = await getShortUrl(shortUrlSuffix);
+    if (!entry) return null;
+    return {
+      targetUrl: entry.targetUrl,
+      expiresAt: entry.expiresAt
+    };
   }
 };
 
