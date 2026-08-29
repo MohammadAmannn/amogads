@@ -6,6 +6,8 @@ import { FilesTab } from './components/files-tab'
 import { ChatTab } from './components/chat-tab'
 import { AiTab } from './components/ai-tab'
 import { LinksTab } from './components/accounts-tab'
+import { EmailFilesTab } from './components/email-files-tab'
+import { AuthTab } from './components/auth-tab'
 import { ThemesTab } from './components/themes-tab'
 import { PhonePreview } from './components/phone-preview'
 import { AppHeader } from '@/components/layout/app-header'
@@ -24,6 +26,7 @@ import { Smartphone } from 'lucide-react'
 
 export default function EmailSettingsFeature() {
   const [previewOpen, setPreviewOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('profile')
 
   return (
     <div className='flex h-full flex-col w-full overflow-hidden bg-background text-foreground'>
@@ -34,7 +37,7 @@ export default function EmailSettingsFeature() {
 
           {/* Left Panel: Tabs Control Panel */}
           <div className="lg:col-span-7 flex flex-col h-full min-h-0 overflow-hidden">
-            <Tabs defaultValue="profile" className="flex flex-col h-full min-h-0 overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full min-h-0 overflow-hidden">
 
               <div className='w-full overflow-x-auto pb-2 mb-2 lg:mb-4 shrink-0 no-scrollbar'>
                 <TabsList className='h-auto gap-4 sm:gap-6 border-b border-border bg-transparent p-0 shadow-none justify-start flex w-max min-w-full rounded-none'>
@@ -69,6 +72,18 @@ export default function EmailSettingsFeature() {
                     Email
                   </TabsTrigger>
                   <TabsTrigger
+                    value="email-files"
+                    className="h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap"
+                  >
+                    Email Files
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="auth"
+                    className="h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap"
+                  >
+                    Auth
+                  </TabsTrigger>
+                  <TabsTrigger
                     value="theme"
                     className="h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap"
                   >
@@ -93,6 +108,12 @@ export default function EmailSettingsFeature() {
                 <TabsContent value="links" className="mt-0 focus-visible:outline-none">
                   <LinksTab />
                 </TabsContent>
+                <TabsContent value="email-files" className="mt-0 focus-visible:outline-none">
+                  <EmailFilesTab />
+                </TabsContent>
+                <TabsContent value="auth" className="mt-0 focus-visible:outline-none">
+                  <AuthTab />
+                </TabsContent>
                 <TabsContent value="theme" className="mt-0 focus-visible:outline-none">
                   <ThemesTab />
                 </TabsContent>
@@ -101,8 +122,8 @@ export default function EmailSettingsFeature() {
           </div>
 
           {/* Right Panel: iPhone Live Mockup — desktop only */}
-          <div className="hidden lg:flex lg:col-span-5 min-h-0 overflow-y-auto overflow-x-hidden bg-muted/10 border rounded-2xl flex-col items-center px-4 py-10 shadow-inner">
-            <PhonePreview />
+          <div className="hidden lg:flex lg:col-span-5 min-h-0 overflow-y-auto overflow-x-hidden bg-muted/10 border rounded-2xl flex-col items-center px-4 py-6 shadow-inner">
+            <PhonePreview activeSettingsTab={activeTab} />
           </div>
         </div>
       </Main>
@@ -111,7 +132,7 @@ export default function EmailSettingsFeature() {
       <div className="fixed bottom-4 right-4 z-40 lg:hidden">
         <Button
           onClick={() => setPreviewOpen(true)}
-          className="h-12 px-5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg gap-2"
+          className="h-12 px-5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg gap-2 cursor-pointer"
         >
           <Smartphone className="h-4 w-4" />
           Preview
@@ -120,15 +141,15 @@ export default function EmailSettingsFeature() {
 
       {/* Mobile preview sheet */}
       <Sheet open={previewOpen} onOpenChange={setPreviewOpen}>
-        <SheetContent side="bottom" className="h-[90vh] rounded-t-2xl px-4 pt-6 pb-8">
+        <SheetContent side="bottom" className="h-[90vh] rounded-t-2xl px-4 pt-6 pb-8 overflow-y-auto">
           <SheetHeader className="mb-2">
             <SheetTitle>Live Preview</SheetTitle>
             <SheetDescription>
-              See how your email configurations look on a mobile mockup preview.
+              See how your authentication & email configurations look on a mobile mockup preview.
             </SheetDescription>
           </SheetHeader>
-          <div className="flex items-start justify-center h-full overflow-y-auto pt-4 pb-4">
-            <PhonePreview compact />
+          <div className="flex items-start justify-center h-full overflow-y-auto pt-2 pb-4">
+            <PhonePreview compact activeSettingsTab={activeTab} />
           </div>
         </SheetContent>
       </Sheet>

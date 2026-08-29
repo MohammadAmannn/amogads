@@ -64,12 +64,39 @@ export interface ChatAccount {
   isEnabled: boolean
 }
 
+export interface EmailFileAccount {
+  id: string
+  name: string
+  supabaseUrl: string
+  supabaseAnonKey: string
+  bucketName: string
+  defaultFolder?: string
+  isEnabled: boolean
+}
+
+export interface AuthProviderConfig {
+  id: string
+  name: string
+  type?: 'oauth' | 'oidc' | 'credentials' | 'email'
+  iconUrl?: string // Uploaded file base64 data URL or external URL
+  providerUrl?: string // Issuer / Authorization URL
+  clientId?: string // "Keys"
+  clientSecret?: string // "Secret"
+  username?: string // "user Name"
+  password?: string // "password"
+  callbackUrl?: string
+  nextAuthSecret?: string
+  isEnabled: boolean
+}
+
 export interface EmailSettingsConfig {
   profile: ProfileConfig
   accounts: EmailAccount[]
   storageAccounts?: SupabaseAccount[]
   chatAccounts?: ChatAccount[]
   aiAccounts?: AiAccount[]
+  emailFileAccounts?: EmailFileAccount[]
+  authProviders?: AuthProviderConfig[]
   theme: ThemeConfig
   storage?: SupabaseStorageConfig
 }

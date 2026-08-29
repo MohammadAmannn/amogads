@@ -69,8 +69,10 @@ export async function middleware(request: NextRequest) {
         target = '/'
       }
     }
+    const [cleanPathname, queryString] = target.split('?')
     const url = request.nextUrl.clone()
-    url.pathname = target.startsWith('/') ? target : `/${target}`
+    url.pathname = cleanPathname.startsWith('/') ? cleanPathname : `/${cleanPathname}`
+    url.search = queryString ? `?${queryString}` : ''
     url.searchParams.delete('redirect')
     const redirectResponse = NextResponse.redirect(url)
     redirectResponse.headers.set('x-middleware-cache', 'no-cache')

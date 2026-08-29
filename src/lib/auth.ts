@@ -42,22 +42,35 @@ export const authOptions: NextAuthOptions = {
   }, 
   callbacks: {
     async redirect({ url, baseUrl }) {
+      let effectiveBaseUrl = baseUrl
+      try {
+        const { headers } = await import('next/headers')
+        const headerList = await headers()
+        const host = headerList.get('x-forwarded-host') || headerList.get('host')
+        const proto = headerList.get('x-forwarded-proto') || 'https'
+        if (host) {
+          effectiveBaseUrl = `${proto}://${host}`
+        }
+      } catch {
+        // Fallback to baseUrl
+      }
+
       try {
         const { cookies } = await import('next/headers')
         const cookieStore = await cookies()
         const isMobileAuth = cookieStore.get('mobile_auth')?.value === 'true' || url.includes('is_mobile=true')
         if (isMobileAuth) {
           console.log('📱 [NextAuth Redirect Callback] Mobile auth detected. Redirecting to /auth/callback?is_mobile=true')
-          return `${baseUrl}/auth/callback?is_mobile=true&next=/`
+          return `${effectiveBaseUrl}/auth/callback?is_mobile=true&next=/`
         }
       } catch (err) {
         console.error('❌ [NextAuth Redirect Callback] Error inspecting cookies:', err)
       }
 
       if (url.includes('/auth/callback')) return url
-      if (url.startsWith('/')) return `${baseUrl}${url}`
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl
+      if (url.startsWith('/')) return `${effectiveBaseUrl}${url}`
+      else if (new URL(url).origin === effectiveBaseUrl || new URL(url).origin === baseUrl) return url
+      return effectiveBaseUrl
     },
     async signIn({ user }) {
       if (!user.email) return false

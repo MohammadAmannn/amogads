@@ -171,8 +171,8 @@ export function MessageEmailSettings({
           </div>
 
           {/* Right Panel: Phone Live Mockup */}
-          <div className='hidden lg:flex lg:col-span-5 min-h-0 overflow-y-auto overflow-x-hidden bg-muted/10 border rounded-2xl flex-col items-center px-4 py-10 shadow-inner'>
-            <PhonePreview />
+          <div className='hidden lg:flex lg:col-span-5 min-h-0 overflow-y-auto overflow-x-hidden bg-muted/10 border rounded-2xl flex-col items-center px-4 py-6 shadow-inner'>
+            <PhonePreview activeSettingsTab={activeTab} />
           </div>
         </div>
       </div>

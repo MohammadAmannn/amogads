@@ -83,25 +83,40 @@ var useAuthStore = create()((set) => {
   let initToken = "";
   if (cookieState) {
     try {
-      initToken = JSON.parse(cookieState);
+      initToken = cookieState.startsWith('"') ? JSON.parse(cookieState) : cookieState;
     } catch {
-      removeCookie(ACCESS_TOKEN);
+      initToken = cookieState;
     }
   }
   const userCookie = getCookie(USER_DATA);
   let initUser = null;
   if (userCookie) {
     try {
-      const parsed = JSON.parse(decodeURIComponent(userCookie));
-      if (parsed.exp && parsed.exp > Date.now()) {
+      let raw = userCookie;
+      if (raw.includes("%")) {
+        try {
+          raw = decodeURIComponent(raw);
+        } catch {
+        }
+      }
+      if (raw.includes("%")) {
+        try {
+          raw = decodeURIComponent(raw);
+        } catch {
+        }
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.exp && parsed.exp > Date.now()) {
+        initUser = parsed;
+      } else if (parsed && !parsed.exp) {
         initUser = parsed;
       } else {
         removeCookie(ACCESS_TOKEN);
         removeCookie(USER_DATA);
       }
-    } catch {
+    } catch (err) {
+      console.warn("Could not parse userCookie in useAuthStore:", err);
       initUser = null;
-      removeCookie(USER_DATA);
     }
   }
   return {
@@ -174,21 +189,32 @@ var authOptions = {
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
+      let effectiveBaseUrl = baseUrl;
+      try {
+        const { headers } = await import("next/headers");
+        const headerList = await headers();
+        const host = headerList.get("x-forwarded-host") || headerList.get("host");
+        const proto = headerList.get("x-forwarded-proto") || "https";
+        if (host) {
+          effectiveBaseUrl = `${proto}://${host}`;
+        }
+      } catch {
+      }
       try {
         const { cookies } = await import("next/headers");
         const cookieStore = await cookies();
         const isMobileAuth = cookieStore.get("mobile_auth")?.value === "true" || url.includes("is_mobile=true");
         if (isMobileAuth) {
           console.log("\u{1F4F1} [NextAuth Redirect Callback] Mobile auth detected. Redirecting to /auth/callback?is_mobile=true");
-          return `${baseUrl}/auth/callback?is_mobile=true&next=/`;
+          return `${effectiveBaseUrl}/auth/callback?is_mobile=true&next=/`;
         }
       } catch (err) {
         console.error("\u274C [NextAuth Redirect Callback] Error inspecting cookies:", err);
       }
       if (url.includes("/auth/callback")) return url;
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      else if (new URL(url).origin === baseUrl) return url;
-      return baseUrl;
+      if (url.startsWith("/")) return `${effectiveBaseUrl}${url}`;
+      else if (new URL(url).origin === effectiveBaseUrl || new URL(url).origin === baseUrl) return url;
+      return effectiveBaseUrl;
     },
     async signIn({ user }) {
       if (!user.email) return false;

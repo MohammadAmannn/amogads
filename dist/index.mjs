@@ -61,6 +61,9 @@ import { twMerge } from "tailwind-merge";
 function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
+function sleep(ms = 1e3) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 // src/design-system/components/ui/accordion.tsx
 import { jsx, jsxs } from "react/jsx-runtime";
@@ -6136,25 +6139,40 @@ var useAuthStore = create()((set) => {
   let initToken = "";
   if (cookieState) {
     try {
-      initToken = JSON.parse(cookieState);
+      initToken = cookieState.startsWith('"') ? JSON.parse(cookieState) : cookieState;
     } catch {
-      removeCookie(ACCESS_TOKEN);
+      initToken = cookieState;
     }
   }
   const userCookie = getCookie(USER_DATA);
   let initUser = null;
   if (userCookie) {
     try {
-      const parsed = JSON.parse(decodeURIComponent(userCookie));
-      if (parsed.exp && parsed.exp > Date.now()) {
+      let raw = userCookie;
+      if (raw.includes("%")) {
+        try {
+          raw = decodeURIComponent(raw);
+        } catch {
+        }
+      }
+      if (raw.includes("%")) {
+        try {
+          raw = decodeURIComponent(raw);
+        } catch {
+        }
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.exp && parsed.exp > Date.now()) {
+        initUser = parsed;
+      } else if (parsed && !parsed.exp) {
         initUser = parsed;
       } else {
         removeCookie(ACCESS_TOKEN);
         removeCookie(USER_DATA);
       }
-    } catch {
+    } catch (err) {
+      console.warn("Could not parse userCookie in useAuthStore:", err);
       initUser = null;
-      removeCookie(USER_DATA);
     }
   }
   return {
@@ -6210,7 +6228,15 @@ function SignOutDialog({ open, onOpenChange }) {
     }
     try {
       if (typeof window !== "undefined") {
+        const preservedSettings = localStorage.getItem("email-settings-workspace");
+        const theme = localStorage.getItem("theme");
         localStorage.clear();
+        if (preservedSettings) {
+          localStorage.setItem("email-settings-workspace", preservedSettings);
+        }
+        if (theme) {
+          localStorage.setItem("theme", theme);
+        }
         sessionStorage.clear();
       }
     } catch (e) {
@@ -15130,6 +15156,3344 @@ function TopNav({ className, links, ...props }) {
     )
   ] });
 }
+
+// src/features/email-settings/index.tsx
+import { useState as useState27 } from "react";
+
+// src/features/email-settings/store.ts
+import { create as create3 } from "zustand";
+import { persist } from "zustand/middleware";
+var DEFAULT_STORAGE_CONFIG = {
+  supabaseUrl: "",
+  supabaseAnonKey: "",
+  bucketName: "chat-files",
+  isCustomEnabled: false,
+  status: "untested"
+};
+var DEFAULT_CONFIG = {
+  profile: {
+    name: "Alex Rivera",
+    bio: "Senior UX Architect & Tech Writer | Crafting digital experiences \u2728",
+    avatarUrl: ""
+  },
+  accounts: [
+    {
+      id: "1",
+      email: "user@gmail.com",
+      protocol: "IMAP",
+      isEnabled: true,
+      incomingServer: "imap.gmail.com",
+      incomingPort: 993,
+      outgoingServer: "smtp.gmail.com",
+      outgoingPort: 587,
+      useSSL: true,
+      useTLS: true
+    },
+    {
+      id: "2",
+      email: "user@outlook.com",
+      protocol: "IMAP",
+      isEnabled: true,
+      incomingServer: "outlook.office365.com",
+      incomingPort: 993,
+      outgoingServer: "smtp-mail.outlook.com",
+      outgoingPort: 587,
+      useSSL: true,
+      useTLS: true
+    }
+  ],
+  storageAccounts: [],
+  chatAccounts: [],
+  aiAccounts: [],
+  emailFileAccounts: [],
+  authProviders: [],
+  theme: {
+    preset: "custom",
+    appTheme: "system",
+    appColorTheme: "zinc"
+  },
+  storage: DEFAULT_STORAGE_CONFIG
+};
+var useEmailSettingsStore = create3()(
+  persist(
+    (set) => ({
+      config: DEFAULT_CONFIG,
+      updateProfile: (profileUpdates) => set((state) => ({
+        config: {
+          ...state.config,
+          profile: {
+            ...state.config.profile,
+            ...profileUpdates
+          }
+        }
+      })),
+      addAccount: (newAccount) => set((state) => {
+        const accountWithId = {
+          ...newAccount,
+          id: `account-${Date.now()}`
+        };
+        return {
+          config: {
+            ...state.config,
+            accounts: [...state.config.accounts, accountWithId]
+          }
+        };
+      }),
+      updateAccount: (id, updates) => set((state) => ({
+        config: {
+          ...state.config,
+          accounts: state.config.accounts.map(
+            (account) => account.id === id ? { ...account, ...updates } : account
+          )
+        }
+      })),
+      removeAccount: (id) => set((state) => ({
+        config: {
+          ...state.config,
+          accounts: state.config.accounts.filter((account) => account.id !== id)
+        }
+      })),
+      addStorageAccount: (newAccount) => set((state) => {
+        const accountWithId = {
+          ...newAccount,
+          id: `storage-${Date.now()}`
+        };
+        return {
+          config: {
+            ...state.config,
+            storageAccounts: [...state.config.storageAccounts || [], accountWithId]
+          }
+        };
+      }),
+      updateStorageAccount: (id, updates) => set((state) => ({
+        config: {
+          ...state.config,
+          storageAccounts: (state.config.storageAccounts || []).map(
+            (account) => account.id === id ? { ...account, ...updates } : account
+          )
+        }
+      })),
+      removeStorageAccount: (id) => set((state) => ({
+        config: {
+          ...state.config,
+          storageAccounts: (state.config.storageAccounts || []).filter((account) => account.id !== id)
+        }
+      })),
+      addChatAccount: (newAccount) => set((state) => {
+        const accountWithId = {
+          ...newAccount,
+          id: `chat-${Date.now()}`
+        };
+        return {
+          config: {
+            ...state.config,
+            chatAccounts: [...state.config.chatAccounts || [], accountWithId]
+          }
+        };
+      }),
+      updateChatAccount: (id, updates) => set((state) => ({
+        config: {
+          ...state.config,
+          chatAccounts: (state.config.chatAccounts || []).map(
+            (account) => account.id === id ? { ...account, ...updates } : account
+          )
+        }
+      })),
+      removeChatAccount: (id) => set((state) => ({
+        config: {
+          ...state.config,
+          chatAccounts: (state.config.chatAccounts || []).filter((account) => account.id !== id)
+        }
+      })),
+      addAiAccount: (newAccount) => set((state) => {
+        const accountWithId = {
+          ...newAccount,
+          id: `ai-${Date.now()}`
+        };
+        return {
+          config: {
+            ...state.config,
+            aiAccounts: [...state.config.aiAccounts || [], accountWithId]
+          }
+        };
+      }),
+      updateAiAccount: (id, updates) => set((state) => ({
+        config: {
+          ...state.config,
+          aiAccounts: (state.config.aiAccounts || []).map(
+            (account) => account.id === id ? { ...account, ...updates } : account
+          )
+        }
+      })),
+      removeAiAccount: (id) => set((state) => ({
+        config: {
+          ...state.config,
+          aiAccounts: (state.config.aiAccounts || []).filter((account) => account.id !== id)
+        }
+      })),
+      addEmailFileAccount: (newAccount) => set((state) => {
+        const accountWithId = {
+          ...newAccount,
+          id: `emailfile-${Date.now()}`
+        };
+        return {
+          config: {
+            ...state.config,
+            emailFileAccounts: [...state.config.emailFileAccounts || [], accountWithId]
+          }
+        };
+      }),
+      updateEmailFileAccount: (id, updates) => set((state) => ({
+        config: {
+          ...state.config,
+          emailFileAccounts: (state.config.emailFileAccounts || []).map(
+            (account) => account.id === id ? { ...account, ...updates } : account
+          )
+        }
+      })),
+      removeEmailFileAccount: (id) => set((state) => ({
+        config: {
+          ...state.config,
+          emailFileAccounts: (state.config.emailFileAccounts || []).filter((account) => account.id !== id)
+        }
+      })),
+      addAuthProvider: (newProvider) => set((state) => {
+        const providerWithId = {
+          ...newProvider,
+          id: `auth-${Date.now()}`
+        };
+        return {
+          config: {
+            ...state.config,
+            authProviders: [...state.config.authProviders || [], providerWithId]
+          }
+        };
+      }),
+      updateAuthProvider: (id, updates) => set((state) => ({
+        config: {
+          ...state.config,
+          authProviders: (state.config.authProviders || []).map(
+            (provider) => provider.id === id ? { ...provider, ...updates } : provider
+          )
+        }
+      })),
+      removeAuthProvider: (id) => set((state) => ({
+        config: {
+          ...state.config,
+          authProviders: (state.config.authProviders || []).filter((provider) => provider.id !== id)
+        }
+      })),
+      updateTheme: (themeUpdates) => set((state) => ({
+        config: {
+          ...state.config,
+          theme: {
+            ...state.config.theme,
+            ...themeUpdates
+          }
+        }
+      })),
+      updateStorage: (storageUpdates) => set((state) => ({
+        config: {
+          ...state.config,
+          storage: {
+            ...state.config.storage || DEFAULT_STORAGE_CONFIG,
+            ...storageUpdates
+          }
+        }
+      })),
+      resetStorage: () => set((state) => ({
+        config: {
+          ...state.config,
+          storage: DEFAULT_STORAGE_CONFIG
+        }
+      })),
+      resetConfig: () => set({
+        config: DEFAULT_CONFIG
+      })
+    }),
+    {
+      name: "email-settings-workspace"
+    }
+  )
+);
+
+// src/features/email-settings/components/profile-tab.tsx
+import { Sparkles as Sparkles4 } from "lucide-react";
+import { jsx as jsx129, jsxs as jsxs86 } from "react/jsx-runtime";
+function ProfileTab() {
+  const { config, updateProfile } = useEmailSettingsStore();
+  const { name, bio, avatarUrl } = config.profile;
+  const handleNameChange = (e) => {
+    updateProfile({ name: e.target.value });
+  };
+  const handleBioChange = (e) => {
+    updateProfile({ bio: e.target.value });
+  };
+  const handleAvatarChange = (e) => {
+    updateProfile({ avatarUrl: e.target.value });
+  };
+  const getInitials = (fullName) => {
+    return fullName.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase() || "?";
+  };
+  return /* @__PURE__ */ jsxs86(Card, { className: "border-muted bg-card/60 backdrop-blur-md", children: [
+    /* @__PURE__ */ jsxs86(CardHeader, { children: [
+      /* @__PURE__ */ jsxs86(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+        /* @__PURE__ */ jsx129(Sparkles4, { className: "h-5 w-5 text-indigo-500" }),
+        "Profile Customization"
+      ] }),
+      /* @__PURE__ */ jsx129(CardDescription, { children: "Personalize your email sender profile heading, avatar picture, and bio description." })
+    ] }),
+    /* @__PURE__ */ jsxs86(CardContent, { className: "space-y-6", children: [
+      /* @__PURE__ */ jsxs86("div", { className: "flex items-center gap-6 p-4 rounded-xl border border-dashed border-muted bg-muted/30", children: [
+        /* @__PURE__ */ jsxs86(Avatar, { className: "h-20 w-20 border-2 border-primary/20 shadow-md", children: [
+          /* @__PURE__ */ jsx129(AvatarImage, { src: avatarUrl, alt: name }),
+          /* @__PURE__ */ jsx129(AvatarFallback, { className: "bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white text-xl font-bold", children: getInitials(name) })
+        ] }),
+        /* @__PURE__ */ jsxs86("div", { className: "flex-1 space-y-1", children: [
+          /* @__PURE__ */ jsx129("h4", { className: "font-semibold text-lg", children: name || "Your Name" }),
+          /* @__PURE__ */ jsx129("p", { className: "text-xs text-muted-foreground line-clamp-2 max-w-[320px]", children: bio || "Write a short bio description..." })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs86("div", { className: "space-y-4", children: [
+        /* @__PURE__ */ jsxs86("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx129(Label, { htmlFor: "avatar-url", className: "font-semibold", children: "Avatar Image URL" }),
+          /* @__PURE__ */ jsx129(
+            Input,
+            {
+              id: "avatar-url",
+              placeholder: "e.g. https://images.unsplash.com/photo-1534528741775-53994a69daeb",
+              value: avatarUrl || "",
+              onChange: handleAvatarChange,
+              className: "bg-background/80"
+            }
+          ),
+          /* @__PURE__ */ jsx129("p", { className: "text-xs text-muted-foreground", children: "Provide a public image link or leave blank to display your display initials." })
+        ] }),
+        /* @__PURE__ */ jsxs86("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx129(Label, { htmlFor: "profile-name", className: "font-semibold", children: "Display Name" }),
+          /* @__PURE__ */ jsx129(
+            Input,
+            {
+              id: "profile-name",
+              placeholder: "e.g. Jane Doe",
+              value: name,
+              onChange: handleNameChange,
+              maxLength: 40,
+              className: "bg-background/80"
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxs86("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx129(Label, { htmlFor: "profile-bio", className: "font-semibold", children: "Bio" }),
+          /* @__PURE__ */ jsx129(
+            Textarea,
+            {
+              id: "profile-bio",
+              placeholder: "Tell the world about yourself...",
+              value: bio,
+              onChange: handleBioChange,
+              maxLength: 160,
+              rows: 4,
+              className: "bg-background/80 resize-none"
+            }
+          ),
+          /* @__PURE__ */ jsxs86("div", { className: "text-right text-xs text-muted-foreground", children: [
+            bio.length,
+            "/160 characters"
+          ] })
+        ] })
+      ] })
+    ] })
+  ] });
+}
+
+// src/features/email-settings/components/files-tab.tsx
+import { useState as useState20 } from "react";
+import { Database as Database2, Plus as Plus5, Trash2 as Trash28, Edit, Save as Save2, X as X9, Lock, Server, Eye as Eye5, EyeOff as EyeOff2 } from "lucide-react";
+import { Fragment as Fragment10, jsx as jsx130, jsxs as jsxs87 } from "react/jsx-runtime";
+function FilesTab() {
+  const { config, addStorageAccount, updateStorageAccount, removeStorageAccount } = useEmailSettingsStore();
+  const storageAccounts = config.storageAccounts || [];
+  const [editingAccountId, setEditingAccountId] = useState20(null);
+  const [editFormData, setEditFormData] = useState20(null);
+  const [showKey, setShowKey] = useState20(false);
+  const openAddModal = () => {
+    setShowKey(false);
+    setEditingAccountId("new");
+    setEditFormData({
+      name: "",
+      supabaseUrl: "",
+      supabaseAnonKey: "",
+      bucketName: "chat-files",
+      defaultFolder: "Chat",
+      isEnabled: true
+    });
+  };
+  const openEditModal = (account) => {
+    setShowKey(false);
+    setEditingAccountId(account.id);
+    setEditFormData({ ...account });
+  };
+  const closeEditModal = () => {
+    setEditingAccountId(null);
+    setEditFormData(null);
+  };
+  const saveEdit = () => {
+    if (editingAccountId && editFormData) {
+      const sanitizedData = {
+        ...editFormData,
+        supabaseUrl: editFormData.supabaseUrl?.trim().replace(/\/rest\/v1\/?$/i, "").replace(/\/auth\/v1\/?$/i, "").replace(/\/storage\/v1\/?$/i, "").replace(/\/+$/, ""),
+        supabaseAnonKey: editFormData.supabaseAnonKey?.trim(),
+        bucketName: editFormData.bucketName?.trim() || "chat-files"
+      };
+      if (editingAccountId === "new") {
+        addStorageAccount(sanitizedData);
+      } else {
+        updateStorageAccount(editingAccountId, sanitizedData);
+      }
+      closeEditModal();
+    }
+  };
+  const handleEditFieldChange = (field, value) => {
+    setEditFormData((prev) => ({ ...prev, [field]: value }));
+  };
+  const formatDisplayUrl = (url) => {
+    if (!url) return "Custom Supabase Storage";
+    try {
+      const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
+      return parsed.hostname;
+    } catch {
+      return url.length > 28 ? `${url.substring(0, 24)}...` : url;
+    }
+  };
+  return /* @__PURE__ */ jsxs87(Card, { className: "border-muted bg-card/60 backdrop-blur-md", children: [
+    /* @__PURE__ */ jsx130(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 p-4 pb-2", children: /* @__PURE__ */ jsxs87("div", { className: "space-y-1", children: [
+      /* @__PURE__ */ jsxs87(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+        /* @__PURE__ */ jsx130(Database2, { className: "h-5 w-5 text-indigo-500" }),
+        "Supabase Credentials Manager"
+      ] }),
+      /* @__PURE__ */ jsx130(CardDescription, { className: "text-xs sm:text-sm", children: "Add edit and delete files Settings to manage Apps integration with Files Storage" })
+    ] }) }),
+    /* @__PURE__ */ jsx130(CardContent, { className: "p-4 pt-2 space-y-4", children: storageAccounts.length === 0 ? /* @__PURE__ */ jsxs87("div", { className: "text-center py-10 border-2 border-dashed border-muted rounded-xl bg-muted/10", children: [
+      /* @__PURE__ */ jsx130("p", { className: "text-muted-foreground mb-4 text-sm", children: "No Supabase credentials added yet." }),
+      /* @__PURE__ */ jsxs87(Button, { onClick: openAddModal, variant: "outline", className: "gap-1 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 text-xs", children: [
+        /* @__PURE__ */ jsx130(Plus5, { className: "h-4 w-4" }),
+        " Add your first Supabase credential"
+      ] })
+    ] }) : /* @__PURE__ */ jsxs87(Fragment10, { children: [
+      /* @__PURE__ */ jsx130("div", { className: "space-y-3", children: storageAccounts.map((account) => /* @__PURE__ */ jsx130(
+        "div",
+        {
+          className: `border rounded-xl bg-background/50 overflow-hidden transition-all duration-200 shadow-sm ${account.isEnabled ? "border-muted" : "border-muted-foreground/20 opacity-60"}`,
+          children: /* @__PURE__ */ jsxs87("div", { className: "flex items-center justify-between p-3 gap-2 bg-muted/10", children: [
+            /* @__PURE__ */ jsxs87("div", { className: "flex items-center gap-3 min-w-0 flex-1", children: [
+              /* @__PURE__ */ jsx130("div", { className: "h-8 w-8 flex items-center justify-center shrink-0 rounded-lg bg-indigo-500/10", children: /* @__PURE__ */ jsx130(Database2, { className: "h-4.5 w-4.5 text-indigo-450" }) }),
+              /* @__PURE__ */ jsxs87("div", { className: "min-w-0 flex-1", children: [
+                /* @__PURE__ */ jsx130("p", { className: "font-semibold text-sm truncate", children: account.name || formatDisplayUrl(account.supabaseUrl) }),
+                /* @__PURE__ */ jsxs87("p", { className: "text-xs text-muted-foreground truncate max-w-[320px]", children: [
+                  "Bucket \u2022 ",
+                  account.bucketName || "chat-files",
+                  " \xA0\u2022\xA0 ",
+                  formatDisplayUrl(account.supabaseUrl)
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs87("div", { className: "flex items-center gap-1 shrink-0", children: [
+              /* @__PURE__ */ jsx130(
+                Switch,
+                {
+                  checked: account.isEnabled,
+                  onCheckedChange: (checked) => updateStorageAccount(account.id, { isEnabled: checked }),
+                  title: account.isEnabled ? "Disable Credential" : "Enable Credential",
+                  className: "scale-90"
+                }
+              ),
+              /* @__PURE__ */ jsx130(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 shrink-0",
+                  onClick: () => openEditModal(account),
+                  title: "Edit Credential",
+                  children: /* @__PURE__ */ jsx130(Edit, { className: "h-4 w-4" })
+                }
+              ),
+              /* @__PURE__ */ jsx130(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0",
+                  onClick: () => removeStorageAccount(account.id),
+                  title: "Delete Credential",
+                  children: /* @__PURE__ */ jsx130(Trash28, { className: "h-4 w-4" })
+                }
+              )
+            ] })
+          ] })
+        },
+        account.id
+      )) }),
+      /* @__PURE__ */ jsx130("div", { className: "pt-1", children: /* @__PURE__ */ jsxs87(
+        Button,
+        {
+          onClick: openAddModal,
+          size: "sm",
+          className: "w-full gap-1 bg-indigo-600 hover:bg-indigo-700 text-white",
+          children: [
+            /* @__PURE__ */ jsx130(Plus5, { className: "h-4 w-4" }),
+            "Add Your Supabase Credential"
+          ]
+        }
+      ) })
+    ] }) }),
+    /* @__PURE__ */ jsx130(Dialog, { open: !!editingAccountId, onOpenChange: (open) => !open && closeEditModal(), children: /* @__PURE__ */ jsxs87(DialogContent, { className: "sm:max-w-[600px] max-h-[90vh] overflow-y-auto", children: [
+      /* @__PURE__ */ jsxs87(DialogHeader, { children: [
+        /* @__PURE__ */ jsxs87(DialogTitle, { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx130(Database2, { className: "h-5 w-5 text-indigo-500" }),
+          editingAccountId === "new" ? "Add Supabase Credential" : "Edit Supabase Credential"
+        ] }),
+        /* @__PURE__ */ jsx130(DialogDescription, { children: "Input custom Supabase credentials and storage bucket properties." })
+      ] }),
+      editFormData && /* @__PURE__ */ jsxs87("div", { className: "space-y-5 py-2", children: [
+        /* @__PURE__ */ jsxs87("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxs87("h3", { className: "text-sm font-semibold flex items-center gap-2 text-foreground", children: [
+            /* @__PURE__ */ jsx130(Lock, { className: "w-4 h-4 text-indigo-400" }),
+            "Account Credentials"
+          ] }),
+          /* @__PURE__ */ jsxs87("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsx130(Label, { className: "text-xs font-semibold", children: "Connection Name (Optional)" }),
+            /* @__PURE__ */ jsx130(
+              Input,
+              {
+                placeholder: "e.g. My Storage Workspace",
+                value: editFormData.name || "",
+                onChange: (e) => handleEditFieldChange("name", e.target.value),
+                className: "bg-background/80 h-9 text-sm"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxs87("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs87("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx130(Label, { className: "text-xs font-semibold", children: "Supabase Project URL *" }),
+              /* @__PURE__ */ jsx130(
+                Input,
+                {
+                  type: "url",
+                  placeholder: "https://xyz.supabase.co",
+                  value: editFormData.supabaseUrl || "",
+                  onChange: (e) => handleEditFieldChange("supabaseUrl", e.target.value),
+                  className: "bg-background/80 h-9 text-sm font-mono text-xs"
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs87("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx130("div", { className: "flex items-center justify-between", children: /* @__PURE__ */ jsx130(Label, { className: "text-xs font-semibold", children: "Publishable / Anon Key *" }) }),
+              /* @__PURE__ */ jsxs87("div", { className: "relative", children: [
+                /* @__PURE__ */ jsx130(
+                  Input,
+                  {
+                    type: showKey ? "text" : "password",
+                    placeholder: "sb_publishable_... or eyJhbGciOi...",
+                    value: editFormData.supabaseAnonKey || "",
+                    onChange: (e) => handleEditFieldChange("supabaseAnonKey", e.target.value),
+                    className: "bg-background/80 h-9 text-sm font-mono text-xs pr-9"
+                  }
+                ),
+                /* @__PURE__ */ jsx130(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => setShowKey(!showKey),
+                    className: "absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground",
+                    children: showKey ? /* @__PURE__ */ jsx130(EyeOff2, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx130(Eye5, { className: "h-4 w-4" })
+                  }
+                )
+              ] })
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs87("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxs87("h3", { className: "text-sm font-semibold flex items-center gap-2 text-foreground", children: [
+            /* @__PURE__ */ jsx130(Server, { className: "w-4 h-4 text-indigo-400" }),
+            "Storage Settings"
+          ] }),
+          /* @__PURE__ */ jsxs87("div", { className: "grid grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs87("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx130(Label, { className: "text-xs font-semibold", children: "Bucket Name *" }),
+              /* @__PURE__ */ jsx130(
+                Input,
+                {
+                  placeholder: "chat-files",
+                  value: editFormData.bucketName || "",
+                  onChange: (e) => handleEditFieldChange("bucketName", e.target.value),
+                  className: "bg-background/80 h-9 text-sm font-mono text-xs"
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs87("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx130(Label, { className: "text-xs font-semibold", children: "Default Folder Path" }),
+              /* @__PURE__ */ jsx130(
+                Input,
+                {
+                  placeholder: "Chat",
+                  value: editFormData.defaultFolder || "",
+                  onChange: (e) => handleEditFieldChange("defaultFolder", e.target.value),
+                  className: "bg-background/80 h-9 text-sm font-mono text-xs"
+                }
+              )
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs87("div", { className: "flex justify-end gap-2 pt-4 border-t", children: [
+          /* @__PURE__ */ jsxs87(
+            Button,
+            {
+              variant: "outline",
+              onClick: closeEditModal,
+              className: "gap-1",
+              children: [
+                /* @__PURE__ */ jsx130(X9, { className: "h-4 w-4" }),
+                "Cancel"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxs87(
+            Button,
+            {
+              onClick: saveEdit,
+              disabled: !editFormData.supabaseUrl || !editFormData.supabaseAnonKey,
+              className: "gap-1 bg-blue-600 hover:bg-blue-700 text-white",
+              children: [
+                /* @__PURE__ */ jsx130(Save2, { className: "h-4 w-4" }),
+                editingAccountId === "new" ? "Add Credential" : "Save Changes"
+              ]
+            }
+          )
+        ] })
+      ] })
+    ] }) })
+  ] });
+}
+
+// src/features/email-settings/components/chat-tab.tsx
+import { useState as useState21 } from "react";
+import { MessageSquare as MessageSquare5, Plus as Plus6, Trash2 as Trash29, Edit as Edit3, Save as Save3, X as X10, Lock as Lock2, Server as Server2, Eye as Eye6, EyeOff as EyeOff3 } from "lucide-react";
+import { Fragment as Fragment11, jsx as jsx131, jsxs as jsxs88 } from "react/jsx-runtime";
+function ChatTab() {
+  const { config, addChatAccount, updateChatAccount, removeChatAccount } = useEmailSettingsStore();
+  const chatAccounts = config.chatAccounts || [];
+  const [editingAccountId, setEditingAccountId] = useState21(null);
+  const [editFormData, setEditFormData] = useState21(null);
+  const [showKey, setShowKey] = useState21(false);
+  const openAddModal = () => {
+    setShowKey(false);
+    setEditingAccountId("new");
+    setEditFormData({
+      name: "",
+      supabaseUrl: "",
+      supabaseAnonKey: "",
+      isEnabled: true
+    });
+  };
+  const openEditModal = (account) => {
+    setShowKey(false);
+    setEditingAccountId(account.id);
+    setEditFormData({ ...account });
+  };
+  const closeEditModal = () => {
+    setEditingAccountId(null);
+    setEditFormData(null);
+  };
+  const saveEdit = () => {
+    if (editingAccountId && editFormData) {
+      const sanitizedData = {
+        ...editFormData,
+        name: editFormData.name?.trim() || "",
+        supabaseUrl: editFormData.supabaseUrl?.trim().replace(/\/rest\/v1\/?$/i, "").replace(/\/auth\/v1\/?$/i, "").replace(/\/storage\/v1\/?$/i, "").replace(/\/+$/, ""),
+        supabaseAnonKey: editFormData.supabaseAnonKey?.trim() || "",
+        isEnabled: editFormData.isEnabled ?? true
+      };
+      if (editingAccountId === "new") {
+        addChatAccount(sanitizedData);
+      } else {
+        updateChatAccount(editingAccountId, sanitizedData);
+      }
+      closeEditModal();
+    }
+  };
+  const handleEditFieldChange = (field, value) => {
+    setEditFormData((prev) => ({ ...prev, [field]: value }));
+  };
+  const formatDisplayUrl = (url) => {
+    if (!url) return "Custom Supabase Project";
+    try {
+      const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
+      return parsed.hostname;
+    } catch {
+      return url.length > 28 ? `${url.substring(0, 24)}...` : url;
+    }
+  };
+  const maskApiKey = (key) => {
+    if (!key) return "No API Key";
+    if (key.length <= 10) return "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
+    return `${key.slice(0, 7)}...${key.slice(-4)}`;
+  };
+  return /* @__PURE__ */ jsxs88(Card, { className: "border-muted bg-card/60 backdrop-blur-md", children: [
+    /* @__PURE__ */ jsx131(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 p-4 pb-2", children: /* @__PURE__ */ jsxs88("div", { className: "space-y-1", children: [
+      /* @__PURE__ */ jsxs88(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+        /* @__PURE__ */ jsx131(MessageSquare5, { className: "h-5 w-5 text-emerald-500" }),
+        "Chat Credentials Manager"
+      ] }),
+      /* @__PURE__ */ jsx131(CardDescription, { className: "text-xs sm:text-sm", children: "Add edit and delete Supabase Settings to connect your custom database with real-time Chat" })
+    ] }) }),
+    /* @__PURE__ */ jsx131(CardContent, { className: "p-4 pt-2 space-y-4", children: chatAccounts.length === 0 ? /* @__PURE__ */ jsxs88("div", { className: "text-center py-10 border-2 border-dashed border-muted rounded-xl bg-muted/10", children: [
+      /* @__PURE__ */ jsx131("p", { className: "text-muted-foreground mb-4 text-sm", children: "No Chat Supabase credentials added yet." }),
+      /* @__PURE__ */ jsxs88(
+        Button,
+        {
+          onClick: openAddModal,
+          variant: "outline",
+          className: "gap-1 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 text-xs cursor-pointer",
+          children: [
+            /* @__PURE__ */ jsx131(Plus6, { className: "h-4 w-4" }),
+            " Add your first Chat Supabase credential"
+          ]
+        }
+      )
+    ] }) : /* @__PURE__ */ jsxs88(Fragment11, { children: [
+      /* @__PURE__ */ jsx131("div", { className: "space-y-3", children: chatAccounts.map((account) => /* @__PURE__ */ jsx131(
+        "div",
+        {
+          className: `border rounded-xl bg-background/50 overflow-hidden transition-all duration-200 shadow-sm ${account.isEnabled ? "border-muted" : "border-muted-foreground/20 opacity-60"}`,
+          children: /* @__PURE__ */ jsxs88("div", { className: "flex items-center justify-between p-3 gap-2 bg-muted/10", children: [
+            /* @__PURE__ */ jsxs88("div", { className: "flex items-center gap-3 min-w-0 flex-1", children: [
+              /* @__PURE__ */ jsx131("div", { className: "h-8 w-8 flex items-center justify-center shrink-0 rounded-lg bg-emerald-500/10", children: /* @__PURE__ */ jsx131(MessageSquare5, { className: "h-4.5 w-4.5 text-emerald-400" }) }),
+              /* @__PURE__ */ jsxs88("div", { className: "min-w-0 flex-1", children: [
+                /* @__PURE__ */ jsx131("p", { className: "font-semibold text-sm truncate", children: account.name || formatDisplayUrl(account.supabaseUrl) }),
+                /* @__PURE__ */ jsxs88("p", { className: "text-xs text-muted-foreground truncate max-w-[320px]", children: [
+                  "URL \u2022 ",
+                  formatDisplayUrl(account.supabaseUrl),
+                  " \xA0\u2022\xA0 Key \u2022 ",
+                  maskApiKey(account.supabaseAnonKey)
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs88("div", { className: "flex items-center gap-1 shrink-0", children: [
+              /* @__PURE__ */ jsx131(
+                Switch,
+                {
+                  checked: account.isEnabled,
+                  onCheckedChange: (checked) => updateChatAccount(account.id, { isEnabled: checked }),
+                  title: account.isEnabled ? "Disable Credential" : "Enable Credential",
+                  className: "scale-90"
+                }
+              ),
+              /* @__PURE__ */ jsx131(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 shrink-0 cursor-pointer",
+                  onClick: () => openEditModal(account),
+                  title: "Edit Credential",
+                  children: /* @__PURE__ */ jsx131(Edit3, { className: "h-4 w-4" })
+                }
+              ),
+              /* @__PURE__ */ jsx131(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0 cursor-pointer",
+                  onClick: () => removeChatAccount(account.id),
+                  title: "Delete Credential",
+                  children: /* @__PURE__ */ jsx131(Trash29, { className: "h-4 w-4" })
+                }
+              )
+            ] })
+          ] })
+        },
+        account.id
+      )) }),
+      /* @__PURE__ */ jsx131("div", { className: "pt-1", children: /* @__PURE__ */ jsxs88(
+        Button,
+        {
+          onClick: openAddModal,
+          size: "sm",
+          className: "w-full gap-1 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer",
+          children: [
+            /* @__PURE__ */ jsx131(Plus6, { className: "h-4 w-4" }),
+            "Add Your Chat Credential"
+          ]
+        }
+      ) })
+    ] }) }),
+    /* @__PURE__ */ jsx131(Dialog, { open: !!editingAccountId, onOpenChange: (open) => !open && closeEditModal(), children: /* @__PURE__ */ jsxs88(DialogContent, { className: "sm:max-w-[600px] max-h-[90vh] overflow-y-auto", children: [
+      /* @__PURE__ */ jsxs88(DialogHeader, { children: [
+        /* @__PURE__ */ jsxs88(DialogTitle, { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx131(MessageSquare5, { className: "h-5 w-5 text-emerald-500" }),
+          editingAccountId === "new" ? "Add Chat Supabase Credential" : "Edit Chat Supabase Credential"
+        ] }),
+        /* @__PURE__ */ jsx131(DialogDescription, { children: "Configure custom Supabase project credentials for real-time chat, contacts, and messaging." })
+      ] }),
+      editFormData && /* @__PURE__ */ jsxs88("div", { className: "space-y-5 py-2", children: [
+        /* @__PURE__ */ jsxs88("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxs88("h3", { className: "text-sm font-semibold flex items-center gap-2 text-foreground", children: [
+            /* @__PURE__ */ jsx131(Lock2, { className: "w-4 h-4 text-emerald-400" }),
+            "Account Credentials"
+          ] }),
+          /* @__PURE__ */ jsxs88("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsx131(Label, { className: "text-xs font-semibold", children: "Connection Name (Optional)" }),
+            /* @__PURE__ */ jsx131(
+              Input,
+              {
+                placeholder: "e.g. My Production Chat DB",
+                value: editFormData.name || "",
+                onChange: (e) => handleEditFieldChange("name", e.target.value),
+                className: "bg-background/80 h-9 text-sm"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxs88("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs88("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsxs88(Label, { className: "text-xs font-semibold flex items-center gap-1", children: [
+                /* @__PURE__ */ jsx131(Server2, { className: "h-3.5 w-3.5 text-muted-foreground" }),
+                "Supabase Project URL *"
+              ] }),
+              /* @__PURE__ */ jsx131(
+                Input,
+                {
+                  placeholder: "https://xyz.supabase.co",
+                  value: editFormData.supabaseUrl || "",
+                  onChange: (e) => handleEditFieldChange("supabaseUrl", e.target.value),
+                  className: "bg-background/80 h-9 text-sm font-mono text-xs"
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs88("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsxs88(Label, { className: "text-xs font-semibold flex items-center gap-1", children: [
+                /* @__PURE__ */ jsx131(Lock2, { className: "h-3.5 w-3.5 text-muted-foreground" }),
+                "Supabase Anon / Publishable Key *"
+              ] }),
+              /* @__PURE__ */ jsxs88("div", { className: "relative", children: [
+                /* @__PURE__ */ jsx131(
+                  Input,
+                  {
+                    type: showKey ? "text" : "password",
+                    placeholder: "sb_publishable_... or eyJhbGciOi...",
+                    value: editFormData.supabaseAnonKey || "",
+                    onChange: (e) => handleEditFieldChange("supabaseAnonKey", e.target.value),
+                    className: "bg-background/80 h-9 text-sm font-mono text-xs pr-9"
+                  }
+                ),
+                /* @__PURE__ */ jsx131(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => setShowKey(!showKey),
+                    className: "absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer",
+                    children: showKey ? /* @__PURE__ */ jsx131(EyeOff3, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx131(Eye6, { className: "h-4 w-4" })
+                  }
+                )
+              ] })
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs88("div", { className: "flex justify-end gap-2 pt-4 border-t", children: [
+          /* @__PURE__ */ jsxs88(
+            Button,
+            {
+              variant: "outline",
+              onClick: closeEditModal,
+              className: "gap-1 cursor-pointer",
+              children: [
+                /* @__PURE__ */ jsx131(X10, { className: "h-4 w-4" }),
+                "Cancel"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxs88(
+            Button,
+            {
+              onClick: saveEdit,
+              disabled: !editFormData.supabaseUrl?.trim() || !editFormData.supabaseAnonKey?.trim(),
+              className: "gap-1 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer",
+              children: [
+                /* @__PURE__ */ jsx131(Save3, { className: "h-4 w-4" }),
+                editingAccountId === "new" ? "Add Credential" : "Save Changes"
+              ]
+            }
+          )
+        ] })
+      ] })
+    ] }) })
+  ] });
+}
+
+// src/features/email-settings/components/ai-tab.tsx
+import { useState as useState22 } from "react";
+import { Sparkles as Sparkles5, Plus as Plus7, Trash2 as Trash210, Edit as Edit4, Save as Save4, X as X11, Lock as Lock3, Bot as Bot5, Eye as Eye7, EyeOff as EyeOff4 } from "lucide-react";
+import { Fragment as Fragment12, jsx as jsx132, jsxs as jsxs89 } from "react/jsx-runtime";
+var AI_MODELS = [
+  { id: "google/gemini-2.5-flash", name: "Gemini 2.5 Flash" },
+  { id: "openai/gpt-4o", name: "GPT-4o" },
+  { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+  { id: "deepseek/deepseek-chat", name: "DeepSeek Chat" },
+  { id: "meta-llama/llama-3.3-70b-instruct", name: "Llama 3.3 70B" }
+];
+function AiTab() {
+  const { config, addAiAccount, updateAiAccount, removeAiAccount } = useEmailSettingsStore();
+  const aiAccounts = config.aiAccounts || [];
+  const [editingAccountId, setEditingAccountId] = useState22(null);
+  const [editFormData, setEditFormData] = useState22(null);
+  const [showKey, setShowKey] = useState22(false);
+  const openAddModal = () => {
+    setShowKey(false);
+    setEditingAccountId("new");
+    setEditFormData({
+      name: "",
+      model: "google/gemini-2.5-flash",
+      apiKey: "",
+      isEnabled: true
+    });
+  };
+  const openEditModal = (account) => {
+    setShowKey(false);
+    setEditingAccountId(account.id);
+    setEditFormData({ ...account });
+  };
+  const closeEditModal = () => {
+    setEditingAccountId(null);
+    setEditFormData(null);
+  };
+  const saveEdit = () => {
+    if (editingAccountId && editFormData) {
+      const sanitizedData = {
+        ...editFormData,
+        name: editFormData.name?.trim() || "",
+        model: editFormData.model?.trim() || "google/gemini-2.5-flash",
+        apiKey: editFormData.apiKey?.trim() || "",
+        isEnabled: editFormData.isEnabled ?? true
+      };
+      if (editingAccountId === "new") {
+        addAiAccount(sanitizedData);
+      } else {
+        updateAiAccount(editingAccountId, sanitizedData);
+      }
+      closeEditModal();
+    }
+  };
+  const handleEditFieldChange = (field, value) => {
+    setEditFormData((prev) => ({ ...prev, [field]: value }));
+  };
+  const getModelDisplayName = (modelId) => {
+    const found = AI_MODELS.find((m) => m.id === modelId);
+    return found ? found.name : modelId;
+  };
+  const maskApiKey = (key) => {
+    if (!key) return "No API Key";
+    if (key.length <= 10) return "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
+    return `${key.slice(0, 7)}...${key.slice(-4)}`;
+  };
+  return /* @__PURE__ */ jsxs89(Card, { className: "border-muted bg-card/60 backdrop-blur-md", children: [
+    /* @__PURE__ */ jsx132(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 p-4 pb-2", children: /* @__PURE__ */ jsxs89("div", { className: "space-y-1", children: [
+      /* @__PURE__ */ jsxs89(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+        /* @__PURE__ */ jsx132(Sparkles5, { className: "h-5 w-5 text-purple-500" }),
+        "AI API Credentials Manager"
+      ] }),
+      /* @__PURE__ */ jsx132(CardDescription, { className: "text-xs sm:text-sm", children: "Add edit and delete AI API Settings to manage OpenRouter models integration with AI Chat" })
+    ] }) }),
+    /* @__PURE__ */ jsx132(CardContent, { className: "p-4 pt-2 space-y-4", children: aiAccounts.length === 0 ? /* @__PURE__ */ jsxs89("div", { className: "text-center py-10 border-2 border-dashed border-muted rounded-xl bg-muted/10", children: [
+      /* @__PURE__ */ jsx132("p", { className: "text-muted-foreground mb-4 text-sm", children: "No AI API credentials added yet." }),
+      /* @__PURE__ */ jsxs89(
+        Button,
+        {
+          onClick: openAddModal,
+          variant: "outline",
+          className: "gap-1 border-purple-500/30 text-purple-400 hover:bg-purple-500/10 text-xs",
+          children: [
+            /* @__PURE__ */ jsx132(Plus7, { className: "h-4 w-4" }),
+            " Add your first AI API credential"
+          ]
+        }
+      )
+    ] }) : /* @__PURE__ */ jsxs89(Fragment12, { children: [
+      /* @__PURE__ */ jsx132("div", { className: "space-y-3", children: aiAccounts.map((account) => /* @__PURE__ */ jsx132(
+        "div",
+        {
+          className: `border rounded-xl bg-background/50 overflow-hidden transition-all duration-200 shadow-sm ${account.isEnabled ? "border-muted" : "border-muted-foreground/20 opacity-60"}`,
+          children: /* @__PURE__ */ jsxs89("div", { className: "flex items-center justify-between p-3 gap-2 bg-muted/10", children: [
+            /* @__PURE__ */ jsxs89("div", { className: "flex items-center gap-3 min-w-0 flex-1", children: [
+              /* @__PURE__ */ jsx132("div", { className: "h-8 w-8 flex items-center justify-center shrink-0 rounded-lg bg-purple-500/10", children: /* @__PURE__ */ jsx132(Bot5, { className: "h-4.5 w-4.5 text-purple-400" }) }),
+              /* @__PURE__ */ jsxs89("div", { className: "min-w-0 flex-1", children: [
+                /* @__PURE__ */ jsx132("p", { className: "font-semibold text-sm truncate", children: account.name || getModelDisplayName(account.model) }),
+                /* @__PURE__ */ jsxs89("p", { className: "text-xs text-muted-foreground truncate max-w-[320px]", children: [
+                  "Model \u2022 ",
+                  getModelDisplayName(account.model),
+                  " \xA0\u2022\xA0 Key \u2022 ",
+                  maskApiKey(account.apiKey)
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs89("div", { className: "flex items-center gap-1 shrink-0", children: [
+              /* @__PURE__ */ jsx132(
+                Switch,
+                {
+                  checked: account.isEnabled,
+                  onCheckedChange: (checked) => updateAiAccount(account.id, { isEnabled: checked }),
+                  title: account.isEnabled ? "Disable Credential" : "Enable Credential",
+                  className: "scale-90"
+                }
+              ),
+              /* @__PURE__ */ jsx132(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 shrink-0",
+                  onClick: () => openEditModal(account),
+                  title: "Edit Credential",
+                  children: /* @__PURE__ */ jsx132(Edit4, { className: "h-4 w-4" })
+                }
+              ),
+              /* @__PURE__ */ jsx132(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0",
+                  onClick: () => removeAiAccount(account.id),
+                  title: "Delete Credential",
+                  children: /* @__PURE__ */ jsx132(Trash210, { className: "h-4 w-4" })
+                }
+              )
+            ] })
+          ] })
+        },
+        account.id
+      )) }),
+      /* @__PURE__ */ jsx132("div", { className: "pt-1", children: /* @__PURE__ */ jsxs89(
+        Button,
+        {
+          onClick: openAddModal,
+          size: "sm",
+          className: "w-full gap-1 bg-purple-600 hover:bg-purple-700 text-white",
+          children: [
+            /* @__PURE__ */ jsx132(Plus7, { className: "h-4 w-4" }),
+            "Add Your AI Credential"
+          ]
+        }
+      ) })
+    ] }) }),
+    /* @__PURE__ */ jsx132(Dialog, { open: !!editingAccountId, onOpenChange: (open) => !open && closeEditModal(), children: /* @__PURE__ */ jsxs89(DialogContent, { className: "sm:max-w-[600px] max-h-[90vh] overflow-y-auto", children: [
+      /* @__PURE__ */ jsxs89(DialogHeader, { children: [
+        /* @__PURE__ */ jsxs89(DialogTitle, { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx132(Sparkles5, { className: "h-5 w-5 text-purple-500" }),
+          editingAccountId === "new" ? "Add AI API Credential" : "Edit AI API Credential"
+        ] }),
+        /* @__PURE__ */ jsx132(DialogDescription, { children: "Configure OpenRouter API credentials and default model for AI Chat integration." })
+      ] }),
+      editFormData && /* @__PURE__ */ jsxs89("div", { className: "space-y-5 py-2", children: [
+        /* @__PURE__ */ jsxs89("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxs89("h3", { className: "text-sm font-semibold flex items-center gap-2 text-foreground", children: [
+            /* @__PURE__ */ jsx132(Lock3, { className: "w-4 h-4 text-purple-400" }),
+            "Account Credentials"
+          ] }),
+          /* @__PURE__ */ jsxs89("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsx132(Label, { className: "text-xs font-semibold", children: "Connection Name (Optional)" }),
+            /* @__PURE__ */ jsx132(
+              Input,
+              {
+                placeholder: "e.g. My OpenRouter Workspace",
+                value: editFormData.name || "",
+                onChange: (e) => handleEditFieldChange("name", e.target.value),
+                className: "bg-background/80 h-9 text-sm"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxs89("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs89("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx132(Label, { className: "text-xs font-semibold", children: "Select Model *" }),
+              /* @__PURE__ */ jsxs89(
+                Select,
+                {
+                  value: editFormData.model || "google/gemini-2.5-flash",
+                  onValueChange: (val) => handleEditFieldChange("model", val),
+                  children: [
+                    /* @__PURE__ */ jsx132(SelectTrigger, { className: "bg-background/80 h-9 text-xs", children: /* @__PURE__ */ jsx132(SelectValue, { placeholder: "Select model" }) }),
+                    /* @__PURE__ */ jsx132(SelectContent, { children: AI_MODELS.map((m) => /* @__PURE__ */ jsx132(SelectItem, { value: m.id, className: "text-xs", children: m.name }, m.id)) })
+                  ]
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs89("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx132(Label, { className: "text-xs font-semibold", children: "OpenRouter API Key *" }),
+              /* @__PURE__ */ jsxs89("div", { className: "relative", children: [
+                /* @__PURE__ */ jsx132(
+                  Input,
+                  {
+                    type: showKey ? "text" : "password",
+                    placeholder: "sk-or-v1-...",
+                    value: editFormData.apiKey || "",
+                    onChange: (e) => handleEditFieldChange("apiKey", e.target.value),
+                    className: "bg-background/80 h-9 text-sm font-mono text-xs pr-9"
+                  }
+                ),
+                /* @__PURE__ */ jsx132(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => setShowKey(!showKey),
+                    className: "absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer",
+                    children: showKey ? /* @__PURE__ */ jsx132(EyeOff4, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx132(Eye7, { className: "h-4 w-4" })
+                  }
+                )
+              ] })
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs89("div", { className: "flex justify-end gap-2 pt-4 border-t", children: [
+          /* @__PURE__ */ jsxs89(
+            Button,
+            {
+              variant: "outline",
+              onClick: closeEditModal,
+              className: "gap-1 cursor-pointer",
+              children: [
+                /* @__PURE__ */ jsx132(X11, { className: "h-4 w-4" }),
+                "Cancel"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxs89(
+            Button,
+            {
+              onClick: saveEdit,
+              disabled: !editFormData.apiKey?.trim(),
+              className: "gap-1 bg-purple-600 hover:bg-purple-700 text-white cursor-pointer",
+              children: [
+                /* @__PURE__ */ jsx132(Save4, { className: "h-4 w-4" }),
+                editingAccountId === "new" ? "Add Credential" : "Save Changes"
+              ]
+            }
+          )
+        ] })
+      ] })
+    ] }) })
+  ] });
+}
+
+// src/features/email-settings/components/accounts-tab.tsx
+import { useState as useState23 } from "react";
+import { Mail as Mail3, Plus as Plus8, Trash2 as Trash211, Edit as Edit5, Save as Save5, X as X12, Lock as Lock4, Server as Server3 } from "lucide-react";
+import { Fragment as Fragment13, jsx as jsx133, jsxs as jsxs90 } from "react/jsx-runtime";
+var PRESET_SERVERS = {
+  gmail: {
+    incomingServer: "imap.gmail.com",
+    incomingPort: 993,
+    outgoingServer: "smtp.gmail.com",
+    outgoingPort: 587,
+    useSSL: true,
+    useTLS: true
+  },
+  outlook: {
+    incomingServer: "outlook.office365.com",
+    incomingPort: 993,
+    outgoingServer: "smtp-mail.outlook.com",
+    outgoingPort: 587,
+    useSSL: true,
+    useTLS: true
+  },
+  yahoo: {
+    incomingServer: "imap.mail.yahoo.com",
+    incomingPort: 993,
+    outgoingServer: "smtp.mail.yahoo.com",
+    outgoingPort: 465,
+    useSSL: true,
+    useTLS: false
+  }
+};
+function LinksTab() {
+  const { config, addAccount, updateAccount, removeAccount } = useEmailSettingsStore();
+  const { accounts } = config;
+  const [editingAccountId, setEditingAccountId] = useState23(null);
+  const [editFormData, setEditFormData] = useState23(null);
+  const [preset, setPreset] = useState23("");
+  const handlePresetSelect = (presetName) => {
+    setPreset(presetName);
+    const presetConfig = PRESET_SERVERS[presetName];
+    if (presetConfig) {
+      setEditFormData((prev) => ({
+        ...prev,
+        ...presetConfig
+      }));
+    }
+  };
+  const openAddModal = () => {
+    setPreset("");
+    setEditingAccountId("new");
+    setEditFormData({
+      email: "",
+      password: "",
+      protocol: "IMAP",
+      incomingServer: "",
+      incomingPort: 993,
+      outgoingServer: "",
+      outgoingPort: 587,
+      useSSL: true,
+      useTLS: false,
+      isEnabled: true
+    });
+  };
+  const openEditModal = (account) => {
+    setPreset("");
+    setEditingAccountId(account.id);
+    setEditFormData({ ...account });
+  };
+  const closeEditModal = () => {
+    setEditingAccountId(null);
+    setEditFormData(null);
+  };
+  const saveEdit = () => {
+    if (editingAccountId && editFormData) {
+      if (editingAccountId === "new") {
+        addAccount(editFormData);
+      } else {
+        updateAccount(editingAccountId, editFormData);
+      }
+      closeEditModal();
+    }
+  };
+  const handleEditFieldChange = (field, value) => {
+    setEditFormData((prev) => ({ ...prev, [field]: value }));
+  };
+  return /* @__PURE__ */ jsxs90(Card, { className: "border-muted bg-card/60 backdrop-blur-md", children: [
+    /* @__PURE__ */ jsx133(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 pb-4", children: /* @__PURE__ */ jsxs90("div", { className: "space-y-1", children: [
+      /* @__PURE__ */ jsxs90(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+        /* @__PURE__ */ jsx133(Mail3, { className: "h-5 w-5 text-indigo-500" }),
+        "Email Accounts Manager"
+      ] }),
+      /* @__PURE__ */ jsx133(CardDescription, { children: "Add, edit, configure incoming/outgoing servers, and manage authentication for your emails." })
+    ] }) }),
+    /* @__PURE__ */ jsx133(CardContent, { className: "space-y-4", children: accounts.length === 0 ? /* @__PURE__ */ jsxs90("div", { className: "text-center py-12 border-2 border-dashed border-muted rounded-xl bg-muted/10", children: [
+      /* @__PURE__ */ jsx133("p", { className: "text-muted-foreground mb-4", children: "No email accounts added yet." }),
+      /* @__PURE__ */ jsxs90(Button, { onClick: openAddModal, variant: "outline", className: "gap-1 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10", children: [
+        /* @__PURE__ */ jsx133(Plus8, { className: "h-4 w-4" }),
+        " Add your first account"
+      ] })
+    ] }) : /* @__PURE__ */ jsxs90(Fragment13, { children: [
+      /* @__PURE__ */ jsx133("div", { className: "space-y-3", children: accounts.map((account) => /* @__PURE__ */ jsx133(
+        "div",
+        {
+          className: `border rounded-xl bg-background/50 overflow-hidden transition-all duration-200 shadow-sm ${account.isEnabled ? "border-muted" : "border-muted-foreground/20 opacity-60"}`,
+          children: /* @__PURE__ */ jsxs90("div", { className: "flex items-center justify-between p-3 gap-2 bg-muted/10", children: [
+            /* @__PURE__ */ jsxs90("div", { className: "flex items-center gap-3 min-w-0 flex-1", children: [
+              /* @__PURE__ */ jsx133("div", { className: "h-8 w-8 flex items-center justify-center shrink-0 rounded-lg bg-indigo-500/10", children: /* @__PURE__ */ jsx133(Mail3, { className: "h-4.5 w-4.5 text-indigo-450" }) }),
+              /* @__PURE__ */ jsxs90("div", { className: "min-w-0 flex-1", children: [
+                /* @__PURE__ */ jsx133("p", { className: "font-semibold text-sm truncate", children: account.email || "Untitled Account" }),
+                /* @__PURE__ */ jsxs90("p", { className: "text-xs text-muted-foreground truncate max-w-[280px]", children: [
+                  account.protocol,
+                  " \u2022 ",
+                  account.incomingServer || "No server configured"
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs90("div", { className: "flex items-center gap-1 shrink-0", children: [
+              /* @__PURE__ */ jsx133(
+                Switch,
+                {
+                  checked: account.isEnabled,
+                  onCheckedChange: (checked) => updateAccount(account.id, { isEnabled: checked }),
+                  title: account.isEnabled ? "Disable Account" : "Enable Account",
+                  className: "scale-90"
+                }
+              ),
+              /* @__PURE__ */ jsx133(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 shrink-0",
+                  onClick: () => openEditModal(account),
+                  title: "Edit Account",
+                  children: /* @__PURE__ */ jsx133(Edit5, { className: "h-4 w-4" })
+                }
+              ),
+              /* @__PURE__ */ jsx133(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0",
+                  onClick: () => removeAccount(account.id),
+                  title: "Delete Account",
+                  children: /* @__PURE__ */ jsx133(Trash211, { className: "h-4 w-4" })
+                }
+              )
+            ] })
+          ] })
+        },
+        account.id
+      )) }),
+      /* @__PURE__ */ jsx133("div", { className: "pt-2", children: /* @__PURE__ */ jsxs90(
+        Button,
+        {
+          onClick: openAddModal,
+          size: "sm",
+          className: "w-full gap-1 bg-indigo-600 hover:bg-indigo-700 text-white",
+          children: [
+            /* @__PURE__ */ jsx133(Plus8, { className: "h-4 w-4" }),
+            "Add Email Account"
+          ]
+        }
+      ) })
+    ] }) }),
+    /* @__PURE__ */ jsx133(Dialog, { open: !!editingAccountId, onOpenChange: (open) => !open && closeEditModal(), children: /* @__PURE__ */ jsxs90(DialogContent, { className: "sm:max-w-[600px] max-h-[90vh] overflow-y-auto", children: [
+      /* @__PURE__ */ jsxs90(DialogHeader, { children: [
+        /* @__PURE__ */ jsxs90(DialogTitle, { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx133(Mail3, { className: "h-5 w-5 text-indigo-500" }),
+          editingAccountId === "new" ? "Add Email Account" : "Edit Email Account"
+        ] }),
+        /* @__PURE__ */ jsx133(DialogDescription, { children: "Configure provider presets or input custom email credentials and server properties." })
+      ] }),
+      editFormData && /* @__PURE__ */ jsxs90("div", { className: "space-y-6 py-4", children: [
+        /* @__PURE__ */ jsxs90("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx133(Label, { className: "text-xs font-semibold", children: "Select Provider Preset (Optional)" }),
+          /* @__PURE__ */ jsx133("div", { className: "grid grid-cols-3 gap-2", children: Object.keys(PRESET_SERVERS).map((key) => /* @__PURE__ */ jsx133(
+            Button,
+            {
+              variant: "outline",
+              type: "button",
+              onClick: () => handlePresetSelect(key),
+              className: cn(
+                "h-9 text-xs transition-all",
+                preset === key ? "border-indigo-500 bg-indigo-500/10 text-indigo-400 font-semibold" : "hover:bg-muted/50"
+              ),
+              children: key.charAt(0).toUpperCase() + key.slice(1)
+            },
+            key
+          )) })
+        ] }),
+        /* @__PURE__ */ jsx133("div", { className: "h-px bg-border" }),
+        /* @__PURE__ */ jsxs90("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxs90("h3", { className: "text-sm font-semibold flex items-center gap-2 text-foreground", children: [
+            /* @__PURE__ */ jsx133(Lock4, { className: "w-4 h-4 text-indigo-400" }),
+            "Account Credentials"
+          ] }),
+          /* @__PURE__ */ jsxs90("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs90("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx133(Label, { className: "text-xs font-semibold", children: "Email Address *" }),
+              /* @__PURE__ */ jsx133(
+                Input,
+                {
+                  type: "email",
+                  placeholder: "your.email@example.com",
+                  value: editFormData.email || "",
+                  onChange: (e) => handleEditFieldChange("email", e.target.value),
+                  className: "bg-background/80 h-9 text-sm"
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs90("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx133(Label, { className: "text-xs font-semibold", children: "Password / App Password *" }),
+              /* @__PURE__ */ jsx133(
+                Input,
+                {
+                  type: "password",
+                  placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
+                  value: editFormData.password || "",
+                  onChange: (e) => handleEditFieldChange("password", e.target.value),
+                  className: "bg-background/80 h-9 text-sm"
+                }
+              )
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs90("div", { className: "space-y-3", children: [
+          /* @__PURE__ */ jsx133(Label, { className: "text-xs font-semibold", children: "Email Protocol" }),
+          /* @__PURE__ */ jsx133("div", { className: "grid grid-cols-2 gap-3", children: ["IMAP", "POP3"].map((proto) => /* @__PURE__ */ jsxs90(
+            "button",
+            {
+              type: "button",
+              onClick: () => handleEditFieldChange("protocol", proto),
+              className: cn(
+                "p-3 rounded-lg border-2 text-left transition-all cursor-pointer",
+                editFormData.protocol === proto ? "border-indigo-500 bg-indigo-500/5 text-indigo-400" : "border-muted hover:border-muted-foreground/30 hover:bg-muted/10"
+              ),
+              children: [
+                /* @__PURE__ */ jsx133("div", { className: "font-semibold text-sm", children: proto }),
+                /* @__PURE__ */ jsx133("div", { className: "text-[10px] text-muted-foreground mt-0.5", children: proto === "IMAP" ? "Sync folders, fast" : "Download and local storage" })
+              ]
+            },
+            proto
+          )) })
+        ] }),
+        /* @__PURE__ */ jsxs90("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxs90("h3", { className: "text-sm font-semibold flex items-center gap-2 text-foreground", children: [
+            /* @__PURE__ */ jsx133(Server3, { className: "w-4 h-4 text-indigo-400" }),
+            "Incoming Server (",
+            editFormData.protocol,
+            ")"
+          ] }),
+          /* @__PURE__ */ jsxs90("div", { className: "grid grid-cols-3 gap-4", children: [
+            /* @__PURE__ */ jsxs90("div", { className: "col-span-2 space-y-2", children: [
+              /* @__PURE__ */ jsx133(Label, { className: "text-xs font-semibold", children: "Server Address *" }),
+              /* @__PURE__ */ jsx133(
+                Input,
+                {
+                  placeholder: "imap.example.com",
+                  value: editFormData.incomingServer || "",
+                  onChange: (e) => handleEditFieldChange("incomingServer", e.target.value),
+                  className: "bg-background/80 h-9 text-sm"
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs90("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx133(Label, { className: "text-xs font-semibold", children: "Port *" }),
+              /* @__PURE__ */ jsx133(
+                Input,
+                {
+                  type: "number",
+                  placeholder: "993",
+                  value: editFormData.incomingPort || "",
+                  onChange: (e) => handleEditFieldChange("incomingPort", parseInt(e.target.value) || 0),
+                  className: "bg-background/80 h-9 text-sm"
+                }
+              )
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs90("div", { className: "flex gap-4", children: [
+            /* @__PURE__ */ jsxs90("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ jsx133(
+                Switch,
+                {
+                  checked: editFormData.useSSL,
+                  onCheckedChange: (checked) => handleEditFieldChange("useSSL", checked),
+                  id: "use-ssl"
+                }
+              ),
+              /* @__PURE__ */ jsx133(Label, { htmlFor: "use-ssl", className: "text-xs font-medium text-muted-foreground cursor-pointer", children: "Use SSL/TLS" })
+            ] }),
+            editFormData.protocol === "IMAP" && /* @__PURE__ */ jsxs90("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ jsx133(
+                Switch,
+                {
+                  checked: editFormData.useTLS,
+                  onCheckedChange: (checked) => handleEditFieldChange("useTLS", checked),
+                  id: "use-tls"
+                }
+              ),
+              /* @__PURE__ */ jsx133(Label, { htmlFor: "use-tls", className: "text-xs font-medium text-muted-foreground cursor-pointer", children: "Use STARTTLS" })
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs90("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxs90("h3", { className: "text-sm font-semibold flex items-center gap-2 text-foreground", children: [
+            /* @__PURE__ */ jsx133(Server3, { className: "w-4 h-4 text-indigo-400" }),
+            "Outgoing Server (SMTP)"
+          ] }),
+          /* @__PURE__ */ jsxs90("div", { className: "grid grid-cols-3 gap-4", children: [
+            /* @__PURE__ */ jsxs90("div", { className: "col-span-2 space-y-2", children: [
+              /* @__PURE__ */ jsx133(Label, { className: "text-xs font-semibold", children: "Server Address *" }),
+              /* @__PURE__ */ jsx133(
+                Input,
+                {
+                  placeholder: "smtp.example.com",
+                  value: editFormData.outgoingServer || "",
+                  onChange: (e) => handleEditFieldChange("outgoingServer", e.target.value),
+                  className: "bg-background/80 h-9 text-sm"
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs90("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx133(Label, { className: "text-xs font-semibold", children: "Port *" }),
+              /* @__PURE__ */ jsx133(
+                Input,
+                {
+                  type: "number",
+                  placeholder: "587",
+                  value: editFormData.outgoingPort || "",
+                  onChange: (e) => handleEditFieldChange("outgoingPort", parseInt(e.target.value) || 0),
+                  className: "bg-background/80 h-9 text-sm"
+                }
+              )
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs90("div", { className: "flex justify-end gap-2 pt-4 border-t", children: [
+          /* @__PURE__ */ jsxs90(
+            Button,
+            {
+              variant: "outline",
+              onClick: closeEditModal,
+              className: "gap-1",
+              children: [
+                /* @__PURE__ */ jsx133(X12, { className: "h-4 w-4" }),
+                "Cancel"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxs90(
+            Button,
+            {
+              onClick: saveEdit,
+              disabled: !editFormData.email,
+              className: "gap-1 bg-blue-600 hover:bg-blue-700 text-white",
+              children: [
+                /* @__PURE__ */ jsx133(Save5, { className: "h-4 w-4" }),
+                editingAccountId === "new" ? "Add Account" : "Save Changes"
+              ]
+            }
+          )
+        ] })
+      ] })
+    ] }) })
+  ] });
+}
+
+// src/features/email-settings/components/email-files-tab.tsx
+import { useState as useState24 } from "react";
+import { FolderArchive, Plus as Plus9, Trash2 as Trash212, Edit as Edit6, Save as Save6, X as X13, Lock as Lock5, Server as Server4, Eye as Eye8, EyeOff as EyeOff5, Folder as Folder2 } from "lucide-react";
+import { Fragment as Fragment14, jsx as jsx134, jsxs as jsxs91 } from "react/jsx-runtime";
+function EmailFilesTab() {
+  const { config, addEmailFileAccount, updateEmailFileAccount, removeEmailFileAccount } = useEmailSettingsStore();
+  const emailFileAccounts = config.emailFileAccounts || [];
+  const [editingAccountId, setEditingAccountId] = useState24(null);
+  const [editFormData, setEditFormData] = useState24(null);
+  const [showKey, setShowKey] = useState24(false);
+  const openAddModal = () => {
+    setShowKey(false);
+    setEditingAccountId("new");
+    setEditFormData({
+      name: "",
+      supabaseUrl: "",
+      supabaseAnonKey: "",
+      bucketName: "email-attachments",
+      defaultFolder: "EmailAttachments",
+      isEnabled: true
+    });
+  };
+  const openEditModal = (account) => {
+    setShowKey(false);
+    setEditingAccountId(account.id);
+    setEditFormData({ ...account });
+  };
+  const closeEditModal = () => {
+    setEditingAccountId(null);
+    setEditFormData(null);
+  };
+  const saveEdit = () => {
+    if (editingAccountId && editFormData) {
+      const sanitizedData = {
+        ...editFormData,
+        name: editFormData.name?.trim() || "",
+        supabaseUrl: editFormData.supabaseUrl?.trim().replace(/\/rest\/v1\/?$/i, "").replace(/\/auth\/v1\/?$/i, "").replace(/\/storage\/v1\/?$/i, "").replace(/\/+$/, ""),
+        supabaseAnonKey: editFormData.supabaseAnonKey?.trim() || "",
+        bucketName: editFormData.bucketName?.trim() || "email-attachments",
+        defaultFolder: editFormData.defaultFolder?.trim() || "EmailAttachments",
+        isEnabled: editFormData.isEnabled ?? true
+      };
+      if (editingAccountId === "new") {
+        addEmailFileAccount(sanitizedData);
+      } else {
+        updateEmailFileAccount(editingAccountId, sanitizedData);
+      }
+      closeEditModal();
+    }
+  };
+  const handleEditFieldChange = (field, value) => {
+    setEditFormData((prev) => ({ ...prev, [field]: value }));
+  };
+  const formatDisplayUrl = (url) => {
+    if (!url) return "Custom Email Storage";
+    try {
+      const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
+      return parsed.hostname;
+    } catch {
+      return url.length > 28 ? `${url.substring(0, 24)}...` : url;
+    }
+  };
+  const maskApiKey = (key) => {
+    if (!key) return "No Key";
+    if (key.length <= 10) return "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
+    return `${key.slice(0, 7)}...${key.slice(-4)}`;
+  };
+  return /* @__PURE__ */ jsxs91(Card, { className: "border-muted bg-card/60 backdrop-blur-md", children: [
+    /* @__PURE__ */ jsx134(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 p-4 pb-2", children: /* @__PURE__ */ jsxs91("div", { className: "space-y-1", children: [
+      /* @__PURE__ */ jsxs91(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+        /* @__PURE__ */ jsx134(FolderArchive, { className: "h-5 w-5 text-purple-500" }),
+        "Email Files Storage Manager"
+      ] }),
+      /* @__PURE__ */ jsx134(CardDescription, { className: "text-xs sm:text-sm", children: "Add, edit and delete storage credentials to store email attachments and files without environment variables" })
+    ] }) }),
+    /* @__PURE__ */ jsx134(CardContent, { className: "p-4 pt-2 space-y-4", children: emailFileAccounts.length === 0 ? /* @__PURE__ */ jsxs91("div", { className: "text-center py-10 border-2 border-dashed border-muted rounded-xl bg-muted/10", children: [
+      /* @__PURE__ */ jsx134("p", { className: "text-muted-foreground mb-4 text-sm", children: "No Email Files storage credentials added yet." }),
+      /* @__PURE__ */ jsxs91(
+        Button,
+        {
+          onClick: openAddModal,
+          variant: "outline",
+          className: "gap-1 border-purple-500/30 text-purple-400 hover:bg-purple-500/10 text-xs cursor-pointer",
+          children: [
+            /* @__PURE__ */ jsx134(Plus9, { className: "h-4 w-4" }),
+            " Add your first Email Files credential"
+          ]
+        }
+      )
+    ] }) : /* @__PURE__ */ jsxs91(Fragment14, { children: [
+      /* @__PURE__ */ jsx134("div", { className: "space-y-3", children: emailFileAccounts.map((account) => /* @__PURE__ */ jsx134(
+        "div",
+        {
+          className: `border rounded-xl bg-background/50 overflow-hidden transition-all duration-200 shadow-sm ${account.isEnabled ? "border-muted" : "border-muted-foreground/20 opacity-60"}`,
+          children: /* @__PURE__ */ jsxs91("div", { className: "flex items-center justify-between p-3 gap-2 bg-muted/10", children: [
+            /* @__PURE__ */ jsxs91("div", { className: "flex items-center gap-3 min-w-0 flex-1", children: [
+              /* @__PURE__ */ jsx134("div", { className: "h-8 w-8 flex items-center justify-center shrink-0 rounded-lg bg-purple-500/10", children: /* @__PURE__ */ jsx134(FolderArchive, { className: "h-4.5 w-4.5 text-purple-400" }) }),
+              /* @__PURE__ */ jsxs91("div", { className: "min-w-0 flex-1", children: [
+                /* @__PURE__ */ jsx134("p", { className: "font-semibold text-sm truncate", children: account.name || formatDisplayUrl(account.supabaseUrl) }),
+                /* @__PURE__ */ jsxs91("p", { className: "text-xs text-muted-foreground truncate max-w-[340px]", children: [
+                  "Bucket \u2022 ",
+                  account.bucketName || "email-attachments",
+                  " \xA0\u2022\xA0 Folder \u2022 ",
+                  account.defaultFolder || "EmailAttachments",
+                  " \xA0\u2022\xA0 Key \u2022 ",
+                  maskApiKey(account.supabaseAnonKey)
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs91("div", { className: "flex items-center gap-1 shrink-0", children: [
+              /* @__PURE__ */ jsx134(
+                Switch,
+                {
+                  checked: account.isEnabled,
+                  onCheckedChange: (checked) => updateEmailFileAccount(account.id, { isEnabled: checked }),
+                  title: account.isEnabled ? "Disable Credential" : "Enable Credential",
+                  className: "scale-90"
+                }
+              ),
+              /* @__PURE__ */ jsx134(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 shrink-0 cursor-pointer",
+                  onClick: () => openEditModal(account),
+                  title: "Edit Credential",
+                  children: /* @__PURE__ */ jsx134(Edit6, { className: "h-4 w-4" })
+                }
+              ),
+              /* @__PURE__ */ jsx134(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0 cursor-pointer",
+                  onClick: () => removeEmailFileAccount(account.id),
+                  title: "Delete Credential",
+                  children: /* @__PURE__ */ jsx134(Trash212, { className: "h-4 w-4" })
+                }
+              )
+            ] })
+          ] })
+        },
+        account.id
+      )) }),
+      /* @__PURE__ */ jsx134("div", { className: "pt-1", children: /* @__PURE__ */ jsxs91(
+        Button,
+        {
+          onClick: openAddModal,
+          size: "sm",
+          className: "w-full gap-1 bg-purple-600 hover:bg-purple-700 text-white cursor-pointer",
+          children: [
+            /* @__PURE__ */ jsx134(Plus9, { className: "h-4 w-4" }),
+            "Add Your Email Files Credential"
+          ]
+        }
+      ) })
+    ] }) }),
+    /* @__PURE__ */ jsx134(Dialog, { open: !!editingAccountId, onOpenChange: (open) => !open && closeEditModal(), children: /* @__PURE__ */ jsxs91(DialogContent, { className: "sm:max-w-[600px] max-h-[90vh] overflow-y-auto", children: [
+      /* @__PURE__ */ jsxs91(DialogHeader, { children: [
+        /* @__PURE__ */ jsxs91(DialogTitle, { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx134(FolderArchive, { className: "h-5 w-5 text-purple-500" }),
+          editingAccountId === "new" ? "Add Email Files Credential" : "Edit Email Files Credential"
+        ] }),
+        /* @__PURE__ */ jsx134(DialogDescription, { children: "Configure Supabase storage credentials for saving email attachments and documents without server environment variables." })
+      ] }),
+      editFormData && /* @__PURE__ */ jsxs91("div", { className: "space-y-5 py-2", children: [
+        /* @__PURE__ */ jsxs91("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxs91("h3", { className: "text-sm font-semibold flex items-center gap-2 text-foreground", children: [
+            /* @__PURE__ */ jsx134(Lock5, { className: "w-4 h-4 text-purple-400" }),
+            "Storage Credentials"
+          ] }),
+          /* @__PURE__ */ jsxs91("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsx134(Label, { className: "text-xs font-semibold", children: "Connection Name (Optional)" }),
+            /* @__PURE__ */ jsx134(
+              Input,
+              {
+                placeholder: "e.g. My Email Attachments Bucket",
+                value: editFormData.name || "",
+                onChange: (e) => handleEditFieldChange("name", e.target.value),
+                className: "bg-background/80 h-9 text-sm"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxs91("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs91("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsxs91(Label, { className: "text-xs font-semibold flex items-center gap-1", children: [
+                /* @__PURE__ */ jsx134(Server4, { className: "h-3.5 w-3.5 text-muted-foreground" }),
+                "Supabase Project URL *"
+              ] }),
+              /* @__PURE__ */ jsx134(
+                Input,
+                {
+                  placeholder: "https://xyz.supabase.co",
+                  value: editFormData.supabaseUrl || "",
+                  onChange: (e) => handleEditFieldChange("supabaseUrl", e.target.value),
+                  className: "bg-background/80 h-9 text-sm font-mono text-xs"
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs91("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsxs91(Label, { className: "text-xs font-semibold flex items-center gap-1", children: [
+                /* @__PURE__ */ jsx134(Lock5, { className: "h-3.5 w-3.5 text-muted-foreground" }),
+                "Supabase Anon / Service Key *"
+              ] }),
+              /* @__PURE__ */ jsxs91("div", { className: "relative", children: [
+                /* @__PURE__ */ jsx134(
+                  Input,
+                  {
+                    type: showKey ? "text" : "password",
+                    placeholder: "sb_publishable_... or eyJhbGciOi...",
+                    value: editFormData.supabaseAnonKey || "",
+                    onChange: (e) => handleEditFieldChange("supabaseAnonKey", e.target.value),
+                    className: "bg-background/80 h-9 text-sm font-mono text-xs pr-9"
+                  }
+                ),
+                /* @__PURE__ */ jsx134(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => setShowKey(!showKey),
+                    className: "absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer",
+                    children: showKey ? /* @__PURE__ */ jsx134(EyeOff5, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx134(Eye8, { className: "h-4 w-4" })
+                  }
+                )
+              ] })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs91("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs91("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsxs91(Label, { className: "text-xs font-semibold flex items-center gap-1", children: [
+                /* @__PURE__ */ jsx134(FolderArchive, { className: "h-3.5 w-3.5 text-muted-foreground" }),
+                "Bucket Name"
+              ] }),
+              /* @__PURE__ */ jsx134(
+                Input,
+                {
+                  placeholder: "email-attachments",
+                  value: editFormData.bucketName || "",
+                  onChange: (e) => handleEditFieldChange("bucketName", e.target.value),
+                  className: "bg-background/80 h-9 text-sm"
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs91("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsxs91(Label, { className: "text-xs font-semibold flex items-center gap-1", children: [
+                /* @__PURE__ */ jsx134(Folder2, { className: "h-3.5 w-3.5 text-muted-foreground" }),
+                "Default Folder Path"
+              ] }),
+              /* @__PURE__ */ jsx134(
+                Input,
+                {
+                  placeholder: "EmailAttachments",
+                  value: editFormData.defaultFolder || "",
+                  onChange: (e) => handleEditFieldChange("defaultFolder", e.target.value),
+                  className: "bg-background/80 h-9 text-sm"
+                }
+              )
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs91("div", { className: "flex justify-end gap-2 pt-4 border-t", children: [
+          /* @__PURE__ */ jsxs91(
+            Button,
+            {
+              variant: "outline",
+              onClick: closeEditModal,
+              className: "gap-1 cursor-pointer",
+              children: [
+                /* @__PURE__ */ jsx134(X13, { className: "h-4 w-4" }),
+                "Cancel"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxs91(
+            Button,
+            {
+              onClick: saveEdit,
+              disabled: !editFormData.supabaseUrl?.trim() || !editFormData.supabaseAnonKey?.trim(),
+              className: "gap-1 bg-purple-600 hover:bg-purple-700 text-white cursor-pointer",
+              children: [
+                /* @__PURE__ */ jsx134(Save6, { className: "h-4 w-4" }),
+                editingAccountId === "new" ? "Add Credential" : "Save Changes"
+              ]
+            }
+          )
+        ] })
+      ] })
+    ] }) })
+  ] });
+}
+
+// src/features/email-settings/components/auth-tab.tsx
+import { useState as useState25, useRef as useRef8 } from "react";
+import {
+  ShieldCheck,
+  Plus as Plus10,
+  Trash2 as Trash213,
+  Edit as Edit7,
+  Save as Save7,
+  X as X14,
+  Lock as Lock6,
+  KeyRound,
+  User as User3,
+  Globe as Globe2,
+  Upload as Upload2,
+  Eye as Eye9,
+  EyeOff as EyeOff6,
+  ImageIcon as ImageIcon3
+} from "lucide-react";
+import { Fragment as Fragment15, jsx as jsx135, jsxs as jsxs92 } from "react/jsx-runtime";
+var PRESET_PROVIDERS = [
+  { name: "Google", url: "https://accounts.google.com" },
+  { name: "GitHub", url: "https://github.com/login/oauth/authorize" },
+  { name: "Discord", url: "https://discord.com/api/oauth2/authorize" },
+  { name: "Auth0", url: "https://your-tenant.auth0.com" },
+  { name: "Apple", url: "https://appleid.apple.com/auth/authorize" },
+  { name: "Microsoft Entra ID", url: "https://login.microsoftonline.com/common" },
+  { name: "GitLab", url: "https://gitlab.com/oauth/authorize" },
+  { name: "Twitter / X", url: "https://twitter.com/i/oauth2/authorize" },
+  { name: "Slack", url: "https://slack.com/oauth/v2/authorize" },
+  { name: "Credentials", url: "/api/auth/callback/credentials" },
+  { name: "Custom OAuth", url: "" }
+];
+function AuthTab() {
+  const { config, addAuthProvider, updateAuthProvider, removeAuthProvider } = useEmailSettingsStore();
+  const authProviders = config.authProviders || [];
+  const [editingProviderId, setEditingProviderId] = useState25(null);
+  const [editFormData, setEditFormData] = useState25(null);
+  const [showSecret, setShowSecret] = useState25(false);
+  const [showPassword, setShowPassword] = useState25(false);
+  const fileInputRef = useRef8(null);
+  const openAddModal = () => {
+    setShowSecret(false);
+    setShowPassword(false);
+    setEditingProviderId("new");
+    setEditFormData({
+      name: "Google",
+      type: "oauth",
+      iconUrl: "",
+      providerUrl: "https://accounts.google.com",
+      clientId: "",
+      clientSecret: "",
+      username: "",
+      password: "",
+      isEnabled: true
+    });
+  };
+  const openEditModal = (provider) => {
+    setShowSecret(false);
+    setShowPassword(false);
+    setEditingProviderId(provider.id);
+    setEditFormData({ ...provider });
+  };
+  const closeEditModal = () => {
+    setEditingProviderId(null);
+    setEditFormData(null);
+  };
+  const handlePresetSelect = (presetName) => {
+    const preset = PRESET_PROVIDERS.find((p) => p.name === presetName);
+    setEditFormData((prev) => ({
+      ...prev,
+      name: presetName,
+      providerUrl: preset?.url || prev?.providerUrl || "",
+      type: presetName.toLowerCase() === "credentials" ? "credentials" : "oauth"
+    }));
+  };
+  const handleIconUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("File size exceeds 2MB limit. Please choose a smaller icon.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setEditFormData((prev) => ({
+            ...prev,
+            iconUrl: reader.result
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  const removeIcon = () => {
+    setEditFormData((prev) => ({
+      ...prev,
+      iconUrl: ""
+    }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+  const saveEdit = () => {
+    if (editingProviderId && editFormData) {
+      const sanitizedData = {
+        ...editFormData,
+        name: editFormData.name?.trim() || "Custom Provider",
+        providerUrl: editFormData.providerUrl?.trim() || "",
+        clientId: editFormData.clientId?.trim() || "",
+        clientSecret: editFormData.clientSecret?.trim() || "",
+        username: editFormData.username?.trim() || "",
+        password: editFormData.password?.trim() || "",
+        isEnabled: editFormData.isEnabled ?? true
+      };
+      if (editingProviderId === "new") {
+        addAuthProvider(sanitizedData);
+      } else {
+        updateAuthProvider(editingProviderId, sanitizedData);
+      }
+      closeEditModal();
+    }
+  };
+  const handleEditFieldChange = (field, value) => {
+    setEditFormData((prev) => ({ ...prev, [field]: value }));
+  };
+  const maskSecret = (secret) => {
+    if (!secret) return "No Secret";
+    if (secret.length <= 8) return "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022";
+    return `${secret.slice(0, 4)}\u2022\u2022\u2022\u2022${secret.slice(-3)}`;
+  };
+  return /* @__PURE__ */ jsxs92(Card, { className: "border-muted bg-card/60 backdrop-blur-md", children: [
+    /* @__PURE__ */ jsx135(CardHeader, { className: "flex flex-row items-center justify-between space-y-0 p-4 pb-2", children: /* @__PURE__ */ jsxs92("div", { className: "space-y-1", children: [
+      /* @__PURE__ */ jsxs92(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+        /* @__PURE__ */ jsx135(ShieldCheck, { className: "h-5 w-5 text-sky-500" }),
+        "Auth Provider Manager"
+      ] }),
+      /* @__PURE__ */ jsx135(CardDescription, { className: "text-xs sm:text-sm", children: "Configure NextAuth authentication providers (Google, GitHub, Custom OAuth, Credentials) with active/inactive toggles" })
+    ] }) }),
+    /* @__PURE__ */ jsx135(CardContent, { className: "p-4 pt-2 space-y-4", children: authProviders.length === 0 ? /* @__PURE__ */ jsxs92("div", { className: "text-center py-10 border-2 border-dashed border-muted rounded-xl bg-muted/10", children: [
+      /* @__PURE__ */ jsx135("p", { className: "text-muted-foreground mb-4 text-sm", children: "No Auth providers added yet." }),
+      /* @__PURE__ */ jsxs92(
+        Button,
+        {
+          onClick: openAddModal,
+          variant: "outline",
+          className: "gap-1 border-sky-500/30 text-sky-400 hover:bg-sky-500/10 text-xs cursor-pointer",
+          children: [
+            /* @__PURE__ */ jsx135(Plus10, { className: "h-4 w-4" }),
+            " Add your first Auth provider"
+          ]
+        }
+      )
+    ] }) : /* @__PURE__ */ jsxs92(Fragment15, { children: [
+      /* @__PURE__ */ jsx135("div", { className: "space-y-3", children: authProviders.map((provider) => /* @__PURE__ */ jsx135(
+        "div",
+        {
+          className: `border rounded-xl bg-background/50 overflow-hidden transition-all duration-200 shadow-sm ${provider.isEnabled ? "border-muted" : "border-muted-foreground/20 opacity-60"}`,
+          children: /* @__PURE__ */ jsxs92("div", { className: "flex items-center justify-between p-3 gap-2 bg-muted/10", children: [
+            /* @__PURE__ */ jsxs92("div", { className: "flex items-center gap-3 min-w-0 flex-1", children: [
+              /* @__PURE__ */ jsx135("div", { className: "h-9 w-9 flex items-center justify-center shrink-0 rounded-lg bg-sky-500/10 border border-sky-500/20 overflow-hidden", children: provider.iconUrl ? /* @__PURE__ */ jsx135(
+                "img",
+                {
+                  src: provider.iconUrl,
+                  alt: provider.name,
+                  className: "h-full w-full object-contain p-1"
+                }
+              ) : /* @__PURE__ */ jsx135(ShieldCheck, { className: "h-5 w-5 text-sky-400" }) }),
+              /* @__PURE__ */ jsxs92("div", { className: "min-w-0 flex-1", children: [
+                /* @__PURE__ */ jsxs92("div", { className: "flex items-center gap-2", children: [
+                  /* @__PURE__ */ jsx135("p", { className: "font-semibold text-sm truncate", children: provider.name }),
+                  /* @__PURE__ */ jsx135(
+                    "span",
+                    {
+                      className: `text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold uppercase tracking-wider ${provider.isEnabled ? "bg-emerald-500/15 text-emerald-500 border border-emerald-500/20" : "bg-muted text-muted-foreground"}`,
+                      children: provider.isEnabled ? "Active" : "Inactive"
+                    }
+                  )
+                ] }),
+                /* @__PURE__ */ jsxs92("p", { className: "text-xs text-muted-foreground truncate max-w-[340px]", children: [
+                  provider.providerUrl || "Default URL",
+                  " \xA0\u2022\xA0 Keys \u2022",
+                  " ",
+                  provider.clientId ? `${provider.clientId.slice(0, 10)}...` : "Not set",
+                  " \xA0\u2022\xA0 Secret \u2022",
+                  " ",
+                  maskSecret(provider.clientSecret || "")
+                ] })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs92("div", { className: "flex items-center gap-1 shrink-0", children: [
+              /* @__PURE__ */ jsx135(
+                Switch,
+                {
+                  checked: provider.isEnabled,
+                  onCheckedChange: (checked) => updateAuthProvider(provider.id, { isEnabled: checked }),
+                  title: provider.isEnabled ? "Deactivate Provider" : "Activate Provider",
+                  className: "scale-90"
+                }
+              ),
+              /* @__PURE__ */ jsx135(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 shrink-0 cursor-pointer",
+                  onClick: () => openEditModal(provider),
+                  title: "Edit Provider",
+                  children: /* @__PURE__ */ jsx135(Edit7, { className: "h-4 w-4" })
+                }
+              ),
+              /* @__PURE__ */ jsx135(
+                Button,
+                {
+                  variant: "ghost",
+                  size: "icon",
+                  className: "h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-500/10 shrink-0 cursor-pointer",
+                  onClick: () => removeAuthProvider(provider.id),
+                  title: "Delete Provider",
+                  children: /* @__PURE__ */ jsx135(Trash213, { className: "h-4 w-4" })
+                }
+              )
+            ] })
+          ] })
+        },
+        provider.id
+      )) }),
+      /* @__PURE__ */ jsx135("div", { className: "pt-1", children: /* @__PURE__ */ jsxs92(
+        Button,
+        {
+          onClick: openAddModal,
+          size: "sm",
+          className: "w-full gap-1 bg-sky-600 hover:bg-sky-700 text-white cursor-pointer",
+          children: [
+            /* @__PURE__ */ jsx135(Plus10, { className: "h-4 w-4" }),
+            "Add Auth Provider"
+          ]
+        }
+      ) })
+    ] }) }),
+    /* @__PURE__ */ jsx135(Dialog, { open: !!editingProviderId, onOpenChange: (open) => !open && closeEditModal(), children: /* @__PURE__ */ jsxs92(DialogContent, { className: "sm:max-w-[620px] max-h-[90vh] overflow-y-auto", children: [
+      /* @__PURE__ */ jsxs92(DialogHeader, { children: [
+        /* @__PURE__ */ jsxs92(DialogTitle, { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx135(ShieldCheck, { className: "h-5 w-5 text-sky-500" }),
+          editingProviderId === "new" ? "Add Auth Provider" : "Edit Auth Provider"
+        ] }),
+        /* @__PURE__ */ jsx135(DialogDescription, { children: "Configure any NextAuth-supported provider (Google, GitHub, Discord, Auth0, Credentials) with custom keys and icon." })
+      ] }),
+      editFormData && /* @__PURE__ */ jsxs92("div", { className: "space-y-5 py-2", children: [
+        /* @__PURE__ */ jsxs92("div", { className: "space-y-4", children: [
+          /* @__PURE__ */ jsxs92("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs92("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx135(Label, { className: "text-xs font-semibold", children: "Preset Provider" }),
+              /* @__PURE__ */ jsxs92(
+                Select,
+                {
+                  value: PRESET_PROVIDERS.some((p) => p.name === editFormData.name) ? editFormData.name : "Custom OAuth",
+                  onValueChange: handlePresetSelect,
+                  children: [
+                    /* @__PURE__ */ jsx135(SelectTrigger, { className: "h-9 text-sm", children: /* @__PURE__ */ jsx135(SelectValue, { placeholder: "Select provider preset" }) }),
+                    /* @__PURE__ */ jsx135(SelectContent, { children: PRESET_PROVIDERS.map((preset) => /* @__PURE__ */ jsx135(SelectItem, { value: preset.name, children: preset.name }, preset.name)) })
+                  ]
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs92("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsx135(Label, { className: "text-xs font-semibold", children: "Provider Name *" }),
+              /* @__PURE__ */ jsx135(
+                Input,
+                {
+                  placeholder: "e.g. Google, Corporate SSO",
+                  value: editFormData.name || "",
+                  onChange: (e) => handleEditFieldChange("name", e.target.value),
+                  className: "bg-background/80 h-9 text-sm"
+                }
+              )
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs92("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsxs92(Label, { className: "text-xs font-semibold flex items-center gap-1.5", children: [
+              /* @__PURE__ */ jsx135(ImageIcon3, { className: "h-3.5 w-3.5 text-muted-foreground" }),
+              "Provider Icon (File Upload to show on Signup & Login)"
+            ] }),
+            /* @__PURE__ */ jsxs92("div", { className: "flex items-center gap-4 p-3 border rounded-lg bg-muted/10", children: [
+              /* @__PURE__ */ jsx135("div", { className: "h-12 w-12 rounded-lg border border-dashed border-muted-foreground/30 flex items-center justify-center bg-background shrink-0 overflow-hidden", children: editFormData.iconUrl ? /* @__PURE__ */ jsx135(
+                "img",
+                {
+                  src: editFormData.iconUrl,
+                  alt: "Provider icon",
+                  className: "h-full w-full object-contain p-1"
+                }
+              ) : /* @__PURE__ */ jsx135(Upload2, { className: "h-5 w-5 text-muted-foreground" }) }),
+              /* @__PURE__ */ jsxs92("div", { className: "flex-1 space-y-1", children: [
+                /* @__PURE__ */ jsx135(
+                  "input",
+                  {
+                    ref: fileInputRef,
+                    type: "file",
+                    accept: "image/png,image/jpeg,image/svg+xml,image/webp",
+                    onChange: handleIconUpload,
+                    className: "hidden",
+                    id: "provider-icon-upload"
+                  }
+                ),
+                /* @__PURE__ */ jsxs92("div", { className: "flex items-center gap-2", children: [
+                  /* @__PURE__ */ jsxs92(
+                    Button,
+                    {
+                      type: "button",
+                      variant: "outline",
+                      size: "sm",
+                      onClick: () => fileInputRef.current?.click(),
+                      className: "text-xs gap-1 h-8 cursor-pointer",
+                      children: [
+                        /* @__PURE__ */ jsx135(Upload2, { className: "h-3.5 w-3.5" }),
+                        "Choose Icon File"
+                      ]
+                    }
+                  ),
+                  editFormData.iconUrl && /* @__PURE__ */ jsx135(
+                    Button,
+                    {
+                      type: "button",
+                      variant: "ghost",
+                      size: "sm",
+                      onClick: removeIcon,
+                      className: "text-xs text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 cursor-pointer",
+                      children: "Remove"
+                    }
+                  )
+                ] }),
+                /* @__PURE__ */ jsx135("p", { className: "text-[11px] text-muted-foreground", children: "PNG, SVG, or JPG (max 2MB). Shown on login & signup buttons." })
+              ] })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs92("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ jsxs92(Label, { className: "text-xs font-semibold flex items-center gap-1", children: [
+              /* @__PURE__ */ jsx135(Globe2, { className: "h-3.5 w-3.5 text-muted-foreground" }),
+              "Provider URL / Issuer / Auth Endpoint"
+            ] }),
+            /* @__PURE__ */ jsx135(
+              Input,
+              {
+                placeholder: "https://accounts.google.com or https://your-domain.auth0.com",
+                value: editFormData.providerUrl || "",
+                onChange: (e) => handleEditFieldChange("providerUrl", e.target.value),
+                className: "bg-background/80 h-9 text-sm font-mono text-xs"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxs92("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+            /* @__PURE__ */ jsxs92("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsxs92(Label, { className: "text-xs font-semibold flex items-center gap-1", children: [
+                /* @__PURE__ */ jsx135(KeyRound, { className: "h-3.5 w-3.5 text-muted-foreground" }),
+                "Keys (Client ID / Key)"
+              ] }),
+              /* @__PURE__ */ jsx135(
+                Input,
+                {
+                  placeholder: "e.g. 419125420251-8jd9315...apps.googleusercontent.com",
+                  value: editFormData.clientId || "",
+                  onChange: (e) => handleEditFieldChange("clientId", e.target.value),
+                  className: "bg-background/80 h-9 text-sm font-mono text-xs"
+                }
+              )
+            ] }),
+            /* @__PURE__ */ jsxs92("div", { className: "space-y-2", children: [
+              /* @__PURE__ */ jsxs92(Label, { className: "text-xs font-semibold flex items-center gap-1", children: [
+                /* @__PURE__ */ jsx135(Lock6, { className: "h-3.5 w-3.5 text-muted-foreground" }),
+                "Secret (Client Secret)"
+              ] }),
+              /* @__PURE__ */ jsxs92("div", { className: "relative", children: [
+                /* @__PURE__ */ jsx135(
+                  Input,
+                  {
+                    type: showSecret ? "text" : "password",
+                    placeholder: "GOCSPX--8WJDZo86RlPyLAwMI...",
+                    value: editFormData.clientSecret || "",
+                    onChange: (e) => handleEditFieldChange("clientSecret", e.target.value),
+                    className: "bg-background/80 h-9 text-sm font-mono text-xs pr-9"
+                  }
+                ),
+                /* @__PURE__ */ jsx135(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => setShowSecret(!showSecret),
+                    className: "absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer",
+                    children: showSecret ? /* @__PURE__ */ jsx135(EyeOff6, { className: "h-4 w-4" }) : /* @__PURE__ */ jsx135(Eye9, { className: "h-4 w-4" })
+                  }
+                )
+              ] })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs92("div", { className: "p-3 border rounded-lg bg-muted/10 space-y-3", children: [
+            /* @__PURE__ */ jsxs92("div", { className: "flex items-center justify-between", children: [
+              /* @__PURE__ */ jsxs92("p", { className: "text-xs font-semibold flex items-center gap-1 text-muted-foreground", children: [
+                /* @__PURE__ */ jsx135(User3, { className: "h-3.5 w-3.5" }),
+                "Credentials Provider / Service Auth (Optional)"
+              ] }),
+              /* @__PURE__ */ jsx135("span", { className: "text-[10px] text-muted-foreground", children: "For custom user/password auth" })
+            ] }),
+            /* @__PURE__ */ jsxs92("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+              /* @__PURE__ */ jsxs92("div", { className: "space-y-1.5", children: [
+                /* @__PURE__ */ jsx135(Label, { className: "text-[11px] font-semibold", children: "User Name" }),
+                /* @__PURE__ */ jsx135(
+                  Input,
+                  {
+                    placeholder: "admin or test@example.com",
+                    value: editFormData.username || "",
+                    onChange: (e) => handleEditFieldChange("username", e.target.value),
+                    className: "bg-background h-8 text-xs"
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxs92("div", { className: "space-y-1.5", children: [
+                /* @__PURE__ */ jsx135(Label, { className: "text-[11px] font-semibold", children: "Password" }),
+                /* @__PURE__ */ jsxs92("div", { className: "relative", children: [
+                  /* @__PURE__ */ jsx135(
+                    Input,
+                    {
+                      type: showPassword ? "text" : "password",
+                      placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
+                      value: editFormData.password || "",
+                      onChange: (e) => handleEditFieldChange("password", e.target.value),
+                      className: "bg-background h-8 text-xs pr-8"
+                    }
+                  ),
+                  /* @__PURE__ */ jsx135(
+                    "button",
+                    {
+                      type: "button",
+                      onClick: () => setShowPassword(!showPassword),
+                      className: "absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer",
+                      children: showPassword ? /* @__PURE__ */ jsx135(EyeOff6, { className: "h-3.5 w-3.5" }) : /* @__PURE__ */ jsx135(Eye9, { className: "h-3.5 w-3.5" })
+                    }
+                  )
+                ] })
+              ] })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxs92("div", { className: "flex items-center justify-between p-3 border rounded-lg bg-background", children: [
+            /* @__PURE__ */ jsxs92("div", { className: "space-y-0.5", children: [
+              /* @__PURE__ */ jsx135(Label, { className: "text-xs font-semibold", children: "Status (Active / Inactive)" }),
+              /* @__PURE__ */ jsx135("p", { className: "text-[11px] text-muted-foreground", children: "Enable to show this provider on login and sign-up pages." })
+            ] }),
+            /* @__PURE__ */ jsx135(
+              Switch,
+              {
+                checked: editFormData.isEnabled ?? true,
+                onCheckedChange: (checked) => handleEditFieldChange("isEnabled", checked)
+              }
+            )
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs92("div", { className: "flex justify-end gap-2 pt-4 border-t", children: [
+          /* @__PURE__ */ jsxs92(
+            Button,
+            {
+              variant: "outline",
+              onClick: closeEditModal,
+              className: "gap-1 cursor-pointer",
+              children: [
+                /* @__PURE__ */ jsx135(X14, { className: "h-4 w-4" }),
+                "Cancel"
+              ]
+            }
+          ),
+          /* @__PURE__ */ jsxs92(
+            Button,
+            {
+              onClick: saveEdit,
+              disabled: !editFormData.name?.trim(),
+              className: "gap-1 bg-sky-600 hover:bg-sky-700 text-white cursor-pointer",
+              children: [
+                /* @__PURE__ */ jsx135(Save7, { className: "h-4 w-4" }),
+                editingProviderId === "new" ? "Add Provider" : "Save Changes"
+              ]
+            }
+          )
+        ] })
+      ] })
+    ] }) })
+  ] });
+}
+
+// src/features/email-settings/components/themes-tab.tsx
+import { Palette as Palette5, Check as Check10 } from "lucide-react";
+import { jsx as jsx136, jsxs as jsxs93 } from "react/jsx-runtime";
+function ThemesTab() {
+  const { updateTheme } = useEmailSettingsStore();
+  const { colorTheme, setColorTheme } = useColorTheme();
+  const handleColorChange = (name) => {
+    setColorTheme(name);
+    updateTheme({ appColorTheme: name });
+  };
+  return /* @__PURE__ */ jsxs93(Card, { className: "border-muted bg-card/60 backdrop-blur-md", children: [
+    /* @__PURE__ */ jsxs93(CardHeader, { children: [
+      /* @__PURE__ */ jsxs93(CardTitle, { className: "text-xl flex items-center gap-2", children: [
+        /* @__PURE__ */ jsx136(Palette5, { className: "h-5 w-5 text-indigo-500" }),
+        "Themes & Design Settings"
+      ] }),
+      /* @__PURE__ */ jsx136(CardDescription, { children: "Customize the appearance and accent color of your email workspace and mobile preview mockup." })
+    ] }),
+    /* @__PURE__ */ jsx136(CardContent, { className: "space-y-6", children: /* @__PURE__ */ jsxs93("div", { className: "space-y-3", children: [
+      /* @__PURE__ */ jsx136(Label, { className: "font-semibold text-sm", children: "Accent Color Theme" }),
+      /* @__PURE__ */ jsx136("div", { className: "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 max-h-[380px] overflow-y-auto pr-1 no-scrollbar", children: colorThemes.map((ct) => {
+        const isActive = colorTheme === ct.name;
+        return /* @__PURE__ */ jsxs93(
+          "button",
+          {
+            onClick: () => handleColorChange(ct.name),
+            className: cn(
+              "flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-all duration-150 cursor-pointer",
+              isActive ? "border-indigo-500 bg-indigo-500/5 text-indigo-500 shadow-sm font-semibold" : "border-muted hover:border-indigo-500/50 hover:bg-muted/10"
+            ),
+            children: [
+              /* @__PURE__ */ jsx136("div", { className: "flex gap-0.5 shrink-0", children: ct.colors.slice(0, 4).map((color, i) => /* @__PURE__ */ jsx136(
+                "span",
+                {
+                  className: cn(
+                    "size-3.5 rounded-full ring-1 ring-background",
+                    isActive ? "ring-indigo-500/20" : "ring-border/40"
+                  ),
+                  style: { backgroundColor: color }
+                },
+                i
+              )) }),
+              /* @__PURE__ */ jsx136("span", { className: "text-xs truncate", children: ct.label }),
+              isActive && /* @__PURE__ */ jsx136(Check10, { className: "ml-auto size-4 text-indigo-500 shrink-0", strokeWidth: 3 })
+            ]
+          },
+          ct.name
+        );
+      }) })
+    ] }) })
+  ] });
+}
+
+// src/features/email-settings/components/phone-preview.tsx
+import { useState as useState26, useEffect as useEffect18 } from "react";
+import { Mail as Mail4, LogIn, UserPlus, ShieldCheck as ShieldCheck2 } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
+import { FaGithub, FaDiscord, FaApple, FaSlack, FaTwitter } from "react-icons/fa";
+import { jsx as jsx137, jsxs as jsxs94 } from "react/jsx-runtime";
+function PhonePreview({ compact = false, activeSettingsTab }) {
+  const { config } = useEmailSettingsStore();
+  const { profile, accounts, theme, authProviders = [] } = config;
+  const { resolvedTheme } = useTheme2();
+  const isAuthTab = activeSettingsTab === "auth";
+  const [viewMode, setViewMode] = useState26(
+    isAuthTab ? "login" : "profile"
+  );
+  useEffect18(() => {
+    if (activeSettingsTab === "auth") {
+      setViewMode("login");
+    } else if (activeSettingsTab === "profile" || activeSettingsTab === "links") {
+      setViewMode("profile");
+    }
+  }, [activeSettingsTab]);
+  let isDark = resolvedTheme === "dark";
+  if (theme.appTheme === "dark") isDark = true;
+  if (theme.appTheme === "light") isDark = false;
+  const colorThemeName = theme.appColorTheme || "zinc";
+  const colorThemeObj = colorThemes.find((t) => t.name === colorThemeName) || colorThemes[0];
+  const tokens = isDark ? colorThemeObj.tokens.dark : colorThemeObj.tokens.light;
+  const styleObj = {};
+  for (const [prop, value] of Object.entries(tokens)) {
+    ;
+    styleObj[prop] = value;
+  }
+  const activeProviders = authProviders.filter((p) => p.isEnabled);
+  const getInitials = (fullName) => {
+    return fullName.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase() || "?";
+  };
+  const enabledAccounts = accounts.filter((acc) => acc.isEnabled);
+  const shellWidth = compact ? "w-[270px]" : "w-[300px]";
+  const shellHeight = compact ? "h-[540px]" : "h-[600px]";
+  const renderProviderIcon = (provider) => {
+    if (provider.iconUrl) {
+      return /* @__PURE__ */ jsx137(
+        "img",
+        {
+          src: provider.iconUrl,
+          alt: provider.name,
+          className: "h-4 w-4 object-contain shrink-0 rounded-xs"
+        }
+      );
+    }
+    const lower = provider.name.toLowerCase();
+    if (lower.includes("google")) return /* @__PURE__ */ jsx137(FcGoogle, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("github")) return /* @__PURE__ */ jsx137(FaGithub, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("discord")) return /* @__PURE__ */ jsx137(FaDiscord, { className: "h-4 w-4 shrink-0 text-[#5865F2]" });
+    if (lower.includes("apple")) return /* @__PURE__ */ jsx137(FaApple, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("slack")) return /* @__PURE__ */ jsx137(FaSlack, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("twitter") || lower.includes("x"))
+      return /* @__PURE__ */ jsx137(FaTwitter, { className: "h-4 w-4 shrink-0 text-[#1DA1F2]" });
+    return /* @__PURE__ */ jsx137(ShieldCheck2, { className: "h-4 w-4 shrink-0 text-sky-500" });
+  };
+  return /* @__PURE__ */ jsxs94("div", { className: `flex flex-col items-center w-full shrink-0 ${compact ? "py-1" : "py-2"}`, children: [
+    isAuthTab && /* @__PURE__ */ jsxs94("div", { className: "flex items-center p-1 mb-2.5 bg-muted/60 backdrop-blur-md rounded-xl border border-border/70 text-xs gap-1 shadow-xs", children: [
+      /* @__PURE__ */ jsx137(
+        "button",
+        {
+          type: "button",
+          onClick: () => setViewMode("login"),
+          className: cn(
+            "px-4 py-1 rounded-lg font-medium transition-all text-xs cursor-pointer",
+            viewMode === "login" ? "bg-background text-foreground shadow-xs font-semibold" : "text-muted-foreground hover:text-foreground"
+          ),
+          children: "Sign In"
+        }
+      ),
+      /* @__PURE__ */ jsx137(
+        "button",
+        {
+          type: "button",
+          onClick: () => setViewMode("signup"),
+          className: cn(
+            "px-4 py-1 rounded-lg font-medium transition-all text-xs cursor-pointer",
+            viewMode === "signup" ? "bg-background text-foreground shadow-xs font-semibold" : "text-muted-foreground hover:text-foreground"
+          ),
+          children: "Sign Up"
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxs94(
+      "div",
+      {
+        className: `relative ${shellWidth} ${shellHeight} rounded-[40px] border-[8px] border-slate-900 bg-black shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col shrink-0 ring-1 ring-slate-800`,
+        children: [
+          /* @__PURE__ */ jsxs94("div", { className: "absolute top-3 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-900 rounded-full z-30 flex items-center justify-center pointer-events-none", children: [
+            /* @__PURE__ */ jsx137("div", { className: "w-2.5 h-2.5 rounded-full bg-slate-800/80 mr-8" }),
+            /* @__PURE__ */ jsx137("div", { className: "w-1.5 h-1.5 rounded-full bg-slate-800/80" })
+          ] }),
+          /* @__PURE__ */ jsxs94(
+            "div",
+            {
+              style: styleObj,
+              className: cn(
+                "flex-grow w-full h-full overflow-y-auto no-scrollbar flex flex-col p-4 pt-12 pb-5 select-none relative bg-background text-foreground transition-colors duration-300",
+                isDark ? "dark" : ""
+              ),
+              children: [
+                viewMode === "login" && /* @__PURE__ */ jsxs94("div", { className: "w-full flex flex-col justify-center space-y-3 py-1", children: [
+                  /* @__PURE__ */ jsxs94("div", { className: "space-y-1 text-center", children: [
+                    /* @__PURE__ */ jsx137("h3", { className: "text-base font-bold tracking-tight text-foreground", children: "Sign in" }),
+                    /* @__PURE__ */ jsx137("p", { className: "text-[11px] text-muted-foreground", children: "Enter your credentials below to log into your account." })
+                  ] }),
+                  /* @__PURE__ */ jsxs94("div", { className: "space-y-2.5 text-left pt-1", children: [
+                    /* @__PURE__ */ jsxs94("div", { className: "space-y-1", children: [
+                      /* @__PURE__ */ jsx137(Label, { className: "text-[11px] font-semibold", children: "Email" }),
+                      /* @__PURE__ */ jsx137(
+                        Input,
+                        {
+                          placeholder: "name@example.com",
+                          defaultValue: "user@gmail.com",
+                          className: "h-8 text-xs bg-background/80"
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxs94("div", { className: "space-y-1", children: [
+                      /* @__PURE__ */ jsxs94("div", { className: "flex items-center justify-between", children: [
+                        /* @__PURE__ */ jsx137(Label, { className: "text-[11px] font-semibold", children: "Password" }),
+                        /* @__PURE__ */ jsx137("span", { className: "text-[10px] text-muted-foreground hover:underline cursor-pointer", children: "Forgot password?" })
+                      ] }),
+                      /* @__PURE__ */ jsx137(
+                        PasswordInput,
+                        {
+                          placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
+                          defaultValue: "secret123",
+                          className: "h-8 text-xs bg-background/80"
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxs94(Button, { className: "w-full h-8 text-xs font-semibold gap-1.5 mt-1 cursor-pointer", children: [
+                      /* @__PURE__ */ jsx137(LogIn, { className: "h-3.5 w-3.5" }),
+                      "Sign in"
+                    ] }),
+                    /* @__PURE__ */ jsxs94("div", { className: "relative my-2", children: [
+                      /* @__PURE__ */ jsx137("div", { className: "absolute inset-0 flex items-center", children: /* @__PURE__ */ jsx137("span", { className: "w-full border-t border-border" }) }),
+                      /* @__PURE__ */ jsx137("div", { className: "relative flex justify-center text-[10px] uppercase", children: /* @__PURE__ */ jsx137("span", { className: "bg-background px-2 text-muted-foreground font-medium", children: "Or continue with" }) })
+                    ] }),
+                    /* @__PURE__ */ jsx137("div", { className: "space-y-1.5", children: activeProviders.length > 0 ? activeProviders.map((provider) => /* @__PURE__ */ jsxs94(
+                      Button,
+                      {
+                        variant: "outline",
+                        type: "button",
+                        className: "w-full h-8 text-xs justify-center gap-2 border-border/80 shadow-none hover:bg-muted/40 font-medium cursor-pointer",
+                        children: [
+                          renderProviderIcon(provider),
+                          /* @__PURE__ */ jsxs94("span", { className: "truncate", children: [
+                            "Continue with ",
+                            provider.name
+                          ] })
+                        ]
+                      },
+                      provider.id
+                    )) : /* @__PURE__ */ jsxs94(
+                      Button,
+                      {
+                        variant: "outline",
+                        type: "button",
+                        className: "w-full h-8 text-xs justify-center gap-2 border-border/80 shadow-none hover:bg-muted/40 font-medium cursor-pointer",
+                        children: [
+                          /* @__PURE__ */ jsx137(FcGoogle, { className: "h-4 w-4 shrink-0" }),
+                          /* @__PURE__ */ jsx137("span", { children: "Continue with Google" })
+                        ]
+                      }
+                    ) }),
+                    /* @__PURE__ */ jsxs94("p", { className: "text-center text-[11px] text-muted-foreground pt-2", children: [
+                      "Don't have an account?",
+                      " ",
+                      /* @__PURE__ */ jsx137(
+                        "button",
+                        {
+                          type: "button",
+                          onClick: () => setViewMode("signup"),
+                          className: "font-semibold text-foreground underline hover:text-primary cursor-pointer",
+                          children: "Sign Up"
+                        }
+                      )
+                    ] })
+                  ] })
+                ] }),
+                viewMode === "signup" && /* @__PURE__ */ jsxs94("div", { className: "w-full flex flex-col justify-center space-y-2.5 py-1", children: [
+                  /* @__PURE__ */ jsxs94("div", { className: "space-y-0.5 text-center", children: [
+                    /* @__PURE__ */ jsx137("h3", { className: "text-base font-bold tracking-tight text-foreground", children: "Create an account" }),
+                    /* @__PURE__ */ jsx137("p", { className: "text-[11px] text-muted-foreground", children: "Enter your email below to create your account" })
+                  ] }),
+                  /* @__PURE__ */ jsxs94("div", { className: "space-y-2 text-left pt-1", children: [
+                    /* @__PURE__ */ jsxs94("div", { className: "space-y-1", children: [
+                      /* @__PURE__ */ jsx137(Label, { className: "text-[11px] font-semibold", children: "Email" }),
+                      /* @__PURE__ */ jsx137(
+                        Input,
+                        {
+                          placeholder: "name@example.com",
+                          defaultValue: "user@gmail.com",
+                          className: "h-7.5 text-xs bg-background/80"
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxs94("div", { className: "space-y-1", children: [
+                      /* @__PURE__ */ jsx137(Label, { className: "text-[11px] font-semibold", children: "Password" }),
+                      /* @__PURE__ */ jsx137(
+                        PasswordInput,
+                        {
+                          placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
+                          defaultValue: "secret123",
+                          className: "h-7.5 text-xs bg-background/80"
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxs94("div", { className: "space-y-1", children: [
+                      /* @__PURE__ */ jsx137(Label, { className: "text-[11px] font-semibold", children: "Confirm Password" }),
+                      /* @__PURE__ */ jsx137(
+                        PasswordInput,
+                        {
+                          placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
+                          defaultValue: "secret123",
+                          className: "h-7.5 text-xs bg-background/80"
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsxs94(Button, { className: "w-full h-8 text-xs font-semibold gap-1.5 mt-1 cursor-pointer", children: [
+                      /* @__PURE__ */ jsx137(UserPlus, { className: "h-3.5 w-3.5" }),
+                      "Create Account"
+                    ] }),
+                    /* @__PURE__ */ jsxs94("div", { className: "relative my-2", children: [
+                      /* @__PURE__ */ jsx137("div", { className: "absolute inset-0 flex items-center", children: /* @__PURE__ */ jsx137("span", { className: "w-full border-t border-border" }) }),
+                      /* @__PURE__ */ jsx137("div", { className: "relative flex justify-center text-[10px] uppercase", children: /* @__PURE__ */ jsx137("span", { className: "bg-background px-2 text-muted-foreground font-medium", children: "Or continue with" }) })
+                    ] }),
+                    /* @__PURE__ */ jsx137("div", { className: "space-y-1.5", children: activeProviders.length > 0 ? activeProviders.map((provider) => /* @__PURE__ */ jsxs94(
+                      Button,
+                      {
+                        variant: "outline",
+                        type: "button",
+                        className: "w-full h-8 text-xs justify-center gap-2 border-border/80 shadow-none hover:bg-muted/40 font-medium cursor-pointer",
+                        children: [
+                          renderProviderIcon(provider),
+                          /* @__PURE__ */ jsxs94("span", { className: "truncate", children: [
+                            "Continue with ",
+                            provider.name
+                          ] })
+                        ]
+                      },
+                      provider.id
+                    )) : /* @__PURE__ */ jsxs94(
+                      Button,
+                      {
+                        variant: "outline",
+                        type: "button",
+                        className: "w-full h-8 text-xs justify-center gap-2 border-border/80 shadow-none hover:bg-muted/40 font-medium cursor-pointer",
+                        children: [
+                          /* @__PURE__ */ jsx137(FcGoogle, { className: "h-4 w-4 shrink-0" }),
+                          /* @__PURE__ */ jsx137("span", { children: "Continue with Google" })
+                        ]
+                      }
+                    ) }),
+                    /* @__PURE__ */ jsxs94("p", { className: "text-center text-[11px] text-muted-foreground pt-1", children: [
+                      "Already have an account?",
+                      " ",
+                      /* @__PURE__ */ jsx137(
+                        "button",
+                        {
+                          type: "button",
+                          onClick: () => setViewMode("login"),
+                          className: "font-semibold text-foreground underline hover:text-primary cursor-pointer",
+                          children: "Sign In"
+                        }
+                      )
+                    ] }),
+                    /* @__PURE__ */ jsx137("p", { className: "text-[10px] text-center text-muted-foreground leading-tight pt-1", children: "By clicking continue, you agree to our Terms of Service." })
+                  ] })
+                ] }),
+                viewMode === "profile" && /* @__PURE__ */ jsxs94("div", { className: "w-full flex flex-col items-center pt-3", children: [
+                  /* @__PURE__ */ jsx137("div", { className: "w-18 h-18 rounded-full border-2 border-white/20 shadow-md overflow-hidden shrink-0 flex items-center justify-center bg-gradient-to-tr from-indigo-500 to-fuchsia-500 text-white font-black text-xl mb-3", children: profile.avatarUrl ? /* @__PURE__ */ jsx137(
+                    "img",
+                    {
+                      src: profile.avatarUrl,
+                      alt: profile.name,
+                      className: "w-full h-full object-cover",
+                      onError: (e) => {
+                        ;
+                        e.target.style.display = "none";
+                      }
+                    }
+                  ) : /* @__PURE__ */ jsx137("span", { children: getInitials(profile.name) }) }),
+                  /* @__PURE__ */ jsx137("h3", { className: "text-base font-bold text-center w-full mb-1 shrink-0 truncate text-foreground", children: profile.name || "Your Name" }),
+                  /* @__PURE__ */ jsx137("p", { className: "text-xs text-center w-full max-h-16 overflow-y-auto no-scrollbar shrink-0 mb-6 leading-relaxed px-1 text-muted-foreground", children: profile.bio || "Add a bio to tell users who you are." }),
+                  /* @__PURE__ */ jsx137("div", { className: "w-full flex-grow flex flex-col gap-3 mb-4 overflow-y-auto no-scrollbar", children: enabledAccounts.length === 0 ? /* @__PURE__ */ jsx137("div", { className: "flex-grow flex flex-col items-center justify-center text-center p-4 border border-dashed border-border rounded-xl bg-card text-xs text-muted-foreground", children: "No active email accounts" }) : enabledAccounts.map((account) => {
+                    return /* @__PURE__ */ jsxs94(
+                      "div",
+                      {
+                        className: "w-full py-3 px-4 flex items-center justify-center relative text-xs font-bold text-center select-none bg-primary text-primary-foreground shadow-sm rounded-xl",
+                        children: [
+                          /* @__PURE__ */ jsx137(Mail4, { className: "h-4 w-4 absolute left-4 shrink-0" }),
+                          /* @__PURE__ */ jsx137("span", { className: "truncate max-w-[80%]", children: account.email })
+                        ]
+                      },
+                      account.id
+                    );
+                  }) })
+                ] })
+              ]
+            }
+          )
+        ]
+      }
+    ),
+    !compact && /* @__PURE__ */ jsx137("p", { className: "text-[10px] text-muted-foreground mt-3 text-center max-w-[240px]", children: "Interactive Live Simulation frame. Real-time changes from Auth & Profile tabs reflect dynamically." })
+  ] });
+}
+
+// src/components/layout/app-header.tsx
+import { useEffect as useEffect19 } from "react";
+import { Bell as Bell7 } from "lucide-react";
+import { useRouter as useRouter4 } from "next/navigation";
+import { Fragment as Fragment16, jsx as jsx138, jsxs as jsxs95 } from "react/jsx-runtime";
+function AppHeader2({
+  title,
+  fixed = true,
+  iconsPosition = "right",
+  children
+}) {
+  const router = useRouter4();
+  const currentUser = useAuthStore((state) => state.auth.user);
+  const { unreadCount, fetchNotifications, subscribeToNotifications, unsubscribe } = useNotificationStore();
+  useEffect19(() => {
+    if (currentUser) {
+      fetchNotifications(currentUser.accountNo);
+      subscribeToNotifications(currentUser.accountNo);
+    }
+    return () => {
+      unsubscribe();
+    };
+  }, [currentUser, fetchNotifications, subscribeToNotifications, unsubscribe]);
+  return /* @__PURE__ */ jsx138(Header, { fixed, className: "border-b bg-background", children: /* @__PURE__ */ jsx138("div", { className: "flex flex-1 items-center justify-between w-full", children: iconsPosition === "left" ? /* @__PURE__ */ jsxs95("div", { className: "flex items-center gap-2 sm:gap-3 min-w-0", children: [
+    /* @__PURE__ */ jsx138("h1", { className: "min-w-0 truncate text-base font-semibold sm:text-lg", children: title }),
+    /* @__PURE__ */ jsxs95("div", { className: "flex items-center gap-1 sm:gap-2 shrink-0 ml-1", children: [
+      /* @__PURE__ */ jsx138(Search7, { iconOnly: true }),
+      children,
+      /* @__PURE__ */ jsxs95(
+        Button,
+        {
+          variant: "ghost",
+          size: "icon",
+          className: "relative size-8 shrink-0",
+          "aria-label": "Notifications",
+          onClick: () => router.push("/notification"),
+          children: [
+            /* @__PURE__ */ jsx138(Bell7, { className: "size-5" }),
+            unreadCount > 0 && /* @__PURE__ */ jsx138("span", { className: "absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white shadow-xs", children: unreadCount > 5 ? "5+" : unreadCount })
+          ]
+        }
+      )
+    ] })
+  ] }) : /* @__PURE__ */ jsxs95(Fragment16, { children: [
+    /* @__PURE__ */ jsx138("h1", { className: "min-w-0 truncate text-base font-semibold sm:text-lg", children: title }),
+    /* @__PURE__ */ jsxs95("div", { className: "ml-auto flex items-center gap-2 sm:gap-3", children: [
+      /* @__PURE__ */ jsx138(Search7, { iconOnly: true }),
+      children,
+      /* @__PURE__ */ jsxs95(
+        Button,
+        {
+          variant: "ghost",
+          size: "icon",
+          className: "relative size-8 shrink-0",
+          "aria-label": "Notifications",
+          onClick: () => router.push("/notification"),
+          children: [
+            /* @__PURE__ */ jsx138(Bell7, { className: "size-5" }),
+            unreadCount > 0 && /* @__PURE__ */ jsx138("span", { className: "absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-medium text-white shadow-xs", children: unreadCount > 5 ? "5+" : unreadCount })
+          ]
+        }
+      )
+    ] })
+  ] }) }) });
+}
+
+// src/features/email-settings/index.tsx
+import { Smartphone } from "lucide-react";
+import { jsx as jsx139, jsxs as jsxs96 } from "react/jsx-runtime";
+function EmailSettingsFeature() {
+  const [previewOpen, setPreviewOpen] = useState27(false);
+  const [activeTab, setActiveTab] = useState27("profile");
+  return /* @__PURE__ */ jsxs96("div", { className: "flex h-full flex-col w-full overflow-hidden bg-background text-foreground", children: [
+    /* @__PURE__ */ jsx139(AppHeader2, { title: "App Settings" }),
+    /* @__PURE__ */ jsx139(Main, { fixed: true, className: "flex flex-grow flex-1 min-h-0 overflow-hidden p-3 sm:p-4 md:p-6", children: /* @__PURE__ */ jsxs96("div", { className: "grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 w-full h-full overflow-hidden", children: [
+      /* @__PURE__ */ jsx139("div", { className: "lg:col-span-7 flex flex-col h-full min-h-0 overflow-hidden", children: /* @__PURE__ */ jsxs96(Tabs, { value: activeTab, onValueChange: setActiveTab, className: "flex flex-col h-full min-h-0 overflow-hidden", children: [
+        /* @__PURE__ */ jsx139("div", { className: "w-full overflow-x-auto pb-2 mb-2 lg:mb-4 shrink-0 no-scrollbar", children: /* @__PURE__ */ jsxs96(TabsList, { className: "h-auto gap-4 sm:gap-6 border-b border-border bg-transparent p-0 shadow-none justify-start flex w-max min-w-full rounded-none", children: [
+          /* @__PURE__ */ jsx139(
+            TabsTrigger,
+            {
+              value: "profile",
+              className: "h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap",
+              children: "Profile"
+            }
+          ),
+          /* @__PURE__ */ jsx139(
+            TabsTrigger,
+            {
+              value: "files",
+              className: "h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap",
+              children: "Files"
+            }
+          ),
+          /* @__PURE__ */ jsx139(
+            TabsTrigger,
+            {
+              value: "chat",
+              className: "h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap",
+              children: "Chat"
+            }
+          ),
+          /* @__PURE__ */ jsx139(
+            TabsTrigger,
+            {
+              value: "ai",
+              className: "h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap",
+              children: "AI API"
+            }
+          ),
+          /* @__PURE__ */ jsx139(
+            TabsTrigger,
+            {
+              value: "links",
+              className: "h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap",
+              children: "Email"
+            }
+          ),
+          /* @__PURE__ */ jsx139(
+            TabsTrigger,
+            {
+              value: "email-files",
+              className: "h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap",
+              children: "Email Files"
+            }
+          ),
+          /* @__PURE__ */ jsx139(
+            TabsTrigger,
+            {
+              value: "auth",
+              className: "h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap",
+              children: "Auth"
+            }
+          ),
+          /* @__PURE__ */ jsx139(
+            TabsTrigger,
+            {
+              value: "theme",
+              className: "h-auto rounded-none border-0 border-b-2 border-transparent bg-transparent px-0 pt-0 pb-2 shadow-none hover:bg-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:shadow-none dark:data-[state=active]:border-x-transparent dark:data-[state=active]:border-t-transparent dark:data-[state=active]:border-b-primary dark:data-[state=active]:bg-transparent dark:data-[state=active]:shadow-none text-xs whitespace-nowrap",
+              children: "Theme"
+            }
+          )
+        ] }) }),
+        /* @__PURE__ */ jsxs96("div", { className: "flex-1 overflow-y-auto no-scrollbar pr-0 sm:pr-1 pb-20 lg:pb-6 space-y-4", children: [
+          /* @__PURE__ */ jsx139(TabsContent, { value: "profile", className: "mt-0 focus-visible:outline-none", children: /* @__PURE__ */ jsx139(ProfileTab, {}) }),
+          /* @__PURE__ */ jsx139(TabsContent, { value: "files", className: "mt-0 focus-visible:outline-none", children: /* @__PURE__ */ jsx139(FilesTab, {}) }),
+          /* @__PURE__ */ jsx139(TabsContent, { value: "chat", className: "mt-0 focus-visible:outline-none", children: /* @__PURE__ */ jsx139(ChatTab, {}) }),
+          /* @__PURE__ */ jsx139(TabsContent, { value: "ai", className: "mt-0 focus-visible:outline-none", children: /* @__PURE__ */ jsx139(AiTab, {}) }),
+          /* @__PURE__ */ jsx139(TabsContent, { value: "links", className: "mt-0 focus-visible:outline-none", children: /* @__PURE__ */ jsx139(LinksTab, {}) }),
+          /* @__PURE__ */ jsx139(TabsContent, { value: "email-files", className: "mt-0 focus-visible:outline-none", children: /* @__PURE__ */ jsx139(EmailFilesTab, {}) }),
+          /* @__PURE__ */ jsx139(TabsContent, { value: "auth", className: "mt-0 focus-visible:outline-none", children: /* @__PURE__ */ jsx139(AuthTab, {}) }),
+          /* @__PURE__ */ jsx139(TabsContent, { value: "theme", className: "mt-0 focus-visible:outline-none", children: /* @__PURE__ */ jsx139(ThemesTab, {}) })
+        ] })
+      ] }) }),
+      /* @__PURE__ */ jsx139("div", { className: "hidden lg:flex lg:col-span-5 min-h-0 overflow-y-auto overflow-x-hidden bg-muted/10 border rounded-2xl flex-col items-center px-4 py-6 shadow-inner", children: /* @__PURE__ */ jsx139(PhonePreview, { activeSettingsTab: activeTab }) })
+    ] }) }),
+    /* @__PURE__ */ jsx139("div", { className: "fixed bottom-4 right-4 z-40 lg:hidden", children: /* @__PURE__ */ jsxs96(
+      Button,
+      {
+        onClick: () => setPreviewOpen(true),
+        className: "h-12 px-5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg gap-2 cursor-pointer",
+        children: [
+          /* @__PURE__ */ jsx139(Smartphone, { className: "h-4 w-4" }),
+          "Preview"
+        ]
+      }
+    ) }),
+    /* @__PURE__ */ jsx139(Sheet, { open: previewOpen, onOpenChange: setPreviewOpen, children: /* @__PURE__ */ jsxs96(SheetContent, { side: "bottom", className: "h-[90vh] rounded-t-2xl px-4 pt-6 pb-8 overflow-y-auto", children: [
+      /* @__PURE__ */ jsxs96(SheetHeader, { className: "mb-2", children: [
+        /* @__PURE__ */ jsx139(SheetTitle, { children: "Live Preview" }),
+        /* @__PURE__ */ jsx139(SheetDescription, { children: "See how your authentication & email configurations look on a mobile mockup preview." })
+      ] }),
+      /* @__PURE__ */ jsx139("div", { className: "flex items-start justify-center h-full overflow-y-auto pt-2 pb-4", children: /* @__PURE__ */ jsx139(PhonePreview, { compact: true, activeSettingsTab: activeTab }) })
+    ] }) })
+  ] });
+}
+
+// src/features/auth/sign-in/components/user-auth-form.tsx
+import { signIn } from "next-auth/react";
+import { useState as useState28, useEffect as useEffect20 } from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link8 from "next/link";
+import { useRouter as useRouter5 } from "next/navigation";
+import { Loader2 as Loader23, LogIn as LogIn2, ShieldCheck as ShieldCheck3 } from "lucide-react";
+import { toast as toast2 } from "sonner";
+import { FcGoogle as FcGoogle2 } from "react-icons/fc";
+import { FaGithub as FaGithub2, FaDiscord as FaDiscord2, FaApple as FaApple2, FaSlack as FaSlack2, FaTwitter as FaTwitter2 } from "react-icons/fa";
+
+// src/services/auth-redirect.service.ts
+function handleAuthRedirect(router, redirectTo) {
+  console.log("[DEBUG client] handleAuthRedirect received raw redirectTo:", redirectTo);
+  let targetPath = "/";
+  if (redirectTo) {
+    try {
+      targetPath = decodeURIComponent(redirectTo);
+    } catch {
+      targetPath = redirectTo;
+    }
+  }
+  try {
+    if (targetPath.startsWith("http://") || targetPath.startsWith("https://")) {
+      const url = new URL(targetPath);
+      targetPath = `${url.pathname}${url.search}${url.hash}` || "/";
+    }
+  } catch {
+  }
+  if (targetPath === "/sign-in" || targetPath === "/sign-up" || !targetPath || targetPath === "") {
+    targetPath = "/";
+  }
+  if (!targetPath.startsWith("/")) {
+    targetPath = `/${targetPath}`;
+  }
+  console.log("[DEBUG client] handleAuthRedirect executing navigation to targetPath:", targetPath);
+  if (router && typeof router.replace === "function") {
+    router.replace(targetPath);
+  }
+  if (typeof window !== "undefined") {
+    setTimeout(() => {
+      if (window.location.pathname.startsWith("/sign-in") || window.location.pathname.startsWith("/sign-up")) {
+        console.log("[DEBUG client] Executing hard redirect to dashboard:", targetPath);
+        window.location.href = targetPath;
+      }
+    }, 100);
+  }
+}
+
+// src/features/auth/sign-in/components/user-auth-form.tsx
+import { jsx as jsx140, jsxs as jsxs97 } from "react/jsx-runtime";
+var formSchema = z.object({
+  email: z.email({
+    error: (iss) => iss.input === "" ? "Please enter your email." : void 0
+  }),
+  password: z.string().min(1, "Please enter your password.").min(7, "Password must be at least 7 characters long.")
+});
+function UserAuthForm({
+  className,
+  redirectTo,
+  ...props
+}) {
+  const [isLoading, setIsLoading] = useState28(false);
+  const [activeLoadingProvider, setActiveLoadingProvider] = useState28(null);
+  const router = useRouter5();
+  const { auth } = useAuthStore();
+  const [mounted, setMounted] = useState28(false);
+  const { config } = useEmailSettingsStore();
+  useEffect20(() => {
+    setMounted(true);
+  }, []);
+  const authProviders = config?.authProviders || [];
+  const activeProviders = mounted ? authProviders.filter((p) => p.isEnabled) : [];
+  useEffect20(() => {
+    if (typeof window !== "undefined" && redirectTo && redirectTo !== "/") {
+      sessionStorage.setItem("post_login_redirect", redirectTo);
+    }
+  }, [redirectTo]);
+  const renderProviderIcon = (provider) => {
+    if (provider.iconUrl) {
+      return /* @__PURE__ */ jsx140(
+        "img",
+        {
+          src: provider.iconUrl,
+          alt: provider.name,
+          className: "h-4 w-4 object-contain shrink-0 rounded-xs"
+        }
+      );
+    }
+    const lower = provider.name.toLowerCase();
+    if (lower.includes("google")) return /* @__PURE__ */ jsx140(FcGoogle2, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("github")) return /* @__PURE__ */ jsx140(FaGithub2, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("discord")) return /* @__PURE__ */ jsx140(FaDiscord2, { className: "h-4 w-4 shrink-0 text-[#5865F2]" });
+    if (lower.includes("apple")) return /* @__PURE__ */ jsx140(FaApple2, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("slack")) return /* @__PURE__ */ jsx140(FaSlack2, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("twitter") || lower.includes("x"))
+      return /* @__PURE__ */ jsx140(FaTwitter2, { className: "h-4 w-4 shrink-0 text-[#1DA1F2]" });
+    return /* @__PURE__ */ jsx140(ShieldCheck3, { className: "h-4 w-4 shrink-0 text-sky-500" });
+  };
+  const handleProviderLogin = async (provider) => {
+    const providerPreset = "preset" in provider && provider.preset ? provider.preset : provider.name.toLowerCase();
+    const oauthProvider = providerPreset.includes("github") ? "github" : providerPreset.includes("discord") ? "discord" : providerPreset.includes("apple") ? "apple" : providerPreset.includes("slack") ? "slack" : providerPreset.includes("twitter") ? "twitter" : providerPreset.includes("google") ? "google" : providerPreset;
+    setActiveLoadingProvider(provider.name);
+    try {
+      const redirectValue = redirectTo || "/";
+      const targetUrl = redirectValue && redirectValue !== "/" ? redirectValue : "/";
+      if (oauthProvider === "github") {
+        const authProviderObj = provider;
+        const clientId = authProviderObj.clientId;
+        const clientSecret = authProviderObj.clientSecret;
+        if (clientId) {
+          if (typeof window !== "undefined" && clientSecret) {
+            document.cookie = `auth_custom_github=${encodeURIComponent(
+              JSON.stringify({ clientId, clientSecret })
+            )}; path=/; max-age=600; SameSite=Lax`;
+          }
+          const redirectUri = `${window.location.origin}/api/auth/callback/github`;
+          const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(
+            clientId
+          )}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user,user:email&state=${encodeURIComponent(
+            targetUrl
+          )}`;
+          window.location.href = githubAuthUrl;
+          return;
+        }
+      }
+      if (oauthProvider === "google") {
+        await signIn("google", {
+          callbackUrl: targetUrl
+        });
+      } else {
+        await signIn(oauthProvider, { callbackUrl: targetUrl });
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : `${provider.name} sign in failed. Please try again.`;
+      console.error(`[DEBUG client] handleProviderLogin failed for ${provider.name}:`, err);
+      toast2.error(message);
+    } finally {
+      setActiveLoadingProvider(null);
+    }
+  };
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: ""
+    }
+  });
+  async function onSubmit(data2) {
+    setIsLoading(true);
+    try {
+      const supabase = createClient2();
+      const { data: profileList } = await supabase.from("profiles").select("id").eq("email", data2.email);
+      const emailExists = profileList && profileList.length > 0;
+      if (!emailExists) {
+        toast2.error("Account not found in our records. Redirecting to Sign Up...");
+        await sleep(1500);
+        router.push(`/sign-up?email=${encodeURIComponent(data2.email)}`);
+        return;
+      }
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data2.email,
+        password: data2.password
+      });
+      if (error) {
+        throw error;
+      }
+      const user = authData.user;
+      if (!user) throw new Error("No user returned from sign in.");
+      auth.setUser({
+        id: user.id,
+        accountNo: user.id,
+        email: user.email,
+        name: user.user_metadata?.name || user.user_metadata?.full_name || user.email.split("@")[0],
+        picture: user.user_metadata?.avatar_url || void 0,
+        role: ["user"],
+        exp: Date.now() + 24 * 60 * 60 * 1e3
+      });
+      auth.setAccessToken(authData.session?.access_token || "mock-access-token");
+      const storedRedirect = typeof window !== "undefined" ? sessionStorage.getItem("post_login_redirect") : null;
+      const destination = redirectTo || storedRedirect || void 0;
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("post_login_redirect");
+      }
+      handleAuthRedirect(router, destination);
+      toast2.success(`Welcome back, ${user.email}!`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Sign in failed. Please check your credentials.";
+      toast2.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  return /* @__PURE__ */ jsx140(Form, { ...form, children: /* @__PURE__ */ jsxs97(
+    "form",
+    {
+      onSubmit: form.handleSubmit(onSubmit),
+      className: cn("grid gap-3", className),
+      ...props,
+      children: [
+        /* @__PURE__ */ jsx140(
+          FormField,
+          {
+            control: form.control,
+            name: "email",
+            render: ({ field }) => /* @__PURE__ */ jsxs97(FormItem, { children: [
+              /* @__PURE__ */ jsx140(FormLabel, { children: "Email" }),
+              /* @__PURE__ */ jsx140(FormControl, { children: /* @__PURE__ */ jsx140(Input, { placeholder: "name@example.com", ...field }) }),
+              /* @__PURE__ */ jsx140(FormMessage, {})
+            ] })
+          }
+        ),
+        /* @__PURE__ */ jsx140(
+          FormField,
+          {
+            control: form.control,
+            name: "password",
+            render: ({ field }) => /* @__PURE__ */ jsxs97(FormItem, { className: "relative", children: [
+              /* @__PURE__ */ jsx140(FormLabel, { children: "Password" }),
+              /* @__PURE__ */ jsx140(FormControl, { children: /* @__PURE__ */ jsx140(PasswordInput, { placeholder: "********", ...field }) }),
+              /* @__PURE__ */ jsx140(FormMessage, {}),
+              /* @__PURE__ */ jsx140(
+                Link8,
+                {
+                  href: "/forgot-password",
+                  className: "absolute inset-e-0 -top-0.5 text-sm font-medium text-muted-foreground hover:opacity-75",
+                  children: "Forgot password?"
+                }
+              )
+            ] })
+          }
+        ),
+        /* @__PURE__ */ jsxs97(Button, { className: "mt-2", disabled: isLoading || activeLoadingProvider !== null, children: [
+          isLoading ? /* @__PURE__ */ jsx140(Loader23, { className: "animate-spin" }) : /* @__PURE__ */ jsx140(LogIn2, {}),
+          "Sign in"
+        ] }),
+        /* @__PURE__ */ jsxs97("div", { className: "relative my-2", children: [
+          /* @__PURE__ */ jsx140("div", { className: "absolute inset-0 flex items-center", children: /* @__PURE__ */ jsx140("span", { className: "w-full border-t" }) }),
+          /* @__PURE__ */ jsx140("div", { className: "relative flex justify-center text-xs uppercase", children: /* @__PURE__ */ jsx140("span", { className: "bg-background px-2 text-muted-foreground", children: "Or continue with" }) })
+        ] }),
+        /* @__PURE__ */ jsx140("div", { className: "space-y-2", children: activeProviders.length > 0 ? activeProviders.map((provider) => /* @__PURE__ */ jsxs97(
+          Button,
+          {
+            variant: "outline",
+            type: "button",
+            className: "w-full",
+            disabled: isLoading || activeLoadingProvider !== null,
+            onClick: () => handleProviderLogin(provider),
+            children: [
+              activeLoadingProvider === provider.name ? /* @__PURE__ */ jsx140(Loader23, { className: "h-4 w-4 animate-spin" }) : renderProviderIcon(provider),
+              "Continue with ",
+              provider.name
+            ]
+          },
+          provider.id
+        )) : /* @__PURE__ */ jsxs97(
+          Button,
+          {
+            variant: "outline",
+            type: "button",
+            className: "w-full",
+            disabled: isLoading || activeLoadingProvider !== null,
+            onClick: () => handleProviderLogin({ name: "Google", preset: "google" }),
+            children: [
+              activeLoadingProvider === "Google" ? /* @__PURE__ */ jsx140(Loader23, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx140(FcGoogle2, { className: "h-4 w-4" }),
+              "Continue with Google"
+            ]
+          }
+        ) })
+      ]
+    }
+  ) });
+}
+
+// src/features/auth/sign-up/components/sign-up-form.tsx
+import { signIn as signIn2 } from "next-auth/react";
+import { useEffect as useEffect21, useState as useState29 } from "react";
+import { z as z2 } from "zod";
+import { useForm as useForm2 } from "react-hook-form";
+import { zodResolver as zodResolver2 } from "@hookform/resolvers/zod";
+import { Loader2 as Loader24, UserPlus as UserPlus2, ShieldCheck as ShieldCheck4 } from "lucide-react";
+import { toast as toast3 } from "sonner";
+import { FcGoogle as FcGoogle3 } from "react-icons/fc";
+import { FaGithub as FaGithub3, FaDiscord as FaDiscord3, FaApple as FaApple3, FaSlack as FaSlack3, FaTwitter as FaTwitter3 } from "react-icons/fa";
+import { useRouter as useRouter6, useSearchParams } from "next/navigation";
+import { jsx as jsx141, jsxs as jsxs98 } from "react/jsx-runtime";
+var formSchema2 = z2.object({
+  email: z2.string().email("Please enter a valid email."),
+  password: z2.string().min(1, "Please enter your password.").min(7, "Password must be at least 7 characters long."),
+  confirmPassword: z2.string().min(1, "Please confirm your password.")
+}).refine((data2) => data2.password === data2.confirmPassword, {
+  message: "Passwords don't match.",
+  path: ["confirmPassword"]
+});
+function SignUpForm({
+  className,
+  ...props
+}) {
+  const [isLoading, setIsLoading] = useState29(false);
+  const [activeLoadingProvider, setActiveLoadingProvider] = useState29(null);
+  const router = useRouter6();
+  const searchParams = useSearchParams();
+  const emailParam = searchParams ? searchParams.get("email") || "" : "";
+  const { setUser, setAccessToken } = useAuthStore((state) => state.auth);
+  const [mounted, setMounted] = useState29(false);
+  const { config } = useEmailSettingsStore();
+  useEffect21(() => {
+    setMounted(true);
+  }, []);
+  const authProviders = config?.authProviders || [];
+  const activeProviders = mounted ? authProviders.filter((p) => p.isEnabled) : [];
+  const renderProviderIcon = (provider) => {
+    if (provider.iconUrl) {
+      return /* @__PURE__ */ jsx141(
+        "img",
+        {
+          src: provider.iconUrl,
+          alt: provider.name,
+          className: "h-4 w-4 object-contain shrink-0 rounded-xs"
+        }
+      );
+    }
+    const lower = provider.name.toLowerCase();
+    if (lower.includes("google")) return /* @__PURE__ */ jsx141(FcGoogle3, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("github")) return /* @__PURE__ */ jsx141(FaGithub3, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("discord")) return /* @__PURE__ */ jsx141(FaDiscord3, { className: "h-4 w-4 shrink-0 text-[#5865F2]" });
+    if (lower.includes("apple")) return /* @__PURE__ */ jsx141(FaApple3, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("slack")) return /* @__PURE__ */ jsx141(FaSlack3, { className: "h-4 w-4 shrink-0" });
+    if (lower.includes("twitter") || lower.includes("x"))
+      return /* @__PURE__ */ jsx141(FaTwitter3, { className: "h-4 w-4 shrink-0 text-[#1DA1F2]" });
+    return /* @__PURE__ */ jsx141(ShieldCheck4, { className: "h-4 w-4 shrink-0 text-sky-500" });
+  };
+  const handleProviderLogin = async (provider) => {
+    const providerPreset = "preset" in provider && provider.preset ? provider.preset : provider.name.toLowerCase();
+    const oauthProvider = providerPreset.includes("github") ? "github" : providerPreset.includes("discord") ? "discord" : providerPreset.includes("apple") ? "apple" : providerPreset.includes("slack") ? "slack" : providerPreset.includes("twitter") ? "twitter" : providerPreset.includes("google") ? "google" : providerPreset;
+    setActiveLoadingProvider(provider.name);
+    try {
+      if (oauthProvider === "github") {
+        const authProviderObj = provider;
+        const clientId = authProviderObj.clientId;
+        const clientSecret = authProviderObj.clientSecret;
+        if (clientId) {
+          if (typeof window !== "undefined" && clientSecret) {
+            document.cookie = `auth_custom_github=${encodeURIComponent(
+              JSON.stringify({ clientId, clientSecret })
+            )}; path=/; max-age=600; SameSite=Lax`;
+          }
+          const redirectUri = `${window.location.origin}/api/auth/callback/github`;
+          const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${encodeURIComponent(
+            clientId
+          )}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user,user:email&state=/`;
+          window.location.href = githubAuthUrl;
+          return;
+        }
+      }
+      if (oauthProvider === "google") {
+        await signIn2("google", {
+          callbackUrl: "/"
+        });
+      } else {
+        await signIn2(oauthProvider, { callbackUrl: "/" });
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : `${provider.name} sign in failed. Please try again.`;
+      console.error(`[SignUp Provider] Error:`, err);
+      toast3.error(message);
+    } finally {
+      setActiveLoadingProvider(null);
+    }
+  };
+  const form = useForm2({
+    resolver: zodResolver2(formSchema2),
+    defaultValues: {
+      email: emailParam,
+      password: "",
+      confirmPassword: ""
+    }
+  });
+  useEffect21(() => {
+    if (emailParam) {
+      form.setValue("email", emailParam);
+    }
+  }, [emailParam, form]);
+  async function onSubmit(data2) {
+    setIsLoading(true);
+    try {
+      const supabase = createClient2();
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data2.email,
+        password: data2.password,
+        options: {
+          data: {
+            name: data2.email.split("@")[0]
+          }
+        }
+      });
+      if (error) {
+        if (error.message?.includes("already registered")) {
+          toast3.error("This email is already registered. Please sign in instead.");
+          router.push(`/sign-in?email=${encodeURIComponent(data2.email)}`);
+          return;
+        }
+        throw error;
+      }
+      const user = authData.user;
+      if (!user) throw new Error("Registration failed.");
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      if (!authData.session) {
+        toast3.info("Verification link sent! Please check your email.");
+        router.replace("/auth/sign-in");
+        return;
+      }
+      setUser({
+        id: user.id,
+        accountNo: user.id,
+        email: user.email,
+        name: user.user_metadata?.name || user.email.split("@")[0],
+        picture: user.user_metadata?.avatar_url || void 0,
+        role: ["user"],
+        exp: Date.now() + 24 * 60 * 60 * 1e3
+      });
+      setAccessToken(authData.session.access_token);
+      router.replace("/");
+      toast3.success(`Account created for ${data2.email}!`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Registration failed. Please try again.";
+      console.error("Signup error:", err);
+      toast3.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+  return /* @__PURE__ */ jsx141(Form, { ...form, children: /* @__PURE__ */ jsxs98(
+    "form",
+    {
+      onSubmit: form.handleSubmit(onSubmit),
+      className: cn("grid gap-3", className),
+      ...props,
+      children: [
+        /* @__PURE__ */ jsx141(
+          FormField,
+          {
+            control: form.control,
+            name: "email",
+            render: ({ field }) => /* @__PURE__ */ jsxs98(FormItem, { children: [
+              /* @__PURE__ */ jsx141(FormLabel, { children: "Email" }),
+              /* @__PURE__ */ jsx141(FormControl, { children: /* @__PURE__ */ jsx141(Input, { placeholder: "name@example.com", ...field }) }),
+              /* @__PURE__ */ jsx141(FormMessage, {})
+            ] })
+          }
+        ),
+        /* @__PURE__ */ jsx141(
+          FormField,
+          {
+            control: form.control,
+            name: "password",
+            render: ({ field }) => /* @__PURE__ */ jsxs98(FormItem, { children: [
+              /* @__PURE__ */ jsx141(FormLabel, { children: "Password" }),
+              /* @__PURE__ */ jsx141(FormControl, { children: /* @__PURE__ */ jsx141(PasswordInput, { placeholder: "********", ...field }) }),
+              /* @__PURE__ */ jsx141(FormMessage, {})
+            ] })
+          }
+        ),
+        /* @__PURE__ */ jsx141(
+          FormField,
+          {
+            control: form.control,
+            name: "confirmPassword",
+            render: ({ field }) => /* @__PURE__ */ jsxs98(FormItem, { children: [
+              /* @__PURE__ */ jsx141(FormLabel, { children: "Confirm Password" }),
+              /* @__PURE__ */ jsx141(FormControl, { children: /* @__PURE__ */ jsx141(PasswordInput, { placeholder: "********", ...field }) }),
+              /* @__PURE__ */ jsx141(FormMessage, {})
+            ] })
+          }
+        ),
+        /* @__PURE__ */ jsxs98(Button, { className: "mt-2", disabled: isLoading || activeLoadingProvider !== null, children: [
+          isLoading ? /* @__PURE__ */ jsx141(Loader24, { className: "animate-spin" }) : /* @__PURE__ */ jsx141(UserPlus2, {}),
+          "Create Account"
+        ] }),
+        /* @__PURE__ */ jsxs98("div", { className: "relative my-2", children: [
+          /* @__PURE__ */ jsx141("div", { className: "absolute inset-0 flex items-center", children: /* @__PURE__ */ jsx141("span", { className: "w-full border-t" }) }),
+          /* @__PURE__ */ jsx141("div", { className: "relative flex justify-center text-xs uppercase", children: /* @__PURE__ */ jsx141("span", { className: "bg-background px-2 text-muted-foreground", children: "Or continue with" }) })
+        ] }),
+        /* @__PURE__ */ jsx141("div", { className: "space-y-2", children: activeProviders.length > 0 ? activeProviders.map((provider) => /* @__PURE__ */ jsxs98(
+          Button,
+          {
+            variant: "outline",
+            type: "button",
+            className: "w-full",
+            disabled: isLoading || activeLoadingProvider !== null,
+            onClick: () => handleProviderLogin(provider),
+            children: [
+              activeLoadingProvider === provider.name ? /* @__PURE__ */ jsx141(Loader24, { className: "h-4 w-4 animate-spin" }) : renderProviderIcon(provider),
+              "Continue with ",
+              provider.name
+            ]
+          },
+          provider.id
+        )) : /* @__PURE__ */ jsxs98(
+          Button,
+          {
+            variant: "outline",
+            type: "button",
+            className: "w-full",
+            disabled: isLoading || activeLoadingProvider !== null,
+            onClick: () => handleProviderLogin({ name: "Google", preset: "google" }),
+            children: [
+              activeLoadingProvider === "Google" ? /* @__PURE__ */ jsx141(Loader24, { className: "h-4 w-4 animate-spin" }) : /* @__PURE__ */ jsx141(FcGoogle3, { className: "h-4 w-4" }),
+              "Continue with Google"
+            ]
+          }
+        ) })
+      ]
+    }
+  ) });
+}
 export {
   Accordion,
   AccordionContent,
@@ -15283,6 +18647,7 @@ export {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
+  EmailSettingsFeature,
   Empty,
   EmptyContent,
   EmptyDescription,
@@ -15449,6 +18814,7 @@ export {
   SidebarSeparator,
   SidebarTrigger,
   SignOutDialog,
+  SignUpForm,
   Skeleton,
   Slider,
   Sonner,
@@ -15483,6 +18849,7 @@ export {
   TooltipTrigger,
   TopNav,
   TypingIndicator,
+  UserAuthForm,
   UserFileCardsView,
   WizardTemplate,
   WorkspaceTemplate,
@@ -15498,6 +18865,7 @@ export {
   statusBadgeVariants,
   tabsListVariants,
   toggleVariants,
+  useEmailSettingsStore,
   useFormField,
   useSidebar
 };

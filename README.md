@@ -225,6 +225,8 @@ export default function SettingsPage() {
 | **Chat** | Custom Supabase Real-time DB | `createClient()` automatically communicates with the user's custom Supabase URL and Publishable/Anon key for real-time messaging, channels, and contacts without any `.env`. |
 | **AI API** | OpenRouter AI Models | Chat calls to `/api/chat` automatically use the user's OpenRouter API key and selected model (`Gemini 2.5 Flash`, `GPT-4o`, `Claude 3.5 Sonnet`, `DeepSeek Chat`, `Llama 3.3 70B`). |
 | **Email** | Custom IMAP/SMTP | Stores custom mail accounts for incoming/outgoing email communication. |
+| **Email Files** | Custom Email Attachment Storage | `getEmailStorageSupabaseClient()` dynamically stores email attachments and files in the user's custom bucket (`email-attachments`) without requiring server environment variables. |
+| **Auth** | NextAuth Provider Manager | Allows adding, configuring, and toggling active/inactive any NextAuth provider (Google, GitHub, Discord, Auth0, Apple, Credentials, Custom OAuth) with custom Icon upload, Client ID, Secret, and credentials. |
 | **Theme** | Look & Feel Customization | Real-time theme presets (`aura-flow`, `cyber-neo`, `midnight-glow`), dark mode, and color themes. |
 
 ### 3. Accessing Settings State Programmatically

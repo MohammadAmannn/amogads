@@ -34,11 +34,15 @@ __export(sdk_exports, {
   QueryBuilder: () => QueryBuilder,
   apiClient: () => apiClient,
   buildSelfContainedShortUrl: () => buildSelfContainedShortUrl,
-  createClient: () => createClient2,
   createQuery: () => createQuery,
   generateShortId: () => generateShortId,
+  getEmailStorageConfig: () => getEmailStorageConfig,
+  getEmailStorageSupabaseClient: () => getEmailStorageSupabaseClient,
   getHeaders: () => getHeaders,
+  getStorageSupabaseClient: () => getStorageSupabaseClient,
+  getStorageSupabaseUrl: () => getStorageSupabaseUrl,
   handleError: () => handleError,
+  sanitizeSupabaseUrl: () => sanitizeSupabaseUrl,
   toBase64Url: () => toBase64Url
 });
 module.exports = __toCommonJS(sdk_exports);
@@ -129,6 +133,9 @@ var import_ssr = require("@supabase/ssr");
 var clientSingleton = null;
 var cachedChatUrl = null;
 var cachedChatKey = null;
+var storageClientSingleton = null;
+var cachedStorageUrl = null;
+var cachedStorageKey = null;
 function sanitizeSupabaseUrl(url) {
   if (!url) return "";
   let cleaned = url.trim();
@@ -174,6 +181,116 @@ function createClient() {
   }
   return clientSingleton;
 }
+function getStorageSupabaseClient() {
+  if (typeof window === "undefined") {
+    return createClient();
+  }
+  try {
+    const raw = localStorage.getItem("email-settings-workspace");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const storageAccounts = parsed?.state?.config?.storageAccounts;
+      const activeAccount = Array.isArray(storageAccounts) ? storageAccounts.find((acc) => acc.isEnabled && acc.supabaseUrl && acc.supabaseAnonKey) : null;
+      if (activeAccount) {
+        const cleanUrl = sanitizeSupabaseUrl(activeAccount.supabaseUrl);
+        const cleanKey = activeAccount.supabaseAnonKey.trim();
+        if (!storageClientSingleton || cachedStorageUrl !== cleanUrl || cachedStorageKey !== cleanKey) {
+          cachedStorageUrl = cleanUrl;
+          cachedStorageKey = cleanKey;
+          storageClientSingleton = (0, import_ssr.createBrowserClient)(cleanUrl, cleanKey);
+        }
+        return storageClientSingleton;
+      }
+      const storage = parsed?.state?.config?.storage;
+      if (storage?.isCustomEnabled && storage?.supabaseUrl && storage?.supabaseAnonKey) {
+        const cleanUrl = sanitizeSupabaseUrl(storage.supabaseUrl);
+        const cleanKey = storage.supabaseAnonKey.trim();
+        if (!storageClientSingleton || cachedStorageUrl !== cleanUrl || cachedStorageKey !== cleanKey) {
+          cachedStorageUrl = cleanUrl;
+          cachedStorageKey = cleanKey;
+          storageClientSingleton = (0, import_ssr.createBrowserClient)(cleanUrl, cleanKey);
+        }
+        return storageClientSingleton;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to read custom storage settings from localStorage:", e);
+  }
+  return createClient();
+}
+function getStorageSupabaseUrl() {
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem("email-settings-workspace");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const storageAccounts = parsed?.state?.config?.storageAccounts;
+        const activeAccount = Array.isArray(storageAccounts) ? storageAccounts.find((acc) => acc.isEnabled && acc.supabaseUrl) : null;
+        if (activeAccount?.supabaseUrl) {
+          return sanitizeSupabaseUrl(activeAccount.supabaseUrl);
+        }
+        const storage = parsed?.state?.config?.storage;
+        if (storage?.isCustomEnabled && storage?.supabaseUrl) {
+          return sanitizeSupabaseUrl(storage.supabaseUrl);
+        }
+      }
+    } catch {
+    }
+  }
+  return sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || "");
+}
+var emailStorageClientSingleton = null;
+var cachedEmailStorageUrl = null;
+var cachedEmailStorageKey = null;
+function getEmailStorageSupabaseClient() {
+  if (typeof window === "undefined") {
+    return createClient();
+  }
+  try {
+    const raw = localStorage.getItem("email-settings-workspace");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const emailFileAccounts = parsed?.state?.config?.emailFileAccounts;
+      const activeAccount = Array.isArray(emailFileAccounts) ? emailFileAccounts.find((acc) => acc.isEnabled && acc.supabaseUrl && acc.supabaseAnonKey) : null;
+      if (activeAccount) {
+        const cleanUrl = sanitizeSupabaseUrl(activeAccount.supabaseUrl);
+        const cleanKey = activeAccount.supabaseAnonKey.trim();
+        if (!emailStorageClientSingleton || cachedEmailStorageUrl !== cleanUrl || cachedEmailStorageKey !== cleanKey) {
+          cachedEmailStorageUrl = cleanUrl;
+          cachedEmailStorageKey = cleanKey;
+          emailStorageClientSingleton = (0, import_ssr.createBrowserClient)(cleanUrl, cleanKey);
+        }
+        return emailStorageClientSingleton;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to read custom email storage settings from localStorage:", e);
+  }
+  return getStorageSupabaseClient();
+}
+function getEmailStorageConfig() {
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem("email-settings-workspace");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const emailFileAccounts = parsed?.state?.config?.emailFileAccounts;
+        const activeAccount = Array.isArray(emailFileAccounts) ? emailFileAccounts.find((acc) => acc.isEnabled && acc.supabaseUrl && acc.supabaseAnonKey) : null;
+        if (activeAccount) {
+          return {
+            bucketName: activeAccount.bucketName || "email-attachments",
+            defaultFolder: activeAccount.defaultFolder || "EmailAttachments"
+          };
+        }
+      }
+    } catch {
+    }
+  }
+  return {
+    bucketName: "email-attachments",
+    defaultFolder: "EmailAttachments"
+  };
+}
 
 // src/stores/auth-store.ts
 var import_zustand = require("zustand");
@@ -207,25 +324,40 @@ var useAuthStore = (0, import_zustand.create)()((set) => {
   let initToken = "";
   if (cookieState) {
     try {
-      initToken = JSON.parse(cookieState);
+      initToken = cookieState.startsWith('"') ? JSON.parse(cookieState) : cookieState;
     } catch {
-      removeCookie(ACCESS_TOKEN);
+      initToken = cookieState;
     }
   }
   const userCookie = getCookie(USER_DATA);
   let initUser = null;
   if (userCookie) {
     try {
-      const parsed = JSON.parse(decodeURIComponent(userCookie));
-      if (parsed.exp && parsed.exp > Date.now()) {
+      let raw = userCookie;
+      if (raw.includes("%")) {
+        try {
+          raw = decodeURIComponent(raw);
+        } catch {
+        }
+      }
+      if (raw.includes("%")) {
+        try {
+          raw = decodeURIComponent(raw);
+        } catch {
+        }
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.exp && parsed.exp > Date.now()) {
+        initUser = parsed;
+      } else if (parsed && !parsed.exp) {
         initUser = parsed;
       } else {
         removeCookie(ACCESS_TOKEN);
         removeCookie(USER_DATA);
       }
-    } catch {
+    } catch (err) {
+      console.warn("Could not parse userCookie in useAuthStore:", err);
       initUser = null;
-      removeCookie(USER_DATA);
     }
   }
   return {
@@ -298,21 +430,32 @@ var authOptions = {
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
+      let effectiveBaseUrl = baseUrl;
+      try {
+        const { headers } = await import("next/headers");
+        const headerList = await headers();
+        const host = headerList.get("x-forwarded-host") || headerList.get("host");
+        const proto = headerList.get("x-forwarded-proto") || "https";
+        if (host) {
+          effectiveBaseUrl = `${proto}://${host}`;
+        }
+      } catch {
+      }
       try {
         const { cookies } = await import("next/headers");
         const cookieStore = await cookies();
         const isMobileAuth = cookieStore.get("mobile_auth")?.value === "true" || url.includes("is_mobile=true");
         if (isMobileAuth) {
           console.log("\u{1F4F1} [NextAuth Redirect Callback] Mobile auth detected. Redirecting to /auth/callback?is_mobile=true");
-          return `${baseUrl}/auth/callback?is_mobile=true&next=/`;
+          return `${effectiveBaseUrl}/auth/callback?is_mobile=true&next=/`;
         }
       } catch (err) {
         console.error("\u274C [NextAuth Redirect Callback] Error inspecting cookies:", err);
       }
       if (url.includes("/auth/callback")) return url;
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
-      else if (new URL(url).origin === baseUrl) return url;
-      return baseUrl;
+      if (url.startsWith("/")) return `${effectiveBaseUrl}${url}`;
+      else if (new URL(url).origin === effectiveBaseUrl || new URL(url).origin === baseUrl) return url;
+      return effectiveBaseUrl;
     },
     async signIn({ user }) {
       if (!user.email) return false;
@@ -495,22 +638,6 @@ var apiClient = {
 
 // src/lib/client.ts
 var import_ssr2 = require("@supabase/ssr");
-var clientSingleton2 = null;
-function createClient2() {
-  if (typeof window === "undefined") {
-    return (0, import_ssr2.createBrowserClient)(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-    );
-  }
-  if (!clientSingleton2) {
-    clientSingleton2 = (0, import_ssr2.createBrowserClient)(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-    );
-  }
-  return clientSingleton2;
-}
 
 // src/lib/short-url-client.ts
 var ID_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -542,11 +669,15 @@ function buildSelfContainedShortUrl(origin, configHash, durationHours) {
   QueryBuilder,
   apiClient,
   buildSelfContainedShortUrl,
-  createClient,
   createQuery,
   generateShortId,
+  getEmailStorageConfig,
+  getEmailStorageSupabaseClient,
   getHeaders,
+  getStorageSupabaseClient,
+  getStorageSupabaseUrl,
   handleError,
+  sanitizeSupabaseUrl,
   toBase64Url
 });
 //# sourceMappingURL=sdk.js.map

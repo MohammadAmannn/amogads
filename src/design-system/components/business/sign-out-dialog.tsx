@@ -33,7 +33,15 @@ export function SignOutDialog({ open, onOpenChange }: SignOutDialogProps) {
 
     try {
       if (typeof window !== 'undefined') {
+        const preservedSettings = localStorage.getItem('email-settings-workspace')
+        const theme = localStorage.getItem('theme')
         localStorage.clear()
+        if (preservedSettings) {
+          localStorage.setItem('email-settings-workspace', preservedSettings)
+        }
+        if (theme) {
+          localStorage.setItem('theme', theme)
+        }
         sessionStorage.clear()
       }
     } catch (e) {

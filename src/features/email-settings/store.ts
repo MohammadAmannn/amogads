@@ -1,6 +1,17 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { EmailSettingsConfig, ProfileConfig, EmailAccount, ThemeConfig, SupabaseStorageConfig, SupabaseAccount, AiAccount, ChatAccount } from './types'
+import {
+  EmailSettingsConfig,
+  ProfileConfig,
+  EmailAccount,
+  ThemeConfig,
+  SupabaseStorageConfig,
+  SupabaseAccount,
+  AiAccount,
+  ChatAccount,
+  EmailFileAccount,
+  AuthProviderConfig
+} from './types'
 
 interface EmailSettingsState {
   config: EmailSettingsConfig
@@ -27,6 +38,16 @@ interface EmailSettingsState {
   addAiAccount: (account: Omit<AiAccount, 'id'>) => void
   updateAiAccount: (id: string, updates: Partial<AiAccount>) => void
   removeAiAccount: (id: string) => void
+
+  // Email Files Storage actions
+  addEmailFileAccount: (account: Omit<EmailFileAccount, 'id'>) => void
+  updateEmailFileAccount: (id: string, updates: Partial<EmailFileAccount>) => void
+  removeEmailFileAccount: (id: string) => void
+
+  // Auth Provider actions
+  addAuthProvider: (provider: Omit<AuthProviderConfig, 'id'>) => void
+  updateAuthProvider: (id: string, updates: Partial<AuthProviderConfig>) => void
+  removeAuthProvider: (id: string) => void
   
   // Theme actions
   updateTheme: (themeUpdates: Partial<ThemeConfig>) => void
@@ -81,6 +102,8 @@ const DEFAULT_CONFIG: EmailSettingsConfig = {
   storageAccounts: [],
   chatAccounts: [],
   aiAccounts: [],
+  emailFileAccounts: [],
+  authProviders: [],
   theme: {
     preset: 'custom',
     appTheme: 'system',
@@ -230,6 +253,70 @@ export const useEmailSettingsStore = create<EmailSettingsState>()(
           config: {
             ...state.config,
             aiAccounts: (state.config.aiAccounts || []).filter((account) => account.id !== id)
+          }
+        })),
+
+      addEmailFileAccount: (newAccount) =>
+        set((state) => {
+          const accountWithId: EmailFileAccount = {
+            ...newAccount,
+            id: `emailfile-${Date.now()}`
+          }
+          return {
+            config: {
+              ...state.config,
+              emailFileAccounts: [...(state.config.emailFileAccounts || []), accountWithId]
+            }
+          }
+        }),
+
+      updateEmailFileAccount: (id, updates) =>
+        set((state) => ({
+          config: {
+            ...state.config,
+            emailFileAccounts: (state.config.emailFileAccounts || []).map((account) =>
+              account.id === id ? { ...account, ...updates } : account
+            )
+          }
+        })),
+
+      removeEmailFileAccount: (id) =>
+        set((state) => ({
+          config: {
+            ...state.config,
+            emailFileAccounts: (state.config.emailFileAccounts || []).filter((account) => account.id !== id)
+          }
+        })),
+
+      addAuthProvider: (newProvider) =>
+        set((state) => {
+          const providerWithId: AuthProviderConfig = {
+            ...newProvider,
+            id: `auth-${Date.now()}`
+          }
+          return {
+            config: {
+              ...state.config,
+              authProviders: [...(state.config.authProviders || []), providerWithId]
+            }
+          }
+        }),
+
+      updateAuthProvider: (id, updates) =>
+        set((state) => ({
+          config: {
+            ...state.config,
+            authProviders: (state.config.authProviders || []).map((provider) =>
+              provider.id === id ? { ...provider, ...updates } : provider
+            )
+          }
+        })),
+
+      removeAuthProvider: (id) =>
+        set((state) => ({
+          config: {
+            ...state.config,
+            authProviders: (state.config.authProviders || []).filter((provider) => provider.id !== id)
           }
         })),
 

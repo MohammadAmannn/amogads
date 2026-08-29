@@ -165,3 +165,84 @@ export function getStorageSupabaseUrl(): string {
   }
   return sanitizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL || '')
 }
+
+
+let emailStorageClientSingleton: ReturnType<typeof createBrowserClient> | null = null
+let cachedEmailStorageUrl: string | null = null
+let cachedEmailStorageKey: string | null = null
+
+/**
+ * Returns the active Supabase client for email files & attachments.
+ * If the user configured and enabled custom Supabase credentials in App Settings (Email Files tab),
+ * this returns a client connected directly to their personal Supabase bucket.
+ * Otherwise, it falls back seamlessly to getStorageSupabaseClient() or default instance.
+ */
+export function getEmailStorageSupabaseClient(): ReturnType<typeof createBrowserClient> {
+  if (typeof window === 'undefined') {
+    return createClient()
+  }
+
+  try {
+    const raw = localStorage.getItem('email-settings-workspace')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      const emailFileAccounts = parsed?.state?.config?.emailFileAccounts
+      const activeAccount = Array.isArray(emailFileAccounts)
+        ? emailFileAccounts.find((acc: any) => acc.isEnabled && acc.supabaseUrl && acc.supabaseAnonKey)
+        : null
+
+      if (activeAccount) {
+        const cleanUrl = sanitizeSupabaseUrl(activeAccount.supabaseUrl)
+        const cleanKey = activeAccount.supabaseAnonKey.trim()
+
+        if (
+          !emailStorageClientSingleton ||
+          cachedEmailStorageUrl !== cleanUrl ||
+          cachedEmailStorageKey !== cleanKey
+        ) {
+          cachedEmailStorageUrl = cleanUrl
+          cachedEmailStorageKey = cleanKey
+          emailStorageClientSingleton = createBrowserClient(cleanUrl, cleanKey)
+        }
+        return emailStorageClientSingleton
+      }
+    }
+  } catch (e) {
+    console.error('Failed to read custom email storage settings from localStorage:', e)
+  }
+
+  return getStorageSupabaseClient()
+}
+
+/**
+ * Returns the active bucket name and default folder configured for email attachments.
+ */
+export function getEmailStorageConfig(): { bucketName: string; defaultFolder: string } {
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('email-settings-workspace')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        const emailFileAccounts = parsed?.state?.config?.emailFileAccounts
+        const activeAccount = Array.isArray(emailFileAccounts)
+          ? emailFileAccounts.find((acc: any) => acc.isEnabled && acc.supabaseUrl && acc.supabaseAnonKey)
+          : null
+
+        if (activeAccount) {
+          return {
+            bucketName: activeAccount.bucketName || 'email-attachments',
+            defaultFolder: activeAccount.defaultFolder || 'EmailAttachments',
+          }
+        }
+      }
+    } catch {
+      // fallback
+    }
+  }
+
+  return {
+    bucketName: 'email-attachments',
+    defaultFolder: 'EmailAttachments',
+  }
+}
+

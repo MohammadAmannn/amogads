@@ -1,6 +1,6 @@
 {
   "name": "@amogads/ui",
-  "version": "1.3.2",
+  "version": "1.3.6",
   "description": "Central Design System for Amoga applications",
   "private": false,
   "main": "./dist/index.js",

@@ -1,11 +1,42 @@
 import { NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { cookies } from 'next/headers'
+import { createServerClient } from '@supabase/ssr'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const isMobile = searchParams.get('is_mobile') === 'true' || searchParams.get('mobile') === 'true'
-  const next = searchParams.get('next') ?? '/'
+  const next = searchParams.get('next') ?? searchParams.get('redirect') ?? '/'
+  const code = searchParams.get('code')
+
+  // Handle Supabase OAuth code exchange if present
+  if (code) {
+    try {
+      const cookieStore = await cookies()
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return cookieStore.getAll()
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              )
+            },
+          },
+        }
+      )
+      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+      if (exchangeError) {
+        console.error('❌ [Auth Callback] Error exchanging code for session:', exchangeError)
+      }
+    } catch (err) {
+      console.error('❌ [Auth Callback] Supabase client error:', err)
+    }
+  }
 
   const error = searchParams.get('error')
   if (error) {
@@ -41,8 +72,8 @@ export async function GET(request: Request) {
     }
 
     const tokenParam = rawToken ? `&token=${encodeURIComponent(rawToken)}` : ''
-    const customScheme = `com.aman.amoganextapp://auth/callback?next=${encodeURIComponent(next)}${tokenParam}`
-    const androidIntent = `intent://auth/callback?next=${encodeURIComponent(next)}${tokenParam}#Intent;scheme=com.aman.amoganextapp;package=com.aman.amoganextapp;end;`
+    const customScheme = `com.aman.amogads://auth/callback?next=${encodeURIComponent(next)}${tokenParam}`
+    const androidIntent = `intent://auth/callback?next=${encodeURIComponent(next)}${tokenParam}#Intent;scheme=com.aman.amogads;package=com.aman.amogads;end;`
 
     const html = `<!DOCTYPE html>
 <html>
@@ -78,7 +109,6 @@ export async function GET(request: Request) {
     })
   }
 
-  const redirectUrl = new URL(next, origin)
-  redirectUrl.searchParams.set('auth', 'success')
+  const redirectUrl = new URL(next.startsWith('/') ? next : `/${next}`, origin)
   return NextResponse.redirect(redirectUrl)
 }

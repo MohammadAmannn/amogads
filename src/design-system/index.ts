@@ -120,3 +120,10 @@ export { TopNav } from './templates/top-nav'
 export { sidebarData } from './templates/data/sidebar-data'
 export type { SidebarData, NavItem, NavGroup as NavGroupType } from './templates/types'
 
+// ── App Settings & Auth Forms ───────────────────────────────────────────────
+export { default as EmailSettingsFeature } from '@/features/email-settings'
+export { useEmailSettingsStore } from '@/features/email-settings/store'
+export * from '@/features/email-settings/types'
+export { UserAuthForm } from '@/features/auth/sign-in/components/user-auth-form'
+export { SignUpForm } from '@/features/auth/sign-up/components/sign-up-form'
+
